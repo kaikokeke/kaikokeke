@@ -1,7 +1,9 @@
 {
   "recommendations": [
-    
     "nrwl.angular-console",
-    "esbenp.prettier-vscode"
+    "esbenp.prettier-vscode",
+    "kisstkondoros.vscode-codemetrics",
+    "rbbit.typescript-hero",
+    "editorconfig.editorconfig"
   ]
 }
