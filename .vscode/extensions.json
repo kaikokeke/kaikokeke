@@ -4,6 +4,7 @@
     "esbenp.prettier-vscode",
     "kisstkondoros.vscode-codemetrics",
     "rbbit.typescript-hero",
-    "editorconfig.editorconfig"
+    "editorconfig.editorconfig",
+    "sonarsource.sonarlint-vscode"
   ]
 }
