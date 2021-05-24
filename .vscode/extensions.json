@@ -2,11 +2,10 @@
   "recommendations": [
     "nrwl.angular-console",
     "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
     "kisstkondoros.vscode-codemetrics",
     "rbbit.typescript-hero",
-    "editorconfig.editorconfig",
     "sonarsource.sonarlint-vscode",
-    "dbaeumer.vscode-eslint",
     "firsttris.vscode-jest-runner"
   ]
 }
