@@ -1,14 +1,14 @@
 {
   "npmScope": "kaikokeke",
   "affected": {
-    "defaultBase": "master"
+    "defaultBase": "main"
   },
   "implicitDependencies": {
     "package.json": {
       "dependencies": "*",
-      "devDependencies": "*"
-    },
-    ".eslintrc.json": "*"
+      "devDependencies": "*",
+      "prettier": "*"
+    }
   },
   "tasksRunnerOptions": {
     "default": {

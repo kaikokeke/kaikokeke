@@ -51,5 +51,9 @@
     "prettier": "2.2.1",
     "ts-node": "~9.1.1",
     "typescript": "~4.2.4"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "printWidth": 120
   }
 }
