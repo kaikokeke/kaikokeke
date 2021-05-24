@@ -21,7 +21,11 @@
       }
     }
   },
-  "projects": {},
+  "projects": {
+    "shared-devtools": {
+      "tags": ["scope:development", "scope:shared", "type:library"]
+    }
+  },
   "workspaceLayout": {
     "appsDir": "packages",
     "libsDir": "packages"

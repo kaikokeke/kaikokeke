@@ -5,6 +5,8 @@
     "kisstkondoros.vscode-codemetrics",
     "rbbit.typescript-hero",
     "editorconfig.editorconfig",
-    "sonarsource.sonarlint-vscode"
+    "sonarsource.sonarlint-vscode",
+    "dbaeumer.vscode-eslint",
+    "firsttris.vscode-jest-runner"
   ]
 }
