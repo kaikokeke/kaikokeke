@@ -6,20 +6,30 @@ AnyMap is a helper class for testing use cases where the value is of type `any`.
 
 ```ts
 import { AnyMap } from '@kaikokeke/devtools';
+import { isFalsy } from './is-falsy';
 
-describe('test', () => {
+describe('isFalsy(any)', () => {
   let anyMap: AnyMap;
 
   beforeEach(() => {
     anyMap = new AnyMap();
   });
 
-  it(`test case`, () => {
+  it(`returns true for falsy values`, () => {
     anyMap
       .includes('falsy')
       .values()
       .forEach((value: any) => {
-        expect(value).toBeFalsy();
+        expect(isFalsy(value)).toEqual(true);
+      });
+  });
+
+  it(`returns false for truthy values`, () => {
+    anyMap
+      .excludes('falsy')
+      .values()
+      .forEach((value: any) => {
+        expect(isFalsy(value)).toEqual(false);
       });
   });
 });
