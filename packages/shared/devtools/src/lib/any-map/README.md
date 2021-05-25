@@ -1,10 +1,8 @@
 # AnyMap
 
-AnyMap is a helper class to test use cases where the value can be an `any` type value.
+AnyMap is a helper class for testing use cases where the value is of type `any`.
 
 ## Usage
-
-First, create an instance of AnyMap.
 
 ```ts
 import { AnyMap } from '@kaikokeke/devtools';
@@ -49,4 +47,3 @@ describe('test', () => {
 - negative
 - falsy
 - nullish
-- empty

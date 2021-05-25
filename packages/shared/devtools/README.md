@@ -10,4 +10,4 @@ yarn add --dev @kaikokeke/devtools
 
 ## Helpers
 
-- AnyMap: a helper class to test use cases where the value can be an `any` type value.
+- **AnyMap**: a helper class for testing use cases where the value is of type `any`.
