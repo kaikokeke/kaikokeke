@@ -2,7 +2,7 @@
 
 The Kaikokeke Devtools library provides helpers for developing and testing with this framework.
 
-## Installation
+## Install
 
 ```bash
 yarn add --dev @kaikokeke/devtools
