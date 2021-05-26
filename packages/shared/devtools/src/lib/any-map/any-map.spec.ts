@@ -32,7 +32,7 @@ describe('AnyMap', () => {
         .excludes('number')
         .excludes('object')
         .values()
-    ).toEqual([false, true, '', undefined]);
+    ).toEqual([false, true, '', BigInt(0), BigInt(-0), undefined]);
   });
 
   it(`excludes(string) returns AnyMap without the full match entries`, () => {
@@ -58,7 +58,7 @@ describe('AnyMap', () => {
         .includes('boolean')
         .excludes(['boolean', RegExp('falsy')])
         .values()
-    ).toEqual([true, new Boolean(false), new Boolean(true)]);
+    ).toEqual([true]);
   });
 
   it(`values() returns AnyMap values`, () => {
