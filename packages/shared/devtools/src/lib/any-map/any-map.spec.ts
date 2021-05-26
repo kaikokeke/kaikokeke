@@ -72,42 +72,4 @@ describe('AnyMap', () => {
   it(`entries() returns the AnyMap entries`, () => {
     expect(test.includes('boolean').includes('falsy').entries()).toEqual([['_primitive_boolean_falsy_', false]]);
   });
-
-  it(`all falsy values are falsy`, () => {
-    test
-      .includes('falsy')
-      .values()
-      .forEach((value: any) => {
-        expect(value).toBeFalsy();
-      });
-    test
-      .excludes('falsy')
-      .values()
-      .forEach((value: any) => {
-        expect(value).toBeTruthy();
-      });
-  });
-
-  it(`all primitive values are not objects`, () => {
-    test
-      .includes('primitive')
-      .excludes('null')
-      .values()
-      .forEach((value: any) => {
-        expect(typeof value).not.toEqual('object');
-      });
-  });
-
-  it(`all object values are objects`, () => {
-    test
-      .includes('object')
-      .values()
-      .forEach((value: any) => {
-        expect(typeof value).toEqual('object');
-      });
-  });
-
-  it(`all object values are objects`, () => {
-    expect(test.includes(['boolean', 'null']).values()).toEqual([false, true, null]);
-  });
 });
