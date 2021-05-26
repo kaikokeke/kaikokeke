@@ -7,16 +7,16 @@ describe('AnyMap', () => {
     test = new AnyMap();
   });
 
-  it(`includes(string) returns AnyMap with the full match entries`, () => {
+  it(`includes(string) returns an AnyMap instance with all entries that match the full string`, () => {
     expect(test.includes('boolean').includes('falsy').values()).toEqual([false]);
     expect(test.includes('bool').values()).toEqual([]);
   });
 
-  it(`includes(RegExp) returns AnyMap with the RegExp match entries`, () => {
+  it(`includes(RegExp) returns an AnyMap instance with all entries that match the regular expression`, () => {
     expect(test.includes(RegExp('bool')).includes(RegExp('pri')).values()).toEqual([false, true]);
   });
 
-  it(`includes((string) => boolean) returns AnyMap with the function match entries`, () => {
+  it(`includes((string) => boolean) returns an AnyMap instance with all entries that match the callback`, () => {
     expect(
       test
         .includes((value) => value.includes('boolean'))
@@ -25,7 +25,7 @@ describe('AnyMap', () => {
     ).toEqual([false]);
   });
 
-  it(`includes(match[]) returns AnyMap with the full match entries as OR, without duplicates`, () => {
+  it(`includes(match[]) returns an AnyMap instance with all entries that match any of the the filters as OR, without duplicates`, () => {
     expect(
       test
         .includes(['boolean', RegExp('falsy')])
@@ -35,15 +35,15 @@ describe('AnyMap', () => {
     ).toEqual([false, true, '', BigInt(0), BigInt(-0), undefined]);
   });
 
-  it(`excludes(string) returns AnyMap without the full match entries`, () => {
+  it(`excludes(string) returns an AnyMap instance without all entries that match the full string`, () => {
     expect(test.includes('boolean').excludes('object').values()).toEqual([false, true]);
   });
 
-  it(`excludes(RegExp) returns AnyMap without the RegExp match entries`, () => {
+  it(`excludes(RegExp) returns an AnyMap instance without all entries that match the regular expression`, () => {
     expect(test.includes(RegExp('bool')).excludes(RegExp('obj')).values()).toEqual([false, true]);
   });
 
-  it(`excludes((string) => boolean) returns AnyMap without the function match entries`, () => {
+  it(`excludes((string) => boolean) returns an AnyMap instance without all entries that match the callback`, () => {
     expect(
       test
         .includes((value) => value.includes('boolean'))
@@ -52,7 +52,7 @@ describe('AnyMap', () => {
     ).toEqual([false, true]);
   });
 
-  it(`excludes(match[]) returns AnyMap with the full match entries as AND`, () => {
+  it(`excludes(match[]) returns an AnyMap instance with all entries that match all filters as AND`, () => {
     expect(
       test
         .includes('boolean')
@@ -61,19 +61,19 @@ describe('AnyMap', () => {
     ).toEqual([true]);
   });
 
-  it(`values() returns AnyMap values`, () => {
+  it(`values() returns the AnyMap values`, () => {
     expect(test.includes('boolean').includes('falsy').values()).toEqual([false]);
   });
 
-  it(`keys() returns AnyMap keys`, () => {
+  it(`keys() returns the AnyMap keys`, () => {
     expect(test.includes('boolean').includes('falsy').keys()).toEqual(['_primitive_boolean_falsy_']);
   });
 
-  it(`entries() returns AnyMap entries`, () => {
+  it(`entries() returns the AnyMap entries`, () => {
     expect(test.includes('boolean').includes('falsy').entries()).toEqual([['_primitive_boolean_falsy_', false]]);
   });
 
-  it(`any falsy values is falsy`, () => {
+  it(`all falsy values are falsy`, () => {
     test
       .includes('falsy')
       .values()
@@ -86,5 +86,28 @@ describe('AnyMap', () => {
       .forEach((value: any) => {
         expect(value).toBeTruthy();
       });
+  });
+
+  it(`all primitive values are not objects`, () => {
+    test
+      .includes('primitive')
+      .excludes('null')
+      .values()
+      .forEach((value: any) => {
+        expect(typeof value).not.toEqual('object');
+      });
+  });
+
+  it(`all object values are objects`, () => {
+    test
+      .includes('object')
+      .values()
+      .forEach((value: any) => {
+        expect(typeof value).toEqual('object');
+      });
+  });
+
+  it(`all object values are objects`, () => {
+    expect(test.includes(['boolean', 'null']).values()).toEqual([false, true, null]);
   });
 });

@@ -2,7 +2,104 @@
 
 AnyMap is a helper class for testing use cases where the value is of type `any`.
 
-## Usage
+The AnyMap type object contains all the standard Javascript data types in an array, allowing filtering them using the keywords exposed at the end of the document as full string search, a regular expressions or a function.
+
+```ts
+import { AnyMap } from '@kaikokeke/devtools';
+
+const anyMap: AnyMap = new AnyMap();
+```
+
+## API
+
+### Exposed Types
+
+#### `FilterAny`
+
+A filter to match a value of type `any` using a full string, a regular expresion or a predicate.
+
+```ts
+export type FilterAny = string | RegExp | ((key: string) => boolean);
+```
+
+### Exposed Methods
+
+#### `values(): any[]`
+
+Returns a new array that contains the values for each element.
+
+```ts
+anyMap.includes('null').values();
+// [null]
+```
+
+#### `keys(): string[]`
+
+Returns a new array that contains the keys for each element.
+
+```ts
+anyMap.includes('null').keys();
+// ['_primitive_object_null_falsy_nullish_']
+```
+
+#### `entries(): [string, any][]`
+
+Returns a new array of entries for each element.
+
+```ts
+anyMap.includes('null').entries();
+// [['_primitive_object_null_falsy_nullish_', null]]
+```
+
+#### `includes(filter: FilterAny | FilterAny[]): AnyMap`
+
+Returns the values of `any` that meet the inclusions of the filter.
+
+```ts
+anyMap.includes('boolean').values();
+// [false, true]
+```
+
+If an array of filters is specified, it will be resolved as an OR.
+All sets that meet any of the conditions will be included, without duplicates.
+
+```ts
+anyMap.includes(['boolean', 'null']).values();
+// [false, true, null]
+```
+
+If multiple includes are chained it will work as filtered using AND.
+
+```ts
+anyMap.includes('boolean').includes('falsy').values();
+// [false]
+```
+
+#### `excludes(filter: FilterAny | FilterAny[]): AnyMap`
+
+Returns the values of `any` that meet the exclusions of the filter.
+
+```ts
+anyMap.excludes('boolean').values();
+// all except [false, true]
+```
+
+If an array of filters is specified, it will be resolved as an AND.
+Sets that meet all the conditions will be excluded.
+
+```ts
+anyMap.excludes(['boolean', 'falsy']).values();
+// all except [false]
+```
+
+If multiple excludes are chained it will work as filtered using OR.
+
+```ts
+anyMap.excludes('boolean').excludes('null').values();
+// all except [false, true, null]
+```
+
+## Example of use
 
 ```ts
 import { AnyMap } from '@kaikokeke/devtools';
@@ -35,7 +132,7 @@ describe('isFalsy(any)', () => {
 });
 ```
 
-## Any keys
+## Any keywords
 
 - primitive
 - object
