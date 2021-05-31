@@ -14,12 +14,12 @@ const anyMap: AnyMap = new AnyMap();
 
 ### Exposed Types
 
-#### `FilterAny`
+#### `AnyMapFilter`
 
 A filter to match a value of type `any` using a full string, a regular expresion or a predicate.
 
 ```ts
-export type FilterAny = string | RegExp | ((key: string) => boolean);
+export type AnyMapFilter = string | RegExp | ((key: string) => boolean);
 ```
 
 ### Exposed Methods

@@ -1,6 +1,6 @@
 # Devtools
 
-The Kaikokeke Devtools library provides helpers for developing and testing with this framework.
+The Devtools library provides helpers for developing and testing the Kaikokeke framework.
 
 ## Install
 
