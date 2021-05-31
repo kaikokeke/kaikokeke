@@ -22,7 +22,7 @@ A filter to match a value of type `any` using a full string, a regular expresion
 export type AnyMapFilter = string | RegExp | ((key: string) => boolean);
 ```
 
-### constructor
+### Constructor
 
 The class allows adding additional key-value arrays ​​in the constructor for data filtering.
 
