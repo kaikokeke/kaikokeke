@@ -2,7 +2,7 @@
 
 AnyMap is a helper class for testing use cases where the value is of type `any`.
 
-The AnyMap type object contains all the standard Javascript data types in an array, allowing filtering them using the keywords exposed at the end of the document as full string search, a regular expressions or a function.
+The AnyMap type object contains all the standard Javascript data types in an array called `ANY_MAP`, allowing filtering them using the keywords exposed at the end of the document as full string search, a regular expressions or a function.
 
 ```ts
 import { AnyMap } from '@kaikokeke/devtools';
@@ -20,6 +20,34 @@ A filter to match a value of type `any` using a full string, a regular expresion
 
 ```ts
 export type AnyMapFilter = string | RegExp | ((key: string) => boolean);
+```
+
+### `constructor`
+
+The class allows adding additional key-value arrays ​​in the constructor for data filtering.
+
+```ts
+constructor(extraValues?: [string, any][]) {}
+```
+
+If a value is found that matches another of `ANY_MAP`, the new key will be added to the original key.
+
+```ts
+const anyMap = new AnyMap();
+anyMap.includes('string').includes('falsy').entries();
+// [['_primitive_string_falsy_iterable_', '']]
+
+const anyMap2 = new AnyMap([['empty', '']]);
+anyMap2.includes('empty').entries();
+// [['_primitive_string_falsy_iterable_empty_', '']]
+```
+
+If no value matches are found, the entries will be added as is.
+
+```ts
+const anyMap = new AnyMap([['empty', 'ccc']]);
+anyMap.includes('empty').entries();
+// [['_empty_', 'ccc']]
 ```
 
 ### Exposed Methods

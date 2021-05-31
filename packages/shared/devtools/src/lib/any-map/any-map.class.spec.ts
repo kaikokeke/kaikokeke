@@ -15,6 +15,20 @@ describe('AnyMap', () => {
     anyMap = new AnyMap();
   });
 
+  it(`constructor() uses the original ANY_MAP`, () => {
+    expect(anyMap.entries()).toEqual(ANY_MAP);
+  });
+
+  it(`constructor(extraValues) adds keys to existing ANY_MAP entries`, () => {
+    anyMap = new AnyMap([['empty', '']]);
+    expect(anyMap.includes('empty').entries()).toEqual([['_primitive_string_falsy_iterable_empty_', '']]);
+  });
+
+  it(`constructor(extraValues) adds new entries to non existing ANY_MAP entries`, () => {
+    anyMap = new AnyMap([['empty', 'ccc']]);
+    expect(anyMap.includes('empty').entries()).toEqual([['_empty_', 'ccc']]);
+  });
+
   it(`values() returns the ANY_MAP values`, () => {
     expect(anyMap.includes('null').values()).toEqual([null]);
   });

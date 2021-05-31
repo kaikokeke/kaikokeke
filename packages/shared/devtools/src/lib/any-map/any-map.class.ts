@@ -7,7 +7,33 @@ import { ANY_MAP } from './any-map.constant';
  * AnyMap is a helper class for testing use cases where the value is of type `any`.
  */
 export class AnyMap {
-  private _anyValues: [string, any][] = ANY_MAP;
+  private _anyValues: [string, any][] = [...ANY_MAP];
+
+  constructor(extraValues?: [string, any][]) {
+    if (extraValues?.length > 0) {
+      this._addExtraValues(extraValues);
+    }
+  }
+
+  private _addExtraValues(extraValues: [string, any][]): void {
+    extraValues.forEach((value: [string, any]) => {
+      const index: number | undefined = this._getValueIndex(value[1]);
+
+      if (index > -1) {
+        this._anyValues[index] = [this._mergeKeys(this._anyValues[index][0], value[0]), this._anyValues[index][1]];
+      } else {
+        this._anyValues.push([this._mergeKeys(value[0]), value[1]]);
+      }
+    });
+  }
+
+  private _getValueIndex(value: any): number | undefined {
+    return this._anyValues.findIndex((_value: [string, any]) => isEqual(_value[1], value));
+  }
+
+  private _mergeKeys(key1: string, key2 = ''): string {
+    return `_${key1}_${key2}_`.replace(new RegExp('__', 'g'), '_');
+  }
 
   /**
    * Returns a new array that contains the values for each element.
