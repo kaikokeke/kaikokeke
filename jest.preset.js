@@ -6,4 +6,5 @@ module.exports = {
     ...nxPreset.moduleNameMapper,
     '^lodash-es$': 'lodash',
   },
+  coverageReporters: [...nxPreset.coverageReporters, 'lcovonly', 'text'],
 };
