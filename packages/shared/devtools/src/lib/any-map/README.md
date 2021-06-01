@@ -14,6 +14,20 @@ const anyMap: AnyMap = new AnyMap();
 
 ### Exposed Types
 
+#### `AnyMapValue`
+
+A tuple with the value keywords and the value.
+
+```ts
+export type AnyMapValue = [string, any];
+```
+
+All keywords must be surrounded by the character `_` to allow searching for complete keyword.
+
+```ts
+const value: AnyMapValue = ['_string_falsy_', ''];
+```
+
 #### `AnyMapFilter`
 
 A filter to match a value of type `any` using a full string, a regular expresion or a predicate.
@@ -27,7 +41,7 @@ export type AnyMapFilter = string | RegExp | ((key: string) => boolean);
 The class allows adding additional key-value arrays ​​in the constructor for data filtering.
 
 ```ts
-constructor(extraValues?: [string, any][]) {}
+constructor(extraValues?: AnyMapValue[]) {}
 ```
 
 If a value is found that matches another of `ANY_MAP`, the new key will be added to the original key.
@@ -37,7 +51,7 @@ const anyMap = new AnyMap();
 anyMap.includes('string').includes('falsy').entries();
 // [['_primitive_string_falsy_iterable_', '']]
 
-const anyMap2 = new AnyMap([['empty', '']]);
+const anyMap2 = new AnyMap([['_string_empty_', '']]);
 anyMap2.includes('empty').entries();
 // [['_primitive_string_falsy_iterable_empty_', '']]
 ```
@@ -45,9 +59,9 @@ anyMap2.includes('empty').entries();
 If no value matches are found, the entries will be added as is.
 
 ```ts
-const anyMap = new AnyMap([['empty', 'ccc']]);
+const anyMap = new AnyMap([['_string_empty_', 'ccc']]);
 anyMap.includes('empty').entries();
-// [['_empty_', 'ccc']]
+// [['_string_empty_', 'ccc']]
 ```
 
 ### Exposed Methods
@@ -70,7 +84,7 @@ anyMap.includes('null').keys();
 // ['_primitive_object_null_falsy_nullish_']
 ```
 
-#### `entries(): [string, any][]`
+#### `entries(): AnyMapValue[]`
 
 Returns a new array of entries for each element.
 
@@ -79,7 +93,7 @@ anyMap.includes('null').entries();
 // [['_primitive_object_null_falsy_nullish_', null]]
 ```
 
-#### `includes(filter: FilterAny | FilterAny[]): AnyMap`
+#### `includes(filter: AnyMapFilter | AnyMapFilter[]): AnyMap`
 
 Returns the values of `any` that meet the inclusions of the filter.
 
@@ -103,7 +117,7 @@ anyMap.includes('boolean').includes('falsy').values();
 // [false]
 ```
 
-#### `excludes(filter: FilterAny | FilterAny[]): AnyMap`
+#### `excludes(filter: AnyMapFilter | AnyMapFilter[]): AnyMap`
 
 Returns the values of `any` that meet the exclusions of the filter.
 

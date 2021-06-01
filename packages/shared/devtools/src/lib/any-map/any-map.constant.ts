@@ -1,8 +1,9 @@
-/* istanbul ignore file */
+import { AnyMapValue } from './any-map-value.type';
 
+/* istanbul ignore file */
 class TestClass {}
 
-const localAnyMap: [string, any][] = [];
+const localAnyMap: AnyMapValue[] = [];
 
 // boolean
 localAnyMap.push(['_primitive_boolean_falsy_', false]);
@@ -102,4 +103,4 @@ localAnyMap.push(['_object_Error_SyntaxError_', new SyntaxError()]);
 localAnyMap.push(['_object_Error_TypeError_', new TypeError()]);
 localAnyMap.push(['_object_Error_URIError_', new URIError()]);
 
-export const ANY_MAP: ReadonlyArray<[string, any]> = localAnyMap;
+export const ANY_MAP: ReadonlyArray<AnyMapValue> = localAnyMap;

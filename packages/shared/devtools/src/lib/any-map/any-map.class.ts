@@ -1,38 +1,50 @@
 import { isEqual, uniqWith } from 'lodash-es';
 
 import { AnyMapFilter } from './any-map-filter.type';
+import { AnyMapValue } from './any-map-value.type';
 import { ANY_MAP } from './any-map.constant';
 
 /**
  * AnyMap is a helper class for testing use cases where the value is of type `any`.
  */
 export class AnyMap {
-  private _anyValues: [string, any][] = [...ANY_MAP];
+  private _anyValues: AnyMapValue[] = [...ANY_MAP];
 
-  constructor(extraValues?: [string, any][]) {
+  /**
+   * AnyMap is a helper class for testing use cases where the value is of type `any`.
+   * @param extraValues Additional AnyMapValue array to merge with `ANY_MAP`.
+   */
+  constructor(extraValues?: AnyMapValue[]) {
     if (extraValues?.length > 0) {
       this._addExtraValues(extraValues);
     }
   }
 
-  private _addExtraValues(extraValues: [string, any][]): void {
-    extraValues.forEach((value: [string, any]) => {
-      const index: number | undefined = this._getValueIndex(value[1]);
+  private _addExtraValues(extraValues: AnyMapValue[]): void {
+    extraValues.forEach((anyMapValue: AnyMapValue) => {
+      const index: number = this._findValueIndex(anyMapValue[1]);
 
       if (index > -1) {
-        this._anyValues[index] = [this._mergeKeys(this._anyValues[index][0], value[0]), this._anyValues[index][1]];
+        this._anyValues[index] = [this._mergeUniqueKeys(this._anyValues[index][0], anyMapValue[0]), anyMapValue[1]];
       } else {
-        this._anyValues.push([this._mergeKeys(value[0]), value[1]]);
+        this._anyValues.push([this._mergeUniqueKeys(anyMapValue[0]), anyMapValue[1]]);
       }
     });
   }
 
-  private _getValueIndex(value: any): number | undefined {
-    return this._anyValues.findIndex((_value: [string, any]) => isEqual(_value[1], value));
+  private _findValueIndex(value: any): number {
+    return this._anyValues.findIndex((anyMapValue: AnyMapValue): boolean => isEqual(anyMapValue[1], value));
   }
 
-  private _mergeKeys(key1: string, key2 = ''): string {
-    return `_${key1}_${key2}_`.replace(new RegExp('__', 'g'), '_');
+  private _mergeUniqueKeys(...keys: any[]): string {
+    return `_${[
+      ...new Set(
+        keys
+          .join('_')
+          .split('_')
+          .filter((key: string): boolean => key !== '')
+      ),
+    ].join('_')}_`;
   }
 
   /**
@@ -40,7 +52,7 @@ export class AnyMap {
    * @returns An array of values.
    */
   values(): any[] {
-    return this._anyValues.map((value: [string, any]) => value[1]);
+    return this._anyValues.map((value: AnyMapValue): any => value[1]);
   }
 
   /**
@@ -48,14 +60,14 @@ export class AnyMap {
    * @returns An array of keys.
    */
   keys(): string[] {
-    return this._anyValues.map((value: [string, any]) => value[0]);
+    return this._anyValues.map((value: AnyMapValue): string => value[0]);
   }
 
   /**
    * Returns a new array of entries for each element.
    * @returns An array of entries.
    */
-  entries(): [string, any][] {
+  entries(): AnyMapValue[] {
     return this._anyValues;
   }
 
@@ -72,8 +84,8 @@ export class AnyMap {
     return this;
   }
 
-  private _includesMultiple(filters: AnyMapFilter[]): [string, any][] {
-    let value: [string, any][] = [];
+  private _includesMultiple(filters: AnyMapFilter[]): AnyMapValue[] {
+    let value: AnyMapValue[] = [];
 
     filters.forEach((match: AnyMapFilter) => {
       value = [...value, ...this._includesSingle(match)];
@@ -82,7 +94,7 @@ export class AnyMap {
     return uniqWith(value, isEqual);
   }
 
-  private _includesSingle(filter: AnyMapFilter, base: [string, any][] = this._anyValues): [string, any][] {
+  private _includesSingle(filter: AnyMapFilter, base: AnyMapValue[] = this._anyValues): AnyMapValue[] {
     if (typeof filter === 'string') {
       return this._includesString(filter, base);
     }
@@ -90,16 +102,16 @@ export class AnyMap {
     return typeof filter === 'function' ? this._includesFunction(filter, base) : this._includesRegexp(filter, base);
   }
 
-  private _includesString(searchString: string, base: [string, any][]): [string, any][] {
-    return base.filter((value: [string, any]): boolean => value[0].includes(`_${searchString}_`));
+  private _includesString(searchString: string, base: AnyMapValue[]): AnyMapValue[] {
+    return base.filter((value: AnyMapValue): boolean => value[0].includes(`_${searchString}_`));
   }
 
-  private _includesRegexp(regexp: RegExp, base: [string, any][]): [string, any][] {
-    return base.filter((value: [string, any]): boolean => regexp.test(value[0]));
+  private _includesRegexp(regexp: RegExp, base: AnyMapValue[]): AnyMapValue[] {
+    return base.filter((value: AnyMapValue): boolean => regexp.test(value[0]));
   }
 
-  private _includesFunction(callback: (key: string) => boolean, base: [string, any][]): [string, any][] {
-    return base.filter((value: [string, any]): boolean => callback(value[0]));
+  private _includesFunction(callback: (key: string) => boolean, base: AnyMapValue[]): AnyMapValue[] {
+    return base.filter((value: AnyMapValue): boolean => callback(value[0]));
   }
 
   /**
@@ -115,19 +127,19 @@ export class AnyMap {
     return this;
   }
 
-  private _excludesMultiple(filters: AnyMapFilter[]): [string, any][] {
-    let values: [string, any][] = this._anyValues;
+  private _excludesMultiple(filters: AnyMapFilter[]): AnyMapValue[] {
+    let values: AnyMapValue[] = this._anyValues;
 
     filters.forEach((match: AnyMapFilter) => {
       values = this._includesSingle(match, values);
     });
 
-    const keys: string[] = values.map((entry: [string, any]): string => entry[0]);
+    const keys: string[] = values.map((entry: AnyMapValue): string => entry[0]);
 
-    return this._anyValues.filter((entry: [string, any]): boolean => !keys.includes(entry[0]));
+    return this._anyValues.filter((entry: AnyMapValue): boolean => !keys.includes(entry[0]));
   }
 
-  private _excludesSingle(filter: AnyMapFilter): [string, any][] {
+  private _excludesSingle(filter: AnyMapFilter): AnyMapValue[] {
     if (typeof filter === 'string') {
       return this._excludesString(filter);
     }
@@ -135,15 +147,15 @@ export class AnyMap {
     return typeof filter === 'function' ? this._excludesFunction(filter) : this._excludesRegexp(filter);
   }
 
-  private _excludesString(searchString: string): [string, any][] {
-    return this._anyValues.filter((value: [string, any]): boolean => !value[0].includes(`_${searchString}_`));
+  private _excludesString(searchString: string): AnyMapValue[] {
+    return this._anyValues.filter((value: AnyMapValue): boolean => !value[0].includes(`_${searchString}_`));
   }
 
-  private _excludesRegexp(regexp: RegExp): [string, any][] {
-    return this._anyValues.filter((value: [string, any]): boolean => !regexp.test(value[0]));
+  private _excludesRegexp(regexp: RegExp): AnyMapValue[] {
+    return this._anyValues.filter((value: AnyMapValue): boolean => !regexp.test(value[0]));
   }
 
-  private _excludesFunction(callback: (key: string) => boolean): [string, any][] {
-    return this._anyValues.filter((value: [string, any]): boolean => !callback(value[0]));
+  private _excludesFunction(callback: (key: string) => boolean): AnyMapValue[] {
+    return this._anyValues.filter((value: AnyMapValue): boolean => !callback(value[0]));
   }
 }
