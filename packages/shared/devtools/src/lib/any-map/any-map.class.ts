@@ -22,18 +22,29 @@ export class AnyMap {
 
   private _addExtraValues(extraValues: AnyMapValue[]): void {
     extraValues.forEach((anyMapValue: AnyMapValue) => {
-      const index: number = this._findValueIndex(anyMapValue[1]);
+      const indexes: number[] = this._findValueIndexes(anyMapValue[1]);
 
-      if (index > -1) {
-        this._anyValues[index] = [this._mergeUniqueKeys(this._anyValues[index][0], anyMapValue[0]), anyMapValue[1]];
+      if (indexes.length > 0) {
+        indexes.forEach((index: number) => {
+          this._anyValues[index] = [this._mergeUniqueKeys(this._anyValues[index][0], anyMapValue[0]), anyMapValue[1]];
+        });
       } else {
         this._anyValues.push([this._mergeUniqueKeys(anyMapValue[0]), anyMapValue[1]]);
       }
     });
   }
 
-  private _findValueIndex(value: any): number {
-    return this._anyValues.findIndex((anyMapValue: AnyMapValue): boolean => isEqual(anyMapValue[1], value));
+  private _findValueIndexes(value: any): number[] {
+    return this._anyValues
+      .filter(
+        (anyMapValue: AnyMapValue): boolean => typeof anyMapValue[1] === typeof value && isEqual(anyMapValue[1], value)
+      )
+      .map((anyMapValue: AnyMapValue): number => this._findKeyIndex(anyMapValue[0]))
+      .filter((index: number) => index > -1);
+  }
+
+  private _findKeyIndex(key: any): number {
+    return this._anyValues.findIndex((anyMapValue: AnyMapValue): boolean => isEqual(anyMapValue[0], key));
   }
 
   private _mergeUniqueKeys(...keys: any[]): string {

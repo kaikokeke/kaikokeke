@@ -1,11 +1,12 @@
+import { AnyMapValue } from './any-map-value.type';
 import { AnyMap } from './any-map.class';
 import { ANY_MAP } from './any-map.constant';
 
 /**
  * All ANY_MAP values except [false, true].
  */
-const values: any[] = ANY_MAP.filter((value: [string, any]) => value[1] !== true && value[1] !== false).map(
-  (value: [string, any]) => value[1]
+const values: any[] = ANY_MAP.filter((value: AnyMapValue) => value[1] !== true && value[1] !== false).map(
+  (value: AnyMapValue) => value[1]
 );
 
 describe('AnyMap', () => {
@@ -21,12 +22,18 @@ describe('AnyMap', () => {
 
   it(`constructor(extraValues) adds keys to existing ANY_MAP entries`, () => {
     anyMap = new AnyMap([['_string_empty_', '']]);
-    expect(anyMap.includes('empty').entries()).toEqual([['_primitive_string_falsy_iterable_empty_', '']]);
+    expect(anyMap.includes('empty').keys()).toEqual(['_primitive_string_falsy_iterable_empty_']);
   });
 
   it(`constructor(extraValues) adds new entries to non existing ANY_MAP entries`, () => {
     anyMap = new AnyMap([['_string_empty_', 'ccc']]);
     expect(anyMap.includes('empty').entries()).toEqual([['_string_empty_', 'ccc']]);
+  });
+
+  it(`constructor(extraValues) works with repeated values, like "0" or "-0"`, () => {
+    const zeroKeys = ANY_MAP.filter((value) => value[1] === 0).map((value) => `${value[0]}zero_`);
+    anyMap = new AnyMap([['_zero_', 0]]);
+    expect(anyMap.includes('zero').keys()).toEqual(zeroKeys);
   });
 
   it(`values() returns the ANY_MAP values`, () => {
@@ -80,7 +87,7 @@ describe('AnyMap', () => {
   });
 
   it(`excludes(filter).excludes(filter) returns an AnyMap instance without all entries that match any of the the filters as OR`, () => {
-    const valuesWithoutNull: any = values.filter((value: [string, any]) => value !== null);
+    const valuesWithoutNull: any = values.filter((value: AnyMapValue) => value !== null);
     expect(anyMap.excludes('boolean').excludes('null').values()).toEqual(valuesWithoutNull);
   });
 });
