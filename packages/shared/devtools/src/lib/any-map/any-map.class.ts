@@ -36,9 +36,8 @@ export class AnyMap {
 
   private _findValueIndexes(value: any): number[] {
     return this._anyValues
-      .filter(
-        (anyMapValue: AnyMapValue): boolean => typeof anyMapValue[1] === typeof value && isEqual(anyMapValue[1], value)
-      )
+      .filter((anyMapValue: AnyMapValue): boolean => isEqual(anyMapValue[1], value))
+      .filter((anyMapValue: AnyMapValue): boolean => typeof anyMapValue[1] === typeof value)
       .map((anyMapValue: AnyMapValue): number => this._findKeyIndex(anyMapValue[0]))
       .filter((index: number) => index > -1);
   }
