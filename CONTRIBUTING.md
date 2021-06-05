@@ -15,7 +15,3 @@ By contributing to Kaikokeke, you agree that your contributions will be licensed
 ## Developer Certificate of Origin
 
 The [Developer Certificate of Origin (DCO)](https://developercertificate.org/) is a lightweight way for contributors to certify that they wrote or otherwise have the right to submit the code they are contributing to the project. **Please, read our [DCO page](https://github.com/kaikokeke/kaikokeke/wiki/Developer-Certificate-of-Origin) carefully before contributing**.
-
-## Attribution
-
-The _Developer's Certificate of Origin 1.1_ is available at https://developercertificate.org/.
