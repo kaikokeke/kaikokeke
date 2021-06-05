@@ -37,7 +37,9 @@
     "dep-graph": "nx dep-graph",
     "help": "nx help",
     "prepare": "husky install",
-    "commit": "cz -s"
+    "commit": "cz -s",
+    "commit:lint": "nx affected:lint --fix",
+    "commit:format": "nx format:write"
   },
   "private": true,
   "dependencies": {
