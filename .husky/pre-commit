@@ -1,5 +1,5 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-yarn format:write
-if [[ $(git rev-parse --abbrev-ref HEAD) = main ]]; then yarn affected:test; fi
+yarn commit:format
+yarn commit:lint
