@@ -212,8 +212,12 @@ describe('isFalsy(any)', () => {
 - Float64Array
 - BigInt64Array
 - BigUint64Array
+- Math
 - ArrayBuffer
+- SharedArrayBuffer
 - DataView
+- Atomics
+- JSON
 - Map
 - Set
 - WeakMap

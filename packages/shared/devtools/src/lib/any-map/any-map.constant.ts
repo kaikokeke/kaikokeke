@@ -6,17 +6,36 @@ class TestClass {}
 const localAnyMap: AnyMapValue[] = [];
 
 // boolean
+// https://tc39.es/ecma262/#sec-ecmascript-language-types-boolean-type
+// https://tc39.es/ecma262/#sec-boolean-objects
 localAnyMap.push(['_primitive_boolean_falsy_', false]);
 localAnyMap.push(['_primitive_boolean_', true]);
 localAnyMap.push(['_object_Boolean_', new Boolean(false)]);
 localAnyMap.push(['_object_Boolean_', new Boolean(true)]);
 
+// undefined
+// https://tc39.es/ecma262/#sec-ecmascript-language-types-undefined-type
+localAnyMap.push(['_primitive_undefined_falsy_nullish_', undefined]);
+
+// null
+// https://tc39.es/ecma262/#sec-ecmascript-language-types-null-type
+localAnyMap.push(['_primitive_object_null_falsy_nullish_', null]);
+
 // string
+// https://tc39.es/ecma262/#sec-ecmascript-language-types-string-type
+// https://tc39.es/ecma262/#sec-string-objects
 localAnyMap.push(['_primitive_string_falsy_iterable_', '']);
 localAnyMap.push(['_primitive_string_iterable_', 'a']);
 localAnyMap.push(['_object_String_iterable_', new String('')]);
 
+// symbol
+// https://tc39.es/ecma262/#sec-ecmascript-language-types-symbol-type
+// https://tc39.es/ecma262/#sec-symbol-objects
+localAnyMap.push(['_primitive_symbol_', Symbol()]);
+
 // number
+// https://tc39.es/ecma262/#sec-ecmascript-language-types-number-type
+// https://tc39.es/ecma262/#sec-number-objects
 localAnyMap.push(['_primitive_number_infinity_', Number.POSITIVE_INFINITY]);
 localAnyMap.push(['_primitive_number_infinity_negative_', Number.NEGATIVE_INFINITY]);
 localAnyMap.push(['_primitive_number_NaN_falsy_', Number.NaN]);
@@ -42,30 +61,33 @@ localAnyMap.push(['_primitive_number_exponent_falsy_negative_', -0e1]);
 localAnyMap.push(['_object_Number_', new Number(0)]);
 
 // bigint
+// https://tc39.es/ecma262/#sec-ecmascript-language-types-bigint-type
+// https://tc39.es/ecma262/#sec-bigint-objects
 localAnyMap.push(['_primitive_bigint_falsy_', BigInt(0)]);
 localAnyMap.push(['_primitive_bigint_falsy_negative_', BigInt(-0)]);
 localAnyMap.push(['_primitive_bigint_', BigInt(1)]);
 localAnyMap.push(['_primitive_bigint_negative_', BigInt(-1)]);
 
-// symbol
-localAnyMap.push(['_primitive_symbol_', Symbol()]);
+// Math
+// https://tc39.es/ecma262/#sec-math-object
+localAnyMap.push(['_object_Math_', Math]);
 
-// void
-localAnyMap.push(['_primitive_object_null_falsy_nullish_', null]);
-localAnyMap.push(['_primitive_undefined_falsy_nullish_', undefined]);
-
-// function
-localAnyMap.push(['_function_', () => null]);
-
-// object
+// Object
+// https://tc39.es/ecma262/#sec-object-objects
 localAnyMap.push(['_object_plainobject_', {}]);
 localAnyMap.push(['_object_plainobject_', Object.create(null)]);
 localAnyMap.push(['_object_', new TestClass()]);
 
-// array
+// function
+// https://tc39.es/ecma262/#sec-function-objects
+localAnyMap.push(['_function_', () => null]);
+
+// Array
+// https://tc39.es/ecma262/#sec-array-objects
 localAnyMap.push(['_object_Array_iterable_', []]);
 
 // TypedArray
+// https://tc39.es/ecma262/#sec-typedarray-objects
 localAnyMap.push(['_object_TypedArray_Int8Array_iterable_', new Int8Array(0)]);
 localAnyMap.push(['_object_TypedArray_Int16Array_iterable_', new Int16Array(0)]);
 localAnyMap.push(['_object_TypedArray_Int32Array_iterable_', new Int32Array(0)]);
@@ -79,22 +101,51 @@ localAnyMap.push(['_object_TypedArray_BigInt64Array_iterable_', new BigInt64Arra
 localAnyMap.push(['_object_TypedArray_BigUint64Array_iterable_', new BigUint64Array(0)]);
 
 // ArrayBuffer
+// https://tc39.es/ecma262/#sec-arraybuffer-objects
 localAnyMap.push(['_object_ArrayBuffer_', new ArrayBuffer(0)]);
+
+// SharedArrayBuffer
+// https://tc39.es/ecma262/#sec-sharedarraybuffer-objects
+localAnyMap.push(['_object_SharedArrayBuffer_', new SharedArrayBuffer(0)]);
+
+// DataView
+// https://tc39.es/ecma262/#sec-dataview-objects
 localAnyMap.push(['_object_DataView_', new DataView(new ArrayBuffer(0))]);
 
-// collections
+// Atomics
+// https://tc39.es/ecma262/#sec-atomics-object
+localAnyMap.push(['_object_Atomics_', Atomics]);
+
+// JSON
+// https://tc39.es/ecma262/#sec-json-object
+localAnyMap.push(['_object_JSON_', JSON]);
+
+// Map
+// https://tc39.es/ecma262/#sec-map-objects
 localAnyMap.push(['_object_Map_iterable_', new Map()]);
+
+// Set
+// https://tc39.es/ecma262/#sec-set-objects
 localAnyMap.push(['_object_Set_iterable_', new Set()]);
+
+// WeakMap
+// https://tc39.es/ecma262/#sec-weakmap-objects
 localAnyMap.push(['_object_WeakMap_', new WeakMap()]);
+
+// WeakSet
+// https://tc39.es/ecma262/#sec-weakset-objects
 localAnyMap.push(['_object_WeakSet_', new WeakSet()]);
 
-// date
+// Date
+// https://tc39.es/ecma262/#sec-date-objects
 localAnyMap.push(['_object_Date_', new Date()]);
 
-// regexp
+// RegExp
+// https://tc39.es/ecma262/#sec-regexp-regular-expression-objects
 localAnyMap.push(['_object_RegExp_', new RegExp('')]);
 
-// error
+// Error
+// https://tc39.es/ecma262/#sec-error-objects
 localAnyMap.push(['_object_Error_', new Error()]);
 localAnyMap.push(['_object_Error_EvalError_', new EvalError()]);
 localAnyMap.push(['_object_Error_RangeError_', new RangeError()]);
