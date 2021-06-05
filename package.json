@@ -37,7 +37,7 @@
     "dep-graph": "nx dep-graph",
     "help": "nx help",
     "prepare": "husky install",
-    "commit": "cz"
+    "commit": "cz -s"
   },
   "private": true,
   "dependencies": {
@@ -90,6 +90,11 @@
           "kaikokeke",
           "devtools"
         ]
+      ],
+      "signed-off-by": [
+        2,
+        "always",
+        "Signed-off-by:"
       ]
     }
   }
