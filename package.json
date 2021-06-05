@@ -28,6 +28,7 @@
     "affected:test": "nx affected:test",
     "affected:lint": "nx affected:lint",
     "affected:dep-graph": "nx affected:dep-graph",
+    "affected:ci:test": "nx affected --target=ci-test",
     "affected": "nx affected",
     "format": "nx format:write",
     "format:write": "nx format:write",

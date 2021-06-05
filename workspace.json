@@ -30,6 +30,12 @@
             "jestConfig": "packages/shared/devtools/jest.config.js",
             "passWithNoTests": true
           }
+        },
+        "ci-test": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [{ "command": "nx test shared-devtools --code-coverage" }]
+          }
         }
       }
     }

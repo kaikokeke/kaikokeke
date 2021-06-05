@@ -22,4 +22,4 @@ jobs:
       - run: yarn install
       - name: Run Affected Tests
         shell: bash
-        run: yarn affected:test -- --base=remotes/origin/main
+        run: yarn affected:ci:test -- --base=remotes/origin/main
