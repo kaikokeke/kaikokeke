@@ -69,6 +69,12 @@ The [commitizen](https://github.com/commitizen/cz-cli) `commit` script signs the
 $ yarn commit
 ```
 
+If you do not want to expose your private email you can use the `noreply` email adress [provided by Github](https://docs.github.com/en/github/setting-up-and-managing-your-github-user-account/managing-email-preferences/setting-your-commit-email-address).
+
+```bash
+$ git config user.email "<username>@users.noreply.github.com"
+```
+
 ## Attribution
 
 The _Developer's Certificate of Origin 1.1_ is available at https://developercertificate.org/.
