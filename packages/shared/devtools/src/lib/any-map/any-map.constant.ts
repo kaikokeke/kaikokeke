@@ -3,6 +3,10 @@ import { AnyMapValue } from './any-map-value.type';
 /* istanbul ignore file */
 class TestClass {}
 
+function TestFunction() {
+  return;
+}
+
 const localAnyMap: AnyMapValue[] = [];
 
 // boolean
@@ -74,13 +78,14 @@ localAnyMap.push(['_object_Math_', Math]);
 
 // Object
 // https://tc39.es/ecma262/#sec-object-objects
-localAnyMap.push(['_object_plainobject_', {}]);
-localAnyMap.push(['_object_plainobject_', Object.create(null)]);
-localAnyMap.push(['_object_', new TestClass()]);
+localAnyMap.push(['_object_plainObject_', {}]);
+localAnyMap.push(['_object_plainObject_', Object.create(null)]);
+localAnyMap.push(['_object_namedObject', new TestClass()]);
 
 // function
 // https://tc39.es/ecma262/#sec-function-objects
-localAnyMap.push(['_function_', () => null]);
+localAnyMap.push(['_function_anonymousFunction_', () => null]);
+localAnyMap.push(['_function_namedFunction_', () => TestFunction]);
 
 // Array
 // https://tc39.es/ecma262/#sec-array-objects
