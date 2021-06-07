@@ -3,7 +3,7 @@ import { AnyMapValue } from './any-map-value.type';
 /* istanbul ignore file */
 class TestClass {}
 
-function TestFunction() {
+function testFunction() {
   return;
 }
 
@@ -46,29 +46,17 @@ localAnyMap.push(['_primitive_number_NaN_falsy_', Number.NaN]);
 localAnyMap.push(['_primitive_number_integer_', Number.MAX_SAFE_INTEGER]);
 localAnyMap.push(['_primitive_number_integer_negative_', Number.MIN_SAFE_INTEGER]);
 localAnyMap.push(['_primitive_number_integer_falsy_', 0]);
-localAnyMap.push(['_primitive_number_integer_falsy_negative_', -0]);
-localAnyMap.push(['_primitive_number_decimal_', Number.MAX_VALUE]);
-localAnyMap.push(['_primitive_number_decimal_negative_', Number.MIN_VALUE]);
-localAnyMap.push(['_primitive_number_decimal_falsy_', 0.0]);
+localAnyMap.push(['_primitive_number_decimal_', 0.1]);
 localAnyMap.push(['_primitive_number_binary_', 0b1]);
-localAnyMap.push(['_primitive_number_binary_falsy_', 0b0]);
-localAnyMap.push(['_primitive_number_binary_falsy_negative_', -0b0]);
 localAnyMap.push(['_primitive_number_octal_', 0o1]);
-localAnyMap.push(['_primitive_number_octal_falsy_', 0o0]);
-localAnyMap.push(['_primitive_number_octal_falsy_negative_', -0o0]);
 localAnyMap.push(['_primitive_number_hexadecimal_', 0x1]);
-localAnyMap.push(['_primitive_number_hexadecimal_falsy_', 0x0]);
-localAnyMap.push(['_primitive_number_hexadecimal_falsy_negative_', -0x0]);
 localAnyMap.push(['_primitive_number_exponent_', 1e1]);
-localAnyMap.push(['_primitive_number_exponent_falsy_', 0e1]);
-localAnyMap.push(['_primitive_number_exponent_falsy_negative_', -0e1]);
 localAnyMap.push(['_object_Number_', new Number(0)]);
 
 // bigint
 // https://tc39.es/ecma262/#sec-ecmascript-language-types-bigint-type
 // https://tc39.es/ecma262/#sec-bigint-objects
 localAnyMap.push(['_primitive_bigint_falsy_', BigInt(0)]);
-localAnyMap.push(['_primitive_bigint_falsy_negative_', BigInt(-0)]);
 localAnyMap.push(['_primitive_bigint_', BigInt(1)]);
 localAnyMap.push(['_primitive_bigint_negative_', BigInt(-1)]);
 
@@ -85,7 +73,7 @@ localAnyMap.push(['_object_namedObject', new TestClass()]);
 // function
 // https://tc39.es/ecma262/#sec-function-objects
 localAnyMap.push(['_function_anonymousFunction_', () => null]);
-localAnyMap.push(['_function_namedFunction_', () => TestFunction]);
+localAnyMap.push(['_function_namedFunction_', testFunction]);
 
 // Array
 // https://tc39.es/ecma262/#sec-array-objects
