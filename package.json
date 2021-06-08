@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "description": "A framework that provides helpers and accelerators for the construction of web apps",
-  "homepage": "https://github.com/RicardoJBarrios/kaikokeke",
-  "bugs": "https://github.com/RicardoJBarrios/kaikokeke/issues",
+  "homepage": "https://github.com/kaikokeke/kaikokeke",
+  "bugs": "https://github.com/kaikokeke/kaikokeke/issues",
   "engines": {
     "node": "^12.20.0 || ^14.0.0",
     "yarn": ">=1.22.4 <2",
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/RicardoJBarrios/kaikokeke.git"
+    "url": "https://github.com/kaikokeke/kaikokeke.git"
   },
   "scripts": {
     "nx": "nx",
@@ -28,7 +28,9 @@
     "affected:test": "nx affected:test",
     "affected:lint": "nx affected:lint",
     "affected:dep-graph": "nx affected:dep-graph",
-    "affected:ci:test": "nx affected --target=ci-test",
+    "affected:ci:test": "nx affected --target=ciTest",
+    "affected:ci:sonar": "nx affected --target=ciSonar",
+    "affected:ci:build": "nx affected --target=ciBuild",
     "affected": "nx affected",
     "format": "nx format:write",
     "format:write": "nx format:write",
@@ -72,6 +74,7 @@
     "jest": "26.2.2",
     "lodash": "4.17.21",
     "prettier": "2.2.1",
+    "sonarqube-scanner": "^2.8.0",
     "ts-jest": "26.5.5",
     "ts-node": "~9.1.1",
     "typescript": "~4.2.4"

@@ -6,6 +6,7 @@ on:
     branches: [main]
 env:
   BEFORE_SHA: ${{ github.event.before }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,3 +26,9 @@ jobs:
       - name: Run Affected Tests
         shell: bash
         run: yarn affected:ci:test --base=$BEFORE_SHA
+      - name: Run Affected Sonar
+        shell: bash
+        run: yarn affected:ci:sonar --base=$BEFORE_SHA
+      - name: Run Affected Build
+        shell: bash
+        run: yarn affected:ci:build --base=$BEFORE_SHA
