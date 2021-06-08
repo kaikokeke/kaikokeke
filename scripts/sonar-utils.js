@@ -1,6 +1,6 @@
 function getOrganization(pjson) {
   const nameArray = pjson.name.split('/');
-  return nameArray[0]?.substring(1) || 'kaikokeke';
+  return nameArray[0].substring(1) || 'kaikokeke';
 }
 
 function getProjectName(pjson) {
