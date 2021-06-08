@@ -9,8 +9,6 @@ function getProjectName(pjson) {
 }
 
 module.exports = function getProjectInfo(path, pjson) {
-  console.log('pjson', path, pjson);
-
   return {
     'sonar.organization': getOrganization(pjson),
     'sonar.projectKey': `${getOrganization(pjson)}:${getProjectName(pjson)}`,
