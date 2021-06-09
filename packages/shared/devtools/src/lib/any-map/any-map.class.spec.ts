@@ -592,7 +592,7 @@ describe('AnyMap', () => {
     });
 
     function isNamedObject(value: any): boolean {
-      return value != null && typeof value === 'object' && value[1]?.constructor.name != null;
+      return value != null && typeof value === 'object' && !isPlainObject(value);
     }
 
     it(`namedObject`, () => {
