@@ -30,6 +30,8 @@ jobs:
       - name: Run Affected Sonar
         shell: bash
         run: yarn affected:ci:sonar --base=$BEFORE_SHA
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
       - name: Run Affected Build
         shell: bash
         run: yarn affected:ci:build --base=$BEFORE_SHA
