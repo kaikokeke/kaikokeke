@@ -35,7 +35,10 @@
           "executor": "@nrwl/workspace:run-commands",
           "options": {
             "color": true,
-            "commands": [{ "command": "nx test shared-devtools --code-coverage" }]
+            "commands": [
+              { "command": "nx test shared-devtools --code-coverage" },
+              { "command": "nx lint shared-devtools --format=json --outputFile=lint/shared-devtools.json" }
+            ]
           }
         },
         "ciSonar": {

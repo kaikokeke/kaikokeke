@@ -1,12 +1,12 @@
 const scanner = require('sonarqube-scanner');
-const pjson = require('../packages/shared/devtools/package.json');
-const getProjectInfo = require('./sonar-utils');
+const packageJson = require('../packages/shared/devtools/package.json');
+const getSonarOptions = require('./sonar-utils');
 
 scanner(
   {
     serverUrl: 'https://sonarcloud.io',
     token: process.env.SONAR_TOKEN,
-    options: getProjectInfo('shared', pjson),
+    options: getSonarOptions('shared', packageJson),
   },
   () => process.exit()
 );
