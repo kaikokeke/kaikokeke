@@ -5,9 +5,8 @@
   "description": "The Devtools library provides helpers for developing and testing the Kaikokeke framework",
   "keywords": [
     "kaikokeke",
-    "javascript",
     "typescript",
-    "testing"
+    "development"
   ],
   "homepage": "https://github.com/kaikokeke/kaikokeke",
   "bugs": "https://github.com/kaikokeke/kaikokeke/issues",
