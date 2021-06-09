@@ -23,7 +23,10 @@
   },
   "projects": {
     "shared-devtools": {
-      "tags": ["scope:development", "scope:shared", "type:library"]
+      "tags": ["scope:devDependencies", "scope:shared", "type:library"]
+    },
+    "shared-common": {
+      "tags": ["scope:dependencies", "scope:shared", "type:library"]
     }
   },
   "workspaceLayout": {

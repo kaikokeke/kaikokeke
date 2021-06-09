@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@kaikokeke/devtools": ["packages/shared/devtools/src/index.ts"]
+      "@kaikokeke/devtools": ["packages/shared/devtools/src/index.ts"],
+      "@kaikokeke/common": ["packages/shared/common/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

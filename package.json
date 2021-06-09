@@ -47,6 +47,7 @@
   "private": true,
   "dependencies": {
     "lodash-es": "4.17.21",
+    "rxjs": "~6.6.0",
     "tslib": "^2.0.0"
   },
   "devDependencies": {
@@ -94,7 +95,8 @@
         "always",
         [
           "kaikokeke",
-          "devtools"
+          "devtools",
+          "common"
         ]
       ],
       "signed-off-by": [

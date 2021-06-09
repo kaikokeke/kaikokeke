@@ -5,8 +5,14 @@ coverage:
       shared-devtools:
         target: 80%
         flags: shared-devtools
+      shared-common:
+        target: 80%
+        flags: shared-common
 
 flags:
   shared-devtools:
     paths:
       - coverage/package/shared/devtools/
+  shared-common:
+    paths:
+      - coverage/package/shared/common/
