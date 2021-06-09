@@ -1,0 +1,12 @@
+coverage:
+  status:
+    project:
+      default: off
+      shared-devtools:
+        target: 80%
+        flags: shared-devtools
+
+flags:
+  shared-devtools:
+    paths:
+      - coverage/package/shared/devtools/
