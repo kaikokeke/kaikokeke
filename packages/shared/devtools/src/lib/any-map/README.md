@@ -38,11 +38,9 @@ export type AnyMapFilter = string | RegExp | ((key: string) => boolean);
 
 ### Constructor
 
-The class allows adding additional key-value arrays ​​in the constructor for data filtering.
+#### `constructor(extraValues?: AnyMapValue[]) {}`
 
-```ts
-constructor(extraValues?: AnyMapValue[]) {}
-```
+The class allows adding additional key-value arrays ​​in the constructor for data filtering.
 
 If a value is found that matches another of `ANY_MAP`, the new key will be added to the original key.
 
