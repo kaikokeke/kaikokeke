@@ -1,1 +1,1 @@
-export * from './lib/shared-common';
+export * from './lib/safe-subscription/index';
