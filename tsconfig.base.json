@@ -16,7 +16,8 @@
     "baseUrl": ".",
     "paths": {
       "@kaikokeke/devtools": ["packages/shared/devtools/src/index.ts"],
-      "@kaikokeke/common": ["packages/shared/common/src/index.ts"]
+      "@kaikokeke/common": ["packages/shared/common/src/index.ts"],
+      "@kaikokeke/common-angular": ["packages/shared/common-angular/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

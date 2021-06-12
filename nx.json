@@ -1,8 +1,4 @@
 {
-  "npmScope": "kaikokeke",
-  "affected": {
-    "defaultBase": "main"
-  },
   "implicitDependencies": {
     "package.json": {
       "dependencies": "*",
@@ -10,6 +6,10 @@
     },
     ".eslintrc.json": "*"
   },
+  "affected": {
+    "defaultBase": "main"
+  },
+  "npmScope": "kaikokeke",
   "tasksRunnerOptions": {
     "default": {
       "runner": "@nrwl/nx-cloud",
@@ -21,16 +21,19 @@
       }
     }
   },
+  "workspaceLayout": {
+    "appsDir": "packages",
+    "libsDir": "packages"
+  },
   "projects": {
     "shared-devtools": {
       "tags": ["scope:devDependencies", "scope:shared", "type:library"]
     },
     "shared-common": {
       "tags": ["scope:dependencies", "scope:shared", "type:library"]
+    },
+    "shared-common-angular": {
+      "tags": []
     }
-  },
-  "workspaceLayout": {
-    "appsDir": "packages",
-    "libsDir": "packages"
   }
 }
