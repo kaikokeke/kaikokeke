@@ -1,6 +1,6 @@
 {
   "name": "@kaikokeke/common-angular",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "license": "MIT",
   "description": "The Common Angular library provides fundamental Kaikokeke Angular framework functionality",
   "keywords": [
