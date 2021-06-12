@@ -1,6 +1,6 @@
 module.exports = function getSonarOptions(domain, pjson) {
-  const organization = pjson.name.includes('@') ? pjson.name?.split('/')[0].substring(1) : 'kaikokeke';
-  const name = pjson.name.includes('@') ? pjson.name?.split('/')[1] : pjson.name;
+  const organization = pjson.name.includes('@') ? pjson.name.split('/')[0].substring(1) : 'kaikokeke';
+  const name = pjson.name.includes('@') ? pjson.name.split('/')[1] : pjson.name;
 
   return {
     'sonar.organization': organization,
@@ -12,8 +12,8 @@ module.exports = function getSonarOptions(domain, pjson) {
     'sonar.projectDescription': pjson.description,
     'sonar.links.homepage': pjson.homepage,
     'sonar.links.issue': pjson.bugs,
-    'sonar.scm.provider': pjson.repository?.type,
-    'sonar.links.scm': pjson.repository?.url,
+    'sonar.scm.provider': pjson.repository ? pjson.repository.type : undefined,
+    'sonar.links.scm': pjson.repository ? pjson.repository.url : undefined,
     'sonar.sourceEncoding': 'UTF-8',
     'sonar.sources': `packages/${domain}/${name}/src`,
     'sonar.exclusions': '**/*.spec.ts,**/*.constant.ts',
