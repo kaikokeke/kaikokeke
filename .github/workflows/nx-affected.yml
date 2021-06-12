@@ -26,12 +26,15 @@ jobs:
       - run: yarn install
       - name: Run Affected Tests
         shell: bash
-        run: yarn affected:ci:test --base=$BEFORE_SHA
+        run: yarn affected --target=ciTest --base=$BEFORE_SHA
       - name: Run Affected Sonar
         shell: bash
-        run: yarn affected:ci:sonar --base=$BEFORE_SHA
+        run: yarn affected --target=ciSonar --base=$BEFORE_SHA
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
+      - name: Run Affected Versioning
+        shell: bash
+        run: yarn affected --target version --base=$BEFORE_SHA
       - name: Run Affected Build
         shell: bash
-        run: yarn affected:ci:build --base=$BEFORE_SHA
+        run: yarn affected --target=ciBuild --base=$BEFORE_SHA
