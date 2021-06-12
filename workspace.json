@@ -79,6 +79,12 @@
               }
             ]
           }
+        },
+        "version": {
+          "executor": "@jscutlery/semver:version",
+          "options": {
+            "syncVersions": false
+          }
         }
       }
     },
@@ -145,6 +151,12 @@
                 "command": "nx build shared-common"
               }
             ]
+          }
+        },
+        "version": {
+          "executor": "@jscutlery/semver:version",
+          "options": {
+            "syncVersions": false
           }
         }
       }
@@ -221,6 +233,12 @@
                 "command": "nx build shared-common-angular --prod"
               }
             ]
+          }
+        },
+        "version": {
+          "executor": "@jscutlery/semver:version",
+          "options": {
+            "syncVersions": false
           }
         }
       }
