@@ -1,40 +1,66 @@
-name: Nx Affected CI
+name: Nx Affected
+
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+
 env:
-  BEFORE_SHA: ${{ github.event.before }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
-  build:
+  setup:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [12.x]
+    name: Install NPM dependecies
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-      - run: git fetch origin main
-      - run: yarn install
-      - name: Run Affected Tests
-        shell: bash
-        run: yarn affected --target=ciTest --base=$BEFORE_SHA
-      - name: Run Affected Sonar
-        shell: bash
-        run: yarn affected --target=ciSonar --base=$BEFORE_SHA
+      - name: Checkout the code
+        uses: actions/checkout@v2
+
+      - name: Install cached dependencies
+        uses: bahmutov/npm-install@v1
+
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+    name: Run tests and linter
+    steps:
+      - name: Test and lint affected libraries
+        run: yarn affected --target=ciTest --base=main --with-deps
+
+  quality:
+    needs: test
+    runs-on: ubuntu-latest
+    name: Run quality tests
+    steps:
+      - name: SonarCloud Analysis
+        run: yarn affected --target=ciSonar --base=main --with-deps
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
-      - name: Run Affected Versioning
-        shell: bash
-        run: yarn affected --target version --base=$BEFORE_SHA
-      - name: Run Affected Build
-        shell: bash
-        run: yarn affected --target=ciBuild --base=$BEFORE_SHA
+
+      - name: Check build works
+        run: yarn affected --target=ciBuild --base=main --with-deps
+
+  build:
+    needs: quality
+    runs-on: ubuntu-latest
+    name: Build and deploy
+    steps:
+      - name: Setup NPM config
+        uses: actions/setup-node@v2
+        with:
+          node-version: '12.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Version affected libraries
+        run: yarn affected --target version --base=main --with-deps
+
+      - name: Build affected libraries
+        run: yarn affected --target=ciBuild --base=main --with-deps
