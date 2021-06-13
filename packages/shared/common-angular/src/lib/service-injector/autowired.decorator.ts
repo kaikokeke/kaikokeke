@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { AbstractType, InjectFlags, InjectionToken, Type } from '@angular/core';
 
 import { serviceInjector } from './service-injector.module';
@@ -10,12 +9,12 @@ import { serviceInjector } from './service-injector.module';
  * @param flags Injection flags for DI.
  * @throws If no ServiceInjectorModule imported, the `notFoundValue` is `undefined` or `Injector.THROW_IF_NOT_FOUND`.
  */
-export function Autowired<T>(
+export function Autowired<O, T>(
   token: Type<T> | InjectionToken<T> | AbstractType<T>,
   notFoundValue?: T,
   flags?: InjectFlags
-): (target: object, propertyKey: string) => void {
-  return (target: object, propertyKey: PropertyKey) => {
+): (target: O, propertyKey: PropertyKey) => void {
+  return (target: O, propertyKey: PropertyKey) => {
     Object.defineProperty(target, propertyKey, {
       writable: false,
       value: serviceInjector(token, notFoundValue, flags),
