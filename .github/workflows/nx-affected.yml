@@ -26,21 +26,13 @@ jobs:
       - name: Install cached dependencies
         uses: bahmutov/npm-install@v1
 
-      - name: Upload setup
-        uses: actions/upload-artifact@v2
-        with:
-          name: setup
-          path: .
-
   test:
     needs: setup
     runs-on: ubuntu-latest
     name: Run tests and linter
     steps:
-      - name: Download setup
-        uses: actions/download-artifact@v2
-        with:
-          name: setup
+      - name: Retieve cached npm
+        uses: bahmutov/npm-install@v1
 
       - name: Test and lint affected libraries
         run: yarn affected --target=ciTest --base=main --with-deps
@@ -49,13 +41,18 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: test
-          path: .
+          path: |
+            coverage/
+            lint/
 
   quality:
     needs: test
     runs-on: ubuntu-latest
     name: Run quality tests
     steps:
+      - name: Retieve cached npm
+        uses: bahmutov/npm-install@v1
+
       - name: Download setup
         uses: actions/download-artifact@v2
         with:
@@ -75,10 +72,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and deploy
     steps:
-      - name: Download setup
-        uses: actions/download-artifact@v2
-        with:
-          name: setup
+      - name: Retieve cached npm
+        uses: bahmutov/npm-install@v1
 
       - name: Setup NPM config
         uses: actions/setup-node@v2
