@@ -7,3 +7,5 @@ The Common library provides fundamental Kaikokeke framework functionality.
 ```bash
 yarn add @kaikokeke/common
 ```
+
+1
