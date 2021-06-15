@@ -80,6 +80,16 @@
             ]
           }
         },
+        "ciDeploy": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              {
+                "command": "npm publish dist/packages/shared/devtools --dry-run"
+              }
+            ]
+          }
+        },
         "version": {
           "executor": "@jscutlery/semver:version",
           "options": {
@@ -149,6 +159,16 @@
             "commands": [
               {
                 "command": "nx build shared-common"
+              }
+            ]
+          }
+        },
+        "ciDeploy": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              {
+                "command": "npm publish dist/packages/shared/common --dry-run"
               }
             ]
           }
@@ -231,6 +251,16 @@
             "commands": [
               {
                 "command": "nx build shared-common-angular --prod"
+              }
+            ]
+          }
+        },
+        "ciDeploy": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              {
+                "command": "npm publish dist/packages/shared/common-angular --dry-run"
               }
             ]
           }
