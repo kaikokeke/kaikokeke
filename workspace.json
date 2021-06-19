@@ -85,7 +85,7 @@
           "options": {
             "commands": [
               {
-                "command": "npm publish dist/packages/shared/devtools --dry-run"
+                "command": "npm publish dist/packages/shared/devtools"
               }
             ]
           }
@@ -168,7 +168,7 @@
           "options": {
             "commands": [
               {
-                "command": "npm publish dist/packages/shared/common --dry-run"
+                "command": "npm publish dist/packages/shared/common"
               }
             ]
           }
@@ -260,7 +260,7 @@
           "options": {
             "commands": [
               {
-                "command": "npm publish dist/packages/shared/common-angular --dry-run"
+                "command": "npm publish dist/packages/shared/common-angular"
               }
             ]
           }

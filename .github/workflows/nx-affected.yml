@@ -59,7 +59,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Version affected libraries
-        run: yarn affected --target version --dry-run --base=$BEFORE_SHA
+        run: yarn affected --target version --base=$BEFORE_SHA
 
       - name: Build affected libraries
         run: yarn affected --target=ciBuild --base=$BEFORE_SHA
