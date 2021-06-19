@@ -35,10 +35,12 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: git config --global user.email "$GIT_USER_EMAIL"
-      - run: git config --global user.name "$GIT_USER_NAME"
-      - run: git fetch origin main
-      - run: yarn install
+      - run: |
+          yarn config set registry https://registry.npmjs.org
+          git config --global user.email "$GIT_USER_EMAIL"
+          git config --global user.name "$GIT_USER_NAME"
+          git fetch origin main
+          yarn install
 
       - name: Test and lint affected libraries
         run: yarn affected --target=ciTest --base=$BEFORE_SHA
@@ -52,17 +54,11 @@ jobs:
       - name: Check build works
         run: yarn affected --target=ciBuild --base=$BEFORE_SHA
 
-      - name: Setup NPM config
-        uses: actions/setup-node@v2
-        with:
-          node-version: '12.x'
-          registry-url: 'https://registry.npmjs.org'
-
       - name: Version affected libraries
-        run: yarn affected --target version --base=$BEFORE_SHA
+        run: yarn affected --target version --push --base=$BEFORE_SHA
 
       - name: Build affected libraries
         run: yarn affected --target=ciBuild --base=$BEFORE_SHA
 
-      - name: Deploy to NPM
+      - name: To NPM
         run: yarn affected --target=ciDeploy --base=$BEFORE_SHA
