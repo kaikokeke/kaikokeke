@@ -3,6 +3,7 @@ import { isEqual, uniqWith } from 'lodash-es';
 import { AnyMapFilter } from './any-map-filter.type';
 import { AnyMapValue } from './any-map-value.type';
 import { ANY_MAP } from './any-map.constant';
+import { sortAnyMapValue } from './sort-any-map-value.function';
 
 /**
  * AnyMap is a helper class for testing use cases where the value is of type `any`.
@@ -26,12 +27,18 @@ export class AnyMap {
 
       if (indexes.length > 0) {
         indexes.forEach((index: number) => {
-          this._anyValues[index] = [this._mergeUniqueKeys(this._anyValues[index][0], anyMapValue[0]), anyMapValue[1]];
+          this._anyValues[index] = [
+            this._mergeUniqueKeys(this._anyValues[index][0], anyMapValue[0]),
+            anyMapValue[1],
+            anyMapValue[2],
+          ];
         });
       } else {
-        this._anyValues.push([this._mergeUniqueKeys(anyMapValue[0]), anyMapValue[1]]);
+        this._anyValues.push([this._mergeUniqueKeys(anyMapValue[0]), anyMapValue[1], anyMapValue[2]]);
       }
     });
+
+    this._anyValues = sortAnyMapValue(this._anyValues);
   }
 
   private _findValueIndexes(value: any): number[] {
@@ -46,15 +53,23 @@ export class AnyMap {
     return this._anyValues.findIndex((anyMapValue: AnyMapValue): boolean => isEqual(anyMapValue[0], key));
   }
 
-  private _mergeUniqueKeys(...keys: any[]): string {
+  private _mergeUniqueKeys(...keys: string[]): string {
     return `_${[
-      ...new Set(
+      ...new Set<string>(
         keys
           .join('_')
           .split('_')
           .filter((key: string): boolean => key !== '')
       ),
     ].join('_')}_`;
+  }
+
+  /**
+   * Returns a new array that contains the keys for each element.
+   * @returns An array of keys.
+   */
+  keys(): string[] {
+    return this._anyValues.map((value: AnyMapValue): string => value[0]);
   }
 
   /**
@@ -66,11 +81,11 @@ export class AnyMap {
   }
 
   /**
-   * Returns a new array that contains the keys for each element.
-   * @returns An array of keys.
+   * Returns a new array that contains the description for each element.
+   * @returns An array of values.
    */
-  keys(): string[] {
-    return this._anyValues.map((value: AnyMapValue): string => value[0]);
+  descriptions(): string[] {
+    return this._anyValues.map((value: AnyMapValue): string => value[2]);
   }
 
   /**
@@ -167,5 +182,28 @@ export class AnyMap {
 
   private _excludesFunction(callback: (key: string) => boolean): AnyMapValue[] {
     return this._anyValues.filter((value: AnyMapValue): boolean => !callback(value[0]));
+  }
+
+  /**
+   * Returns the entries of this object joined with the entries in the provided AnyMap object.
+   *
+   * @param anyMap The AnyMap object with the values to join.
+   * @returns An AnyMap instance with the joined entries.
+   */
+  join(anyMap: AnyMap): AnyMap {
+    this._anyValues = sortAnyMapValue([...this._anyValues, ...anyMap.entries()]);
+    return this;
+  }
+
+  /**
+   * Returns the entries of `any` that are not in the provided AnyMap object.
+   *
+   * @param anyMap The AnyMap object with the values to exclude.
+   * @returns An AnyMap instance without the excluded values.
+   */
+  not(anyMap: AnyMap): AnyMap {
+    const keys: string[] = anyMap.keys();
+    this._anyValues = this._anyValues.filter((value: AnyMapValue): boolean => !keys.includes(value[0]));
+    return this;
   }
 }

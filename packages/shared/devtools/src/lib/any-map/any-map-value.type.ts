@@ -1,8 +1,8 @@
 /**
- * A tuple with the value keywords and the value.
+ * A tuple with the keyword, the value and the description.
  *
  * All keywords must be surrounded by the character `_` to allow searching for complete keyword.
  * @example
- * const value: AnyMapValue = ['_string_falsy_': ''];
+ * const value: AnyMapValue = ['_string_falsy_': '', "string ''"];
  */
-export type AnyMapValue = [string, any];
+export type AnyMapValue = [string, any, string];

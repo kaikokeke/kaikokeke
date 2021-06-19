@@ -1,4 +1,4 @@
-import { isPlainObject, isTypedArray } from 'lodash-es';
+import { isElement, isPlainObject, isTypedArray } from 'lodash-es';
 
 import { AnyMapValue } from './any-map-value.type';
 import { AnyMap } from './any-map.class';
@@ -7,7 +7,7 @@ import { ANY_MAP } from './any-map.constant';
 /**
  * All ANY_MAP values except [false, true].
  */
-const values: any[] = ANY_MAP.filter((value: AnyMapValue) => value[1] !== true && value[1] !== false).map(
+const valuesWithoutBoolean: any[] = ANY_MAP.filter((value: AnyMapValue) => value[1] !== true && value[1] !== false).map(
   (value: AnyMapValue) => value[1]
 );
 
@@ -23,48 +23,53 @@ describe('AnyMap', () => {
   });
 
   it(`constructor(extraValues) adds keys to existing ANY_MAP entries`, () => {
-    anyMap = new AnyMap([['_string_empty_', '']]);
+    anyMap = new AnyMap([['_string_empty_', '', 'string empty']]);
     expect(anyMap.includes('empty').keys()).toEqual(['_primitive_string_falsy_iterable_empty_']);
   });
 
   it(`constructor(extraValues) adds new entries to non existing ANY_MAP entries`, () => {
-    anyMap = new AnyMap([['_string_empty_', 'ccc']]);
-    expect(anyMap.includes('empty').entries()).toEqual([['_string_empty_', 'ccc']]);
+    const value: any = [['_string_empty_', 'ccc', 'string empty']];
+    anyMap = new AnyMap(value);
+    expect(anyMap.includes('empty').entries()).toEqual(value);
   });
 
   it(`constructor(extraValues) works with repeated values, like "0" or "-0"`, () => {
     const zeroKeys = ANY_MAP.filter((value) => value[1] === 0).map((value) => `${value[0]}zero_`);
-    anyMap = new AnyMap([['_zero_', 0]]);
+    anyMap = new AnyMap([['_zero_', 0, 'zero']]);
     expect(anyMap.includes('zero').keys()).toEqual(zeroKeys);
-  });
-
-  it(`values() returns the ANY_MAP values`, () => {
-    expect(anyMap.includes('null').values()).toEqual([null]);
   });
 
   it(`keys() returns the ANY_MAP keys`, () => {
     expect(anyMap.includes('null').keys()).toEqual(['_primitive_object_null_falsy_nullish_']);
   });
 
+  it(`values() returns the ANY_MAP values`, () => {
+    expect(anyMap.includes('null').values()).toEqual([null]);
+  });
+
+  it(`descriptions() returns the ANY_MAP descriptions`, () => {
+    expect(anyMap.includes('null').descriptions()).toEqual(['null']);
+  });
+
   it(`entries() returns the ANY_MAP entries`, () => {
-    expect(anyMap.includes('null').entries()).toEqual([['_primitive_object_null_falsy_nullish_', null]]);
+    expect(anyMap.includes('null').entries()).toEqual([['_primitive_object_null_falsy_nullish_', null, 'null']]);
   });
 
   it(`includes(string) returns an AnyMap instance with all entries that match the full string`, () => {
-    expect(anyMap.includes('boolean').values()).toEqual([false, true]);
+    expect(anyMap.includes('boolean').values()).toEqual([true, false]);
     expect(anyMap.includes('bool').values()).toEqual([]);
   });
 
   it(`includes(RegExp) returns an AnyMap instance with all entries that match the regular expression`, () => {
-    expect(anyMap.includes(RegExp('bool')).values()).toEqual([false, true]);
+    expect(anyMap.includes(RegExp('bool')).values()).toEqual([true, false]);
   });
 
   it(`includes((string) => boolean) returns an AnyMap instance with all entries that match the callback`, () => {
-    expect(anyMap.includes((value) => value.includes('_boolean_')).values()).toEqual([false, true]);
+    expect(anyMap.includes((value) => value.includes('_boolean_')).values()).toEqual([true, false]);
   });
 
   it(`includes(filter[]) returns an AnyMap instance with all entries that match any of the the filters as OR, without duplicates`, () => {
-    expect(anyMap.includes(['boolean', 'null']).values()).toEqual([false, true, null]);
+    expect(anyMap.includes(['boolean', 'null']).values()).toEqual([true, false, null]);
   });
 
   it(`includes(filter).includes(filter) returns an AnyMap instance with all entries that match all the the filters as AND`, () => {
@@ -72,25 +77,41 @@ describe('AnyMap', () => {
   });
 
   it(`excludes(string) returns an AnyMap instance without all entries that match the full string`, () => {
-    expect(anyMap.excludes('boolean').values()).toEqual(values);
+    expect(anyMap.excludes('boolean').values()).toEqual(valuesWithoutBoolean);
   });
 
   it(`excludes(RegExp) returns an AnyMap instance without all entries that match the regular expression`, () => {
-    expect(anyMap.excludes(RegExp('bool')).values()).toEqual(values);
+    expect(anyMap.excludes(RegExp('bool')).values()).toEqual(valuesWithoutBoolean);
   });
 
   it(`excludes((string) => boolean) returns an AnyMap instance without all entries that match the callback`, () => {
-    expect(anyMap.excludes((value) => value.includes('_boolean_')).values()).toEqual(values);
+    expect(anyMap.excludes((value) => value.includes('_boolean_')).values()).toEqual(valuesWithoutBoolean);
   });
 
   it(`excludes(filter[]) returns an AnyMap instance without all entries that match all filters as AND`, () => {
-    const valuesWithTrue: any = [true, ...values];
-    expect(anyMap.excludes(['boolean', 'falsy']).values()).toEqual(valuesWithTrue);
+    const valuesWithoutFalse = ANY_MAP.filter((value) => value[1] !== false).map((value) => value[1]);
+    expect(anyMap.excludes(['boolean', 'falsy']).values()).toEqual(valuesWithoutFalse);
   });
 
   it(`excludes(filter).excludes(filter) returns an AnyMap instance without all entries that match any of the the filters as OR`, () => {
-    const valuesWithoutNull: any = values.filter((value: AnyMapValue) => value !== null);
+    const valuesWithoutNull = valuesWithoutBoolean.filter((value) => value !== null);
     expect(anyMap.excludes('boolean').excludes('null').values()).toEqual(valuesWithoutNull);
+  });
+
+  it(`join(anyMap) returns the entries of this object joined with the entries in the provided AnyMap object`, () => {
+    const anyMap2 = new AnyMap().includes('null');
+    expect(anyMap.includes('boolean').join(anyMap2).values()).toEqual([true, false, null]);
+  });
+
+  it(`join(anyMap) returns the entries without duplicated keys`, () => {
+    const anyMap2 = new AnyMap().includes(['null', 'boolean']);
+    expect(anyMap.includes(['boolean', 'undefined']).join(anyMap2).values()).toEqual([true, false, null, undefined]);
+  });
+
+  it(`not(anyMap) returns the entries of 'any' that are not in the provided AnyMap object`, () => {
+    const anyMap2 = new AnyMap().includes(['boolean', 'null']);
+    const valuesWithoutNull = valuesWithoutBoolean.filter((value) => value !== null);
+    expect(anyMap.not(anyMap2).values()).toEqual(valuesWithoutNull);
   });
 
   describe('check keywords', () => {
@@ -299,6 +320,24 @@ describe('AnyMap', () => {
     });
 
     // decimal
+
+    it(`Element`, () => {
+      anyMap
+        .includes('Element')
+        .values()
+        .forEach((value) => {
+          expect(isElement(value)).toEqual(true);
+        });
+    });
+
+    it(`no Element`, () => {
+      anyMap
+        .excludes('Element')
+        .values()
+        .forEach((value) => {
+          expect(isElement(value)).toEqual(false);
+        });
+    });
 
     it(`Error`, () => {
       anyMap
@@ -1130,10 +1169,6 @@ describe('AnyMap', () => {
           expect(value instanceof WeakSet).toEqual(false);
         });
     });
-  });
-
-  it(`fake test`, () => {
-    expect(true).toEqual(true);
   });
 
   /** 

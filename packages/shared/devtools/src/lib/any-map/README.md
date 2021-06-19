@@ -16,16 +16,16 @@ const anyMap: AnyMap = new AnyMap();
 
 #### `AnyMapValue`
 
-A tuple with the value keywords and the value.
+A tuple with the keyword, the value and the description.
 
 ```ts
-export type AnyMapValue = [string, any];
+export type AnyMapValue = [string, any, string];
 ```
 
 All keywords must be surrounded by the character `_` to allow searching for complete keyword.
 
 ```ts
-const value: AnyMapValue = ['_string_falsy_', ''];
+const value: AnyMapValue = ['_string_falsy_', '', "string ''"];
 ```
 
 #### `AnyMapFilter`
@@ -47,31 +47,22 @@ If a value is found that matches another of `ANY_MAP`, the new key will be added
 ```ts
 const anyMap = new AnyMap();
 anyMap.includes('string').includes('falsy').entries();
-// [['_primitive_string_falsy_iterable_', '']]
+// [['_primitive_string_falsy_iterable_', '', "string ''"]]
 
 const anyMap2 = new AnyMap([['_string_empty_', '']]);
 anyMap2.includes('empty').entries();
-// [['_primitive_string_falsy_iterable_empty_', '']]
+// [['_primitive_string_falsy_iterable_empty_', '', "string ''"]]
 ```
 
 If no value matches are found, the entries will be added as is.
 
 ```ts
-const anyMap = new AnyMap([['_string_empty_', 'ccc']]);
+const anyMap = new AnyMap([['_string_empty_', 'ccc', "string 'ccc'"]]);
 anyMap.includes('empty').entries();
-// [['_string_empty_', 'ccc']]
+// [['_string_empty_', 'ccc', "string 'ccc'"]]
 ```
 
 ### Exposed Methods
-
-#### `values(): any[]`
-
-Returns a new array that contains the values for each element.
-
-```ts
-anyMap.includes('null').values();
-// [null]
-```
 
 #### `keys(): string[]`
 
@@ -82,13 +73,31 @@ anyMap.includes('null').keys();
 // ['_primitive_object_null_falsy_nullish_']
 ```
 
+#### `values(): any[]`
+
+Returns a new array that contains the values for each element.
+
+```ts
+anyMap.includes('null').values();
+// [null]
+```
+
+#### `descriptions(): string[]`
+
+Returns a new array that contains the description for each element.
+
+```ts
+anyMap.includes('null').descriptions();
+// ['null']
+```
+
 #### `entries(): AnyMapValue[]`
 
 Returns a new array of entries for each element.
 
 ```ts
 anyMap.includes('null').entries();
-// [['_primitive_object_null_falsy_nullish_', null]]
+// [['_primitive_object_null_falsy_nullish_', null, 'null']]
 ```
 
 #### `includes(filter: AnyMapFilter | AnyMapFilter[]): AnyMap`
@@ -139,6 +148,26 @@ anyMap.excludes('boolean').excludes('null').values();
 // all except [false, true, null]
 ```
 
+#### `join(anyMap: AnyMap): AnyMap`
+
+Returns the entries of this object joined with the entries in the provided AnyMap object.
+
+```ts
+const anyMap2: AnyMap = new AnyMap().includes('null', 'boolean');
+anyMap.includes('boolean', 'undefined').join(anyMap2).values();
+// [true, false, null, undefined]
+```
+
+#### `not(anyMap: AnyMap): AnyMap`
+
+Returns the values of `any` that are not in the provided AnyMap object.
+
+```ts
+const anyMap2: AnyMap = new AnyMap().includes('null');
+anyMap.not(anyMap2).values();
+// all except [null]
+```
+
 ## Example of use
 
 ```ts
@@ -174,4 +203,4 @@ describe('isFalsy(any)', () => {
 
 ## Keywords
 
-`anonymousFunction`, `Array`, `ArrayBuffer`, `Atomics`, `bigint`, `BigInt64Array`, `BigUint64Array`, `binary`, `boolean`, `Boolean`, `DataView`, `Date`, `decimal`, `Error`, `EvalError`, `exponent`, `falsy`, `Float32Array`, `Float64Array`, `function`, `hexadecimal`, `infinity`, `Int16Array`, `Int32Array`, `Int8Array`, `integer`, `iterable`, `JSON`, `Map`, `Math`, `namedFunction`, `namedObject`, `NaN`, `negative`, `null`, `nullish`, `number`, `Number`, `object`, `octal`, `plainObject`, `primitive`, `RangeError`, `ReferenceError`, `RegExp`, `Set`, `SharedArrayBuffer`, `string`, `String`, `symbol`, `SyntaxError`, `TypedArray`, `TypeError`, `Uint16Array`, `Uint32Array`, `Uint8Array`, `Uint8ClampedArray`, `undefined`, `URIError`, `WeakMap`, `WeakSet`
+`anonymousFunction`, `Array`, `ArrayBuffer`, `Atomics`, `bigint`, `BigInt64Array`, `BigUint64Array`, `binary`, `boolean`, `Boolean`, `DataView`, `Date`, `decimal`, `Element`, `Error`, `EvalError`, `exponent`, `falsy`, `Float32Array`, `Float64Array`, `function`, `hexadecimal`, `infinity`, `Int16Array`, `Int32Array`, `Int8Array`, `integer`, `iterable`, `JSON`, `Map`, `Math`, `namedFunction`, `namedObject`, `NaN`, `negative`, `null`, `nullish`, `number`, `Number`, `object`, `octal`, `plainObject`, `primitive`, `RangeError`, `ReferenceError`, `RegExp`, `Set`, `SharedArrayBuffer`, `string`, `String`, `symbol`, `SyntaxError`, `TypedArray`, `TypeError`, `Uint16Array`, `Uint32Array`, `Uint8Array`, `Uint8ClampedArray`, `undefined`, `URIError`, `WeakMap`, `WeakSet`
