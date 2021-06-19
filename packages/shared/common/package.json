@@ -14,5 +14,9 @@
     "type": "git",
     "url": "https://github.com/kaikokeke/kaikokeke.git"
   },
-  "private": false
+  "private": false,
+  "peerDependencies": {
+    "rxjs": "^6.6.0",
+    "lodash-es": "^4.17.21"
+  }
 }
