@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  BEFORE_SHA: ${{ github.event.before }}
+  BEFORE_SHA: cf1e6fa10d7a9920f8c78c418da91d21f2515003
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
