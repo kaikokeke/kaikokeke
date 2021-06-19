@@ -55,7 +55,7 @@ jobs:
         run: yarn affected --target=ciBuild --base=$BEFORE_SHA
 
       - name: Version affected libraries
-        run: yarn affected --target version --push --base=$BEFORE_SHA
+        run: yarn affected --target version --push --no-verify --base=$BEFORE_SHA
 
       - name: Build affected libraries
         run: yarn affected --target=ciBuild --base=$BEFORE_SHA
