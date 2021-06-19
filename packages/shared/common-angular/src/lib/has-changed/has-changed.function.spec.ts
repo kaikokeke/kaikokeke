@@ -20,8 +20,4 @@ describe('hasChanged(simpleChange)', () => {
     expect(hasChanged(new SimpleChange(a1, b, false))).toEqual(true);
     expect(hasChanged(new SimpleChange(a1, a2, false))).toEqual(false);
   });
-
-  it(`fake test`, () => {
-    expect(true).toEqual(true);
-  });
 });
