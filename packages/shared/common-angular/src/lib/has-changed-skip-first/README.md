@@ -8,6 +8,8 @@ Checks if a SimpleChange has a new value using deep comparison and it's not the 
 
 #### `function hasChangedSkipFirst(simpleChange: SimpleChange): boolean`
 
+Returns true if the values are different and isn't the first change, otherwise false.
+
 ```ts
 import { hasChangedSkipFirst } from '@kaikokeke/common-angular';
 

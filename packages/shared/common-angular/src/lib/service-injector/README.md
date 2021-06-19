@@ -25,9 +25,15 @@ export class AppModule {}
 
 Retrieves an instance from the injector based on the provided token.
 
+```ts
+const service: Service = serviceInjector(Service);
+```
+
 Returns The instance from the injector if defined, otherwise the `notFoundValue`.
 
-Throws if no `ServiceInjectorModule` imported, the `notFoundValue` is `undefined` or `Injector.THROW_IF_NOT_FOUND`.
+Throws when no `ServiceInjectorModule` imported.
+
+Throws when the `notFoundValue` is `undefined` or `Injector.THROW_IF_NOT_FOUND`.
 
 ```ts
 import { ServiceInjector } from '@kaikokeke/common-angular';
@@ -57,7 +63,9 @@ Sets an instance from the injector based on the provided token.
 @Autowired<T>(token: Type<T> | InjectionToken<T> | AbstractType<T>, notFoundValue?: T, flags?: InjectFlags)
 ```
 
-Throws if no `ServiceInjectorModule` imported, the `notFoundValue` is `undefined` or `Injector.THROW_IF_NOT_FOUND`.
+Throws when no `ServiceInjectorModule` imported.
+
+Throws when the `notFoundValue` is `undefined` or `Injector.THROW_IF_NOT_FOUND`.
 
 ```ts
 @Component({ template: '' })

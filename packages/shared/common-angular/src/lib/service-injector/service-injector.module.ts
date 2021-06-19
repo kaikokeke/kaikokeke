@@ -8,7 +8,8 @@ let InternalServiceInjector: Injector;
  * @param notFoundValue Default value if not found.
  * @param flags Injection flags for DI.
  * @returns The instance from the injector if defined, otherwise the `notFoundValue`.
- * @throws If no ServiceInjectorModule imported, the `notFoundValue` is `undefined` or `Injector.THROW_IF_NOT_FOUND`.
+ * @throws When no ServiceInjectorModule imported.
+ * @throws When the `notFoundValue` is `undefined` or `Injector.THROW_IF_NOT_FOUND`.
  */
 export function serviceInjector<T>(
   token: Type<T> | InjectionToken<T> | AbstractType<T>,

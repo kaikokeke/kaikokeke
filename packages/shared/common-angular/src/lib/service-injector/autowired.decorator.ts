@@ -7,7 +7,8 @@ import { serviceInjector } from './service-injector.module';
  * @param token The injector token.
  * @param notFoundValue Default value if not found.
  * @param flags Injection flags for DI.
- * @throws If no ServiceInjectorModule imported, the `notFoundValue` is `undefined` or `Injector.THROW_IF_NOT_FOUND`.
+ * @throws When no ServiceInjectorModule imported.
+ * @throws When the `notFoundValue` is `undefined` or `Injector.THROW_IF_NOT_FOUND`.
  */
 export function Autowired<O, T>(
   token: Type<T> | InjectionToken<T> | AbstractType<T>,

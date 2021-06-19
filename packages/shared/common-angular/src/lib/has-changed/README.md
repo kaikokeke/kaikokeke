@@ -8,6 +8,8 @@ Checks if a SimpleChange has a new value using deep comparison.
 
 #### `function hasChanged(simpleChange: SimpleChange): boolean`
 
+Returns true if the values are different, otherwise false.
+
 ```ts
 import { hasChanged } from '@kaikokeke/common-angular';
 
