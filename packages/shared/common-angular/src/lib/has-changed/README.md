@@ -4,7 +4,9 @@ Checks if a SimpleChange has a new value using deep comparison.
 
 ## API
 
-### `function hasChanged(simpleChange: SimpleChange): boolean`
+### Function
+
+#### `function hasChanged(simpleChange: SimpleChange): boolean`
 
 ```ts
 import { hasChanged } from '@kaikokeke/common-angular';

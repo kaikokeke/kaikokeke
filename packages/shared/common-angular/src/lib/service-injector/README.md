@@ -19,7 +19,9 @@ export class AppModule {}
 
 ## API
 
-### `function serviceInjector<T>(token: Type<T> | InjectionToken<T> | AbstractType<T>, notFoundValue?: T, flags?: InjectFlags): T;`
+### Function
+
+#### `function serviceInjector<T>(token: Type<T> | InjectionToken<T> | AbstractType<T>, notFoundValue?: T, flags?: InjectFlags): T;`
 
 Retrieves an instance from the injector based on the provided token.
 
@@ -45,9 +47,9 @@ function getJson$(): Observable<{ [key: string]: any }> {
 }
 ```
 
-## Decorators
+### Decorators
 
-### @Autowired()
+#### @Autowired()
 
 Sets an instance from the injector based on the provided token.
 

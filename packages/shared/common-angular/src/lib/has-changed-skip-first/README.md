@@ -4,7 +4,9 @@ Checks if a SimpleChange has a new value using deep comparison and it's not the 
 
 ## API
 
-### `function hasChangedSkipFirst(simpleChange: SimpleChange): boolean`
+### Function
+
+#### `function hasChangedSkipFirst(simpleChange: SimpleChange): boolean`
 
 ```ts
 import { hasChangedSkipFirst } from '@kaikokeke/common-angular';
