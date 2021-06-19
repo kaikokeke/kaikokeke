@@ -148,8 +148,4 @@ describe('SafeSubscription', () => {
     safeSubscription.unsubscribe(key);
     expect(map.delete).not.toHaveBeenCalled();
   });
-
-  it(`fake test`, () => {
-    expect(true).toEqual(true);
-  });
 });
