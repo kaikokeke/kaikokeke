@@ -41,8 +41,8 @@ jobs:
           git config --global user.name "$GIT_USER_NAME"
           git fetch origin main
           yarn install
-          chmod +x ./husky/commit-msg
-          chmod +x ./husky/pre-commit
+          chmod +x ./.husky/commit-msg
+          chmod +x ./.husky/pre-commit
 
       - name: Test and lint affected libraries
         run: yarn affected --target=ciTest --base=$BEFORE_SHA
