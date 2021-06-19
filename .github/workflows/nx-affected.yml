@@ -7,6 +7,7 @@ on:
     branches: [main]
 
 env:
+  BASE: remotes/origin/main
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -27,25 +28,16 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - name: Test and lint affected libraries
-        uses: MansaGroup/nrwl-nx-action@v2.0.4
-        with:
-          targets: ciTest
-          affected: 'true'
+        run: yarn affected --target=ciTest --base=$BASE
 
       - name: SonarCloud Analysis
-        uses: MansaGroup/nrwl-nx-action@v2.0.4
-        with:
-          targets: ciSonar
-          affected: 'true'
+        run: yarn affected --target=ciSonar --base=$BASE
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
 
       - name: Check build works
-        uses: MansaGroup/nrwl-nx-action@v2.0.4
-        with:
-          targets: ciBuild
-          affected: 'true'
+        run: yarn affected --target=ciBuild --base=$BASE
 
       - name: Setup NPM config
         uses: actions/setup-node@v2
@@ -54,19 +46,10 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Version affected libraries
-        uses: MansaGroup/nrwl-nx-action@v2.0.4
-        with:
-          targets: version
-          affected: 'true'
+        run: yarn affected --target version --base=$BASE
 
       - name: Build affected libraries
-        uses: MansaGroup/nrwl-nx-action@v2.0.4
-        with:
-          targets: ciBuild
-          affected: 'true'
+        run: yarn affected --target=ciBuild --base=$BASE
 
       - name: Deploy to NPM
-        uses: MansaGroup/nrwl-nx-action@v2.0.4
-        with:
-          targets: ciDeploy
-          affected: 'true'
+        run: yarn affected --target=ciDeploy --base=$BASE
