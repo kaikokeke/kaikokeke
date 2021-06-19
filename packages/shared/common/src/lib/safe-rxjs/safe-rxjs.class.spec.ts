@@ -79,4 +79,8 @@ describe('SafeRxJS', () => {
     expect(safeRxJS.safeSubscription.unsubscribe).toHaveBeenCalledTimes(1);
     expect(safeRxJS.safeSubscription.unsubscribe).toHaveBeenCalledWith();
   });
+
+  it(`fake test`, () => {
+    expect(true).toEqual(true);
+  });
 });
