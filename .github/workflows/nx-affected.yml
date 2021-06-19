@@ -27,13 +27,13 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - name: Test and lint affected libraries
-        uses: mansagroup/nrwl-nx-action@v2
+        uses: MansaGroup/nrwl-nx-action@v2.0.4
         with:
           targets: ciTest
           affected: 'true'
 
       - name: SonarCloud Analysis
-        uses: mansagroup/nrwl-nx-action@v2
+        uses: MansaGroup/nrwl-nx-action@v2.0.4
         with:
           targets: ciSonar
           affected: 'true'
@@ -42,7 +42,7 @@ jobs:
         uses: codecov/codecov-action@v1
 
       - name: Check build works
-        uses: mansagroup/nrwl-nx-action@v2
+        uses: MansaGroup/nrwl-nx-action@v2.0.4
         with:
           targets: ciBuild
           affected: 'true'
@@ -54,19 +54,19 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Version affected libraries
-        uses: mansagroup/nrwl-nx-action@v2
+        uses: MansaGroup/nrwl-nx-action@v2.0.4
         with:
           targets: version
           affected: 'true'
 
       - name: Build affected libraries
-        uses: mansagroup/nrwl-nx-action@v2
+        uses: MansaGroup/nrwl-nx-action@v2.0.4
         with:
           targets: ciBuild
           affected: 'true'
 
       - name: Deploy to NPM
-        uses: mansagroup/nrwl-nx-action@v2
+        uses: MansaGroup/nrwl-nx-action@v2.0.4
         with:
           targets: ciDeploy
           affected: 'true'
