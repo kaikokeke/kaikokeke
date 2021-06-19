@@ -8,6 +8,8 @@ on:
 
 env:
   BEFORE_SHA: ${{ github.event.before }}
+  GIT_USER_NAME: ${{ secrets.GIT_USER_NAME }}
+  GIT_USER_EMAIL: ${{ secrets.GIT_USER_EMAIL }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -33,6 +35,8 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+      - run: git config --global user.email "$GIT_USER_EMAIL"
+      - run: git config --global user.name "$GIT_USER_NAME"
       - run: git fetch origin main
       - run: yarn install
 
@@ -55,7 +59,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Version affected libraries
-        run: yarn affected --target version --base=$BEFORE_SHA
+        run: yarn affected --target version --dry-run --base=$BEFORE_SHA
 
       - name: Build affected libraries
         run: yarn affected --target=ciBuild --base=$BEFORE_SHA
