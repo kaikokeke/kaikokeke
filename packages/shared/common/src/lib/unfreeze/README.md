@@ -19,7 +19,7 @@ BigInt64Array and BigUint64Array are cloned as plain objects due to limitations 
 Returns an Observable that emits the unfreezed values from the source Observable.
 
 ```ts
-const mutable$ = observable$.pipe(unfreeze());
+const mutable$: Observable<any> = observable$.pipe(unfreeze());
 ```
 
 ## Example of use
@@ -28,12 +28,12 @@ const mutable$ = observable$.pipe(unfreeze());
 import { unfreeze } from '@kaikokeke/common';
 import { of } from 'rxjs';
 
-const obj = Object.freeze({ a: 0, b: Object.freeze({ b: 0 }) });
+const obj: { [key: string]: any } = Object.freeze({ a: 0, b: Object.freeze({ b: 0 }) });
 
 of(obj)
   .pipe(unfreeze())
   .subscribe({
-    next: (value) => {
+    next: (value: { [key: string]: any }) => {
       value.a = 1;
       value.b.b = 1;
       // { a: 1, b: { b: 1 } }

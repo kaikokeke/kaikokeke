@@ -6,6 +6,8 @@ Manages safe RxJS subscriptions.
 const safeRxJS: SafeRxJS = new SafeRxJS();
 ```
 
+This class is intended to avoid memory leaks and race conditions when using Observable subscriptions.
+
 ## API
 
 ### Exposed Properties
@@ -23,7 +25,7 @@ See [SafeSubscription](../safe-subscription/README.md).
 Emits only the first value emitted by the source Observable or until the `onDestroy` method is executed.
 
 ```ts
-const first$: Observable<any> = observable$.pipe(safeRxJS.takeOne());
+const first$: Observable<any> = observable$.pipe(safeRxJS.takeOne()).subscribe();
 ```
 
 ```ts
@@ -43,18 +45,18 @@ subscribe    '-----|   '
 Emits only the first `count` values emitted by the source Observable or until the `onDestroy` method is executed.
 
 ```ts
-const three$: Observable<any> = observable$.pipe(safeRxJS.takeCount(3)).subscribe();
+const two$: Observable<any> = observable$.pipe(safeRxJS.takeCount(2)).subscribe();
 ```
 
 ```ts
 onDestroy()  '-------(x|)'
-three$       '-x-x-x-----'
+two$         '-x-x----x--'
 subscribe    '-x-(x|)    '
 ```
 
 ```ts
 onDestroy()  '-------(x|)'
-three$       '--x------x-'
+two$         '--x------x-'
 subscribe    '--x----|   '
 ```
 
@@ -63,7 +65,7 @@ subscribe    '--x----|   '
 Emits the values emitted by the source Observable until the `onDestroy` method is executed.
 
 ```ts
-const destroy$: Observable<any> = observable$.pipe(safeRxJS.takeUntilDestroy());
+const destroy$: Observable<any> = observable$.pipe(safeRxJS.takeUntilDestroy()).subscribe();
 ```
 
 ```ts
@@ -84,14 +86,24 @@ safeRxJS.onDestroy();
 
 ```ts
 import { HttpClient } from '@angular/common/http';
+import { OnDestroy, OnInit } from '@angular/core';
 import { SafeRxJS, SubscriptionFn } from '@kaikokeke/common';
 import { fromEvent, Observable } from 'rxjs';
 
-class TestClass implements OnDestroy {
+class TestClass implements OnInit, OnDestroy {
   readonly safeRxJS: SafeRxJS = new SafeRxJS();
-  readonly click$: Observable<Event> = fromEvent(document, 'click').pipe(safeRxJS.takeUntilDestroy());
 
   constructor(protected readonly http: HttpClient) {}
+
+  ngOnInit(): void {
+    fromEvent(document, 'click')
+      .pipe(safeRxJS.takeUntilDestroy())
+      .subscribe({
+        next: (value: Event) => {
+          // do something
+        },
+      });
+  }
 
   load(options: any): void {
     const loadFn: SubscriptionFn = () =>

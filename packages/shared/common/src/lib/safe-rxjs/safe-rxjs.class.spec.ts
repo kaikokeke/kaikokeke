@@ -1,4 +1,4 @@
-import { cases, marbles } from 'rxjs-marbles/jest';
+import { marbles } from 'rxjs-marbles/jest';
 
 import { SafeSubscription } from '../safe-subscription';
 import { SafeRxJS } from './safe-rxjs.class';
@@ -10,58 +10,51 @@ describe('SafeRxJS', () => {
     safeRxJS = new SafeRxJS();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it(`safeSubscription is a SafeSubscription`, () => {
     expect(safeRxJS.safeSubscription).toBeInstanceOf(SafeSubscription);
   });
 
-  cases(
-    `takeOne()`,
-    (m, c) => {
+  it(
+    `takeOne() unsubscribes on first emit`,
+    marbles((m) => {
       (safeRxJS as any)['_onDestroy$'] = m.cold('-----x');
-      const source = m.cold(c.source);
-      const destination = source.pipe(safeRxJS['takeOne']());
-      m.expect(destination).toBeObservable(c.expected);
-    },
-    {
-      'unsubscribes on first emit': {
-        source: '---x---x-',
-        expected: '---(x|)',
-      },
-      'unsubscribes on _onDestroy$ emit': {
-        source: '-------x-',
-        expected: '-----|',
-      },
-    }
+      m.expect(m.cold('---x---x-').pipe(safeRxJS.takeOne())).toBeObservable('---(x|)');
+    })
   );
 
-  cases(
-    `takeCount(count)`,
-    (m, c) => {
+  it(
+    `takeOne() unsubscribes on _onDestroy$ emit`,
+    marbles((m) => {
+      (safeRxJS as any)['_onDestroy$'] = m.cold('-----x');
+      m.expect(m.cold('-------x-').pipe(safeRxJS.takeOne())).toBeObservable('-----|');
+    })
+  );
+
+  it(
+    `takeCount(count) unsubscribes on count emits`,
+    marbles((m) => {
       (safeRxJS as any)['_onDestroy$'] = m.cold('-------x');
-      const source = m.cold(c.source);
-      const destination = source.pipe(safeRxJS['takeCount'](2));
-      m.expect(destination).toBeObservable(c.expected);
-    },
-    {
-      'unsubscribes after count emits': {
-        source: '-x-x-x-',
-        expected: '-x-(x|)',
-      },
-      'unsubscribes on _onDestroy$ emit': {
-        source: '--x------x-',
-        expected: '--x----|',
-      },
-    }
+      m.expect(m.cold('-x-x-x-').pipe(safeRxJS.takeCount(2))).toBeObservable('-x-(x|)');
+    })
+  );
+
+  it(
+    `takeCount(count) unsubscribes on _onDestroy$ emit`,
+    marbles((m) => {
+      (safeRxJS as any)['_onDestroy$'] = m.cold('-------x');
+      m.expect(m.cold('--x------x-').pipe(safeRxJS.takeCount(2))).toBeObservable('--x----|');
+    })
   );
 
   it(
     `takeUntilDestroy() unsubscribes on _onDestroy$ emit`,
     marbles((m) => {
       (safeRxJS as any)['_onDestroy$'] = m.cold('---------x');
-      const source = m.cold('-x-x-x-x-x-');
-      const expected = '-x-x-x-x-|';
-      const destination = source.pipe(safeRxJS['takeUntilDestroy']());
-      m.expect(destination).toBeObservable(expected);
+      m.expect(m.cold('-x-x-x-x-x-').pipe(safeRxJS.takeUntilDestroy())).toBeObservable('-x-x-x-x-|');
     })
   );
 

@@ -5,6 +5,8 @@ import { SafeSubscription } from '../safe-subscription';
 
 /**
  * Manages safe RxJS subscriptions.
+ *
+ * This class is intended to avoid memory leaks and race conditions when using Observable subscriptions.
  */
 export class SafeRxJS {
   private readonly _onDestroy$: Subject<void> = new Subject();

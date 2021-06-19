@@ -13,7 +13,7 @@ import { map } from 'rxjs/operators';
  * Atomics object, Math object, WeakSets, WeakMaps and SharedArrayBuffers.
  * BigInt64Array and BigUint64Array are cloned as plain objects due to limitations of Lodash.
  * @returns An Observable that emits the unfreezed values from the source Observable.
- * @owner Observable
+ * @see Observable
  */
 export function unfreeze<T>(): MonoTypeOperatorFunction<T> {
   return (source: Observable<T>): Observable<T> =>
