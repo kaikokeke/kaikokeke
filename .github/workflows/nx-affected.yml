@@ -28,16 +28,16 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - name: Test and lint affected libraries
-        run: yarn affected --target=ciTest --base=$BEFORE_SHA
+        run: yarn affected --target=ciTest --base=main --head=$BEFORE_SHA
 
       - name: SonarCloud Analysis
-        run: yarn affected --target=ciSonar --base=$BEFORE_SHA
+        run: yarn affected --target=ciSonar --base=main --head=$BEFORE_SHA
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
 
       - name: Check build works
-        run: yarn affected --target=ciBuild --base=$BEFORE_SHA
+        run: yarn affected --target=ciBuild --base=main --head=$BEFORE_SHA
 
       - name: Setup NPM config
         uses: actions/setup-node@v2
@@ -46,10 +46,10 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Version affected libraries
-        run: yarn affected --target version --base=$BEFORE_SHA
+        run: yarn affected --target version --base=main --head=$BEFORE_SHA
 
       - name: Build affected libraries
-        run: yarn affected --target=ciBuild --base=$BEFORE_SHA
+        run: yarn affected --target=ciBuild --base=main --head=$BEFORE_SHA
 
       - name: Deploy to NPM
-        run: yarn affected --target=ciDeploy --base=$BEFORE_SHA
+        run: yarn affected --target=ciDeploy --base=main --head=$BEFORE_SHA
