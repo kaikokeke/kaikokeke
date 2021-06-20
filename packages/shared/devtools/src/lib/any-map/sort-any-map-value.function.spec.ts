@@ -1,7 +1,7 @@
 import { AnyMapValue } from './any-map-value.type';
 import { sortAnyMapValue } from './sort-any-map-value.function';
 
-const anyMap: AnyMapValue[] = [
+const anyMapValues: AnyMapValue[] = [
   ['a', 'a', 'a'],
   ['c', 'c', 'c'],
   ['a', 'b', 'c'],
@@ -16,8 +16,8 @@ const sorted: AnyMapValue[] = [
   ['c', 'c', 'c'],
 ];
 
-describe('sortAnyMapValue(anyMap)', () => {
+describe('sortAnyMapValue(anyMapValues)', () => {
   it(`returns a sorted by key duplicate-free version of an AnyMapValue array.`, () => {
-    expect(sortAnyMapValue(anyMap)).toEqual(sorted);
+    expect(sortAnyMapValue(anyMapValues)).toEqual(sorted);
   });
 });
