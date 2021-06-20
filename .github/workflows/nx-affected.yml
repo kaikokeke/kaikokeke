@@ -40,6 +40,7 @@ jobs:
           git config --global user.email "$GIT_USER_EMAIL"
           git config --global user.name "$GIT_USER_NAME"
           git fetch origin main
+          git pull origin main
           yarn install
           chmod +x ./.husky/commit-msg
           chmod +x ./.husky/pre-commit
