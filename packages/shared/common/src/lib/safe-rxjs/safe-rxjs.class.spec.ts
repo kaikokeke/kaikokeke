@@ -1,3 +1,4 @@
+import { Subject } from 'rxjs';
 import { marbles } from 'rxjs-marbles/jest';
 
 import { SafeSubscription } from '../safe-subscription';
@@ -14,62 +15,34 @@ describe('SafeRxJS', () => {
     jest.restoreAllMocks();
   });
 
+  it(`destroy$ is a Subject`, () => {
+    expect(safeRxJS.destroy$).toBeInstanceOf(Subject);
+  });
+
   it(`safeSubscription is a SafeSubscription`, () => {
     expect(safeRxJS.safeSubscription).toBeInstanceOf(SafeSubscription);
   });
 
   it(
-    `takeOne() unsubscribes on first emit`,
+    `takeUntilDestroy() unsubscribes on destroy$ emit`,
     marbles((m) => {
-      (safeRxJS as any)['_onDestroy$'] = m.cold('-----x');
-      m.expect(m.cold('---x---x-').pipe(safeRxJS.takeOne())).toBeObservable('---(x|)');
-    })
-  );
-
-  it(
-    `takeOne() unsubscribes on _onDestroy$ emit`,
-    marbles((m) => {
-      (safeRxJS as any)['_onDestroy$'] = m.cold('-----x');
-      m.expect(m.cold('-------x-').pipe(safeRxJS.takeOne())).toBeObservable('-----|');
-    })
-  );
-
-  it(
-    `takeCount(count) unsubscribes on count emits`,
-    marbles((m) => {
-      (safeRxJS as any)['_onDestroy$'] = m.cold('-------x');
-      m.expect(m.cold('-x-x-x-').pipe(safeRxJS.takeCount(2))).toBeObservable('-x-(x|)');
-    })
-  );
-
-  it(
-    `takeCount(count) unsubscribes on _onDestroy$ emit`,
-    marbles((m) => {
-      (safeRxJS as any)['_onDestroy$'] = m.cold('-------x');
-      m.expect(m.cold('--x------x-').pipe(safeRxJS.takeCount(2))).toBeObservable('--x----|');
-    })
-  );
-
-  it(
-    `takeUntilDestroy() unsubscribes on _onDestroy$ emit`,
-    marbles((m) => {
-      (safeRxJS as any)['_onDestroy$'] = m.cold('---------x');
+      (safeRxJS as any).destroy$ = m.cold('---------x');
       m.expect(m.cold('-x-x-x-x-x-').pipe(safeRxJS.takeUntilDestroy())).toBeObservable('-x-x-x-x-|');
     })
   );
 
-  it(`onDestroy() emits _onDestroy$`, () => {
-    jest.spyOn(safeRxJS['_onDestroy$'], 'next');
-    expect(safeRxJS['_onDestroy$'].next).not.toHaveBeenCalled();
+  it(`onDestroy() emits destroy$`, () => {
+    jest.spyOn(safeRxJS.destroy$, 'next');
+    expect(safeRxJS.destroy$.next).not.toHaveBeenCalled();
     safeRxJS.onDestroy();
-    expect(safeRxJS['_onDestroy$'].next).toHaveBeenCalledTimes(1);
+    expect(safeRxJS.destroy$.next).toHaveBeenCalledTimes(1);
   });
 
-  it(`onDestroy() completes _onDestroy$`, () => {
-    jest.spyOn(safeRxJS['_onDestroy$'], 'complete');
-    expect(safeRxJS['_onDestroy$'].complete).not.toHaveBeenCalled();
+  it(`onDestroy() completes destroy$`, () => {
+    jest.spyOn(safeRxJS.destroy$, 'complete');
+    expect(safeRxJS.destroy$.complete).not.toHaveBeenCalled();
     safeRxJS.onDestroy();
-    expect(safeRxJS['_onDestroy$'].complete).toHaveBeenCalledTimes(1);
+    expect(safeRxJS.destroy$.complete).toHaveBeenCalledTimes(1);
   });
 
   it(`onDestroy() unsubscribes all safeSubscription SafeSubscription`, () => {
