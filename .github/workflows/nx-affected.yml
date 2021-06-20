@@ -57,11 +57,11 @@ jobs:
       - name: Check build works
         run: yarn affected --target=ciBuild --base=$BEFORE_SHA
 
-      - name: Version affected libraries
-        run: yarn affected --target version --push --no-verify --base=$BEFORE_SHA
+      # - name: Version affected libraries
+      #   run: yarn affected --target version --push --no-verify --base=$BEFORE_SHA
 
-      - name: Build affected libraries
-        run: yarn affected --target=ciBuild --base=$BEFORE_SHA
+      # - name: Build affected libraries
+      #   run: yarn affected --target=ciBuild --base=$BEFORE_SHA
 
-      - name: To NPM
-        run: yarn affected --target=ciDeploy --base=$BEFORE_SHA
+      # - name: To NPM
+      #   run: yarn affected --target=ciDeploy --base=$BEFORE_SHA
