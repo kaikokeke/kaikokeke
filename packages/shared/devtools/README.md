@@ -10,6 +10,6 @@ The Devtools library provides helpers for developing and testing the Kaikokeke f
 yarn add --dev @kaikokeke/devtools
 ```
 
-## Helpers
+## API
 
 - [AnyMap](./src/lib/any-map/README.md): a helper class for testing use cases where the value is of type `any`.
