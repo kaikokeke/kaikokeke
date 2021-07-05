@@ -3,5 +3,6 @@ module.exports = {
     '<rootDir>/packages/shared/devtools',
     '<rootDir>/packages/shared/common',
     '<rootDir>/packages/shared/common-angular',
+    '<rootDir>/packages/environment/common',
   ],
 };

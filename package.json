@@ -115,7 +115,8 @@
           "kaikokeke",
           "devtools",
           "common",
-          "common-angular"
+          "common-angular",
+          "environment"
         ]
       ],
       "signed-off-by": [

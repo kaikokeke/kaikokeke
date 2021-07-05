@@ -34,6 +34,9 @@
     },
     "shared-common-angular": {
       "tags": []
+    },
+    "environment-common": {
+      "tags": []
     }
   }
 }
