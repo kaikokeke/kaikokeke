@@ -19,12 +19,12 @@ describe('unfreeze()', () => {
   });
 
   new AnyMap().entries().forEach((value) => {
-    it(`returns the value for non freezed "${value[2]}"`, (done) => {
-      of(value[1])
+    it(`returns the value for non freezed "${value.description}"`, (done) => {
+      of(value.value)
         .pipe(unfreeze())
         .subscribe({
           next: (v: any) => {
-            expect(v).toEqual(value[1]);
+            expect(v).toEqual(value.value);
             done();
           },
         });
@@ -47,12 +47,12 @@ describe('unfreeze()', () => {
     .excludes('BigInt64Array');
 
   emptyObject.entries().forEach((value) => {
-    it(`returns the unfreezed value for freezed "${value[2]}"`, (done) => {
-      of(Object.freeze(value[1]))
+    it(`returns the unfreezed value for freezed "${value.description}"`, (done) => {
+      of(Object.freeze(value.value))
         .pipe(unfreeze())
         .subscribe({
           next: (v: any) => {
-            expect(v).toEqual(value[1]);
+            expect(v).toEqual(value.value);
             expect(Object.isFrozen(v)).toEqual(false);
             done();
           },
@@ -66,8 +66,8 @@ describe('unfreeze()', () => {
     .not(emptyObject)
     .entries()
     .forEach((value) => {
-      it(`returns an unfreezed {} for freezed "${value[2]}"`, (done) => {
-        of(Object.freeze(value[1]))
+      it(`returns an unfreezed {} for freezed "${value.description}"`, (done) => {
+        of(Object.freeze(value.value))
           .pipe(unfreeze())
           .subscribe({
             next: (v: any) => {
