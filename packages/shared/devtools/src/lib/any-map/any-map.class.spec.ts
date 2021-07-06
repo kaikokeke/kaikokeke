@@ -7,9 +7,9 @@ import { ANY_MAP } from './any-map.constant';
 /**
  * All ANY_MAP values except [false, true].
  */
-const valuesWithoutBoolean: any[] = ANY_MAP.filter((value: AnyMapValue) => value[1] !== true && value[1] !== false).map(
-  (value: AnyMapValue) => value[1]
-);
+const valuesWithoutBoolean: any[] = ANY_MAP.filter(
+  (value: AnyMapValue) => value.value !== true && value.value !== false
+).map((value: AnyMapValue) => value.value);
 
 describe('AnyMap', () => {
   let anyMap: AnyMap;
@@ -23,19 +23,19 @@ describe('AnyMap', () => {
   });
 
   it(`constructor(extraValues) adds keys to existing ANY_MAP entries`, () => {
-    anyMap = new AnyMap([['_string_empty_', '', 'string empty']]);
+    anyMap = new AnyMap([{ key: '_string_empty_', value: '', description: 'string empty' }]);
     expect(anyMap.includes('empty').keys()).toEqual(['_primitive_string_falsy_iterable_empty_']);
   });
 
   it(`constructor(extraValues) adds new entries to non existing ANY_MAP entries`, () => {
-    const value: any = [['_string_empty_', 'ccc', 'string empty']];
+    const value: any = [{ key: '_string_empty_', value: 'ccc', description: 'string empty' }];
     anyMap = new AnyMap(value);
     expect(anyMap.includes('empty').entries()).toEqual(value);
   });
 
   it(`constructor(extraValues) works with repeated values, like "0" or "-0"`, () => {
-    const zeroKeys = ANY_MAP.filter((value) => value[1] === 0).map((value) => `${value[0]}zero_`);
-    anyMap = new AnyMap([['_zero_', 0, 'zero']]);
+    const zeroKeys = ANY_MAP.filter((value) => value.value === 0).map((value) => `${value.key}zero_`);
+    anyMap = new AnyMap([{ key: '_zero_', value: 0, description: 'zero' }]);
     expect(anyMap.includes('zero').keys()).toEqual(zeroKeys);
   });
 
@@ -52,7 +52,9 @@ describe('AnyMap', () => {
   });
 
   it(`entries() returns the ANY_MAP entries`, () => {
-    expect(anyMap.includes('null').entries()).toEqual([['_primitive_object_null_falsy_nullish_', null, 'null']]);
+    expect(anyMap.includes('null').entries()).toEqual([
+      { key: '_primitive_object_null_falsy_nullish_', value: null, description: 'null' },
+    ]);
   });
 
   it(`includes(string) returns an AnyMap instance with all entries that match the full string`, () => {
@@ -89,7 +91,7 @@ describe('AnyMap', () => {
   });
 
   it(`excludes(filter[]) returns an AnyMap instance without all entries that match all filters as AND`, () => {
-    const valuesWithoutFalse = ANY_MAP.filter((value) => value[1] !== false).map((value) => value[1]);
+    const valuesWithoutFalse = ANY_MAP.filter((value) => value.value !== false).map((value) => value.value);
     expect(anyMap.excludes(['boolean', 'falsy']).values()).toEqual(valuesWithoutFalse);
   });
 
@@ -116,7 +118,7 @@ describe('AnyMap', () => {
 
   describe('check keywords', () => {
     function isAnonymousFunction(value: any): any {
-      return typeof value === 'function' && value.name === '';
+      return typeof value === 'function' && (value.name === '' || value.name === 'value');
     }
 
     it(`anonymousFunction`, () => {
@@ -609,7 +611,7 @@ describe('AnyMap', () => {
     });
 
     function isNamedFunction(value: any): any {
-      return typeof value === 'function' && value.name !== '';
+      return typeof value === 'function' && value.name !== '' && value.name !== 'value';
     }
 
     it(`namedFunction`, () => {

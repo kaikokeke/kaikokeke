@@ -16,16 +16,20 @@ const anyMap: AnyMap = new AnyMap();
 
 #### `AnyMapValue`
 
-A tuple with the keyword, the value and the description.
+The any map value.
 
 ```ts
-export type AnyMapValue = [string, any, string];
+export interface AnyMapValue {
+  key: string;
+  value: any;
+  description: string;
+}
 ```
 
-All keywords must be surrounded by the character `_` to allow searching for complete keyword.
+All keys must be surrounded by the character `_` to allow searching for complete keyword.
 
 ```ts
-const value: AnyMapValue = ['_string_falsy_', '', "string ''"];
+const value: AnyMapValue = { key: '_string_falsy_', value: '', description: "string ''" };
 ```
 
 #### `AnyMapFilter`
@@ -47,19 +51,19 @@ If a value is found that matches another of `ANY_MAP`, the new key will be added
 ```ts
 const anyMap = new AnyMap();
 anyMap.includes('string').includes('falsy').entries();
-// [['_primitive_string_falsy_iterable_', '', "string ''"]]
+// [{ key: '_primitive_string_falsy_iterable_', value: '', description: "string ''" }]
 
-const anyMap2 = new AnyMap([['_string_empty_', '']]);
+const anyMap2 = new AnyMap([{ key: '_string_empty_', value: '', description: '' }]);
 anyMap2.includes('empty').entries();
-// [['_primitive_string_falsy_iterable_empty_', '', "string ''"]]
+// [{ key: '_primitive_string_falsy_iterable_empty_', value: '', description: "string ''" }]
 ```
 
 If no value matches are found, the entries will be added as is.
 
 ```ts
-const anyMap = new AnyMap([['_string_empty_', 'ccc', "string 'ccc'"]]);
+const anyMap = new AnyMap([{ key: '_string_empty_', value: 'ccc', description: "string 'ccc'" }]);
 anyMap.includes('empty').entries();
-// [['_string_empty_', 'ccc', "string 'ccc'"]]
+// [{ key: '_string_empty_', value: 'ccc', description: "string 'ccc'" }]
 ```
 
 ### Exposed Methods
@@ -97,7 +101,7 @@ Returns a new array of entries for each element.
 
 ```ts
 anyMap.includes('null').entries();
-// [['_primitive_object_null_falsy_nullish_', null, 'null']]
+// [{ key: '_primitive_object_null_falsy_nullish_', value: null, description: 'null' }]
 ```
 
 #### `includes(filter: AnyMapFilter | AnyMapFilter[]): AnyMap`

@@ -10,8 +10,8 @@ import { AnyMapValue } from './any-map-value.type';
 export function sortAnyMapValue(anyMapValues: AnyMapValue[]): AnyMapValue[] {
   return uniqWith(
     [...anyMapValues].sort((a: AnyMapValue, b: AnyMapValue): number =>
-      a[0].localeCompare(b[0], undefined, { sensitivity: 'base' })
+      a.key.localeCompare(b.key, undefined, { sensitivity: 'base' })
     ),
-    (a: AnyMapValue, b: AnyMapValue) => a[0] === b[0]
+    (a: AnyMapValue, b: AnyMapValue) => a.key === b.key
   );
 }

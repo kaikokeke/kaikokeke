@@ -2,18 +2,18 @@ import { AnyMapValue } from './any-map-value.type';
 import { sortAnyMapValue } from './sort-any-map-value.function';
 
 const anyMapValues: AnyMapValue[] = [
-  ['a', 'a', 'a'],
-  ['c', 'c', 'c'],
-  ['a', 'b', 'c'],
-  ['a', 'a', 'a'],
-  ['b', 'b', 'b'],
-  ['c', 'c', 'c'],
+  { key: 'a', value: 'a', description: 'a' },
+  { key: 'c', value: 'c', description: 'c' },
+  { key: 'a', value: 'b', description: 'c' },
+  { key: 'a', value: 'a', description: 'a' },
+  { key: 'b', value: 'b', description: 'b' },
+  { key: 'c', value: 'c', description: 'c' },
 ];
 
 const sorted: AnyMapValue[] = [
-  ['a', 'a', 'a'],
-  ['b', 'b', 'b'],
-  ['c', 'c', 'c'],
+  { key: 'a', value: 'a', description: 'a' },
+  { key: 'b', value: 'b', description: 'b' },
+  { key: 'c', value: 'c', description: 'c' },
 ];
 
 describe('sortAnyMapValue(anyMapValues)', () => {

@@ -23,18 +23,22 @@ export class AnyMap {
 
   private _addExtraValues(extraValues: AnyMapValue[]): void {
     extraValues.forEach((anyMapValue: AnyMapValue) => {
-      const indexes: number[] = this._findValueIndexes(anyMapValue[1]);
+      const indexes: number[] = this._findValueIndexes(anyMapValue.value);
 
       if (indexes.length > 0) {
         indexes.forEach((index: number) => {
-          this._anyValues[index] = [
-            this._mergeUniqueKeys(this._anyValues[index][0], anyMapValue[0]),
-            anyMapValue[1],
-            anyMapValue[2],
-          ];
+          this._anyValues[index] = {
+            key: this._mergeUniqueKeys(this._anyValues[index].key, anyMapValue.key),
+            value: anyMapValue.value,
+            description: anyMapValue.description,
+          };
         });
       } else {
-        this._anyValues.push([this._mergeUniqueKeys(anyMapValue[0]), anyMapValue[1], anyMapValue[2]]);
+        this._anyValues.push({
+          key: this._mergeUniqueKeys(anyMapValue.key),
+          value: anyMapValue.value,
+          description: anyMapValue.description,
+        });
       }
     });
 
@@ -43,14 +47,14 @@ export class AnyMap {
 
   private _findValueIndexes(value: any): number[] {
     return this._anyValues
-      .filter((anyMapValue: AnyMapValue): boolean => isEqual(anyMapValue[1], value))
-      .filter((anyMapValue: AnyMapValue): boolean => typeof anyMapValue[1] === typeof value)
-      .map((anyMapValue: AnyMapValue): number => this._findKeyIndex(anyMapValue[0]))
+      .filter((anyMapValue: AnyMapValue): boolean => isEqual(anyMapValue.value, value))
+      .filter((anyMapValue: AnyMapValue): boolean => typeof anyMapValue.value === typeof value)
+      .map((anyMapValue: AnyMapValue): number => this._findKeyIndex(anyMapValue.key))
       .filter((index: number) => index > -1);
   }
 
   private _findKeyIndex(key: any): number {
-    return this._anyValues.findIndex((anyMapValue: AnyMapValue): boolean => isEqual(anyMapValue[0], key));
+    return this._anyValues.findIndex((anyMapValue: AnyMapValue): boolean => isEqual(anyMapValue.key, key));
   }
 
   private _mergeUniqueKeys(...keys: string[]): string {
@@ -69,7 +73,7 @@ export class AnyMap {
    * @returns An array of keys.
    */
   keys(): string[] {
-    return this._anyValues.map((value: AnyMapValue): string => value[0]);
+    return this._anyValues.map((value: AnyMapValue): string => value.key);
   }
 
   /**
@@ -77,7 +81,7 @@ export class AnyMap {
    * @returns An array of values.
    */
   values(): any[] {
-    return this._anyValues.map((value: AnyMapValue): any => value[1]);
+    return this._anyValues.map((value: AnyMapValue): any => value.value);
   }
 
   /**
@@ -85,7 +89,7 @@ export class AnyMap {
    * @returns An array of values.
    */
   descriptions(): string[] {
-    return this._anyValues.map((value: AnyMapValue): string => value[2]);
+    return this._anyValues.map((value: AnyMapValue): string => value.description);
   }
 
   /**
@@ -106,6 +110,7 @@ export class AnyMap {
    */
   includes(filter: AnyMapFilter | AnyMapFilter[]): AnyMap {
     this._anyValues = Array.isArray(filter) ? this._includesMultiple(filter) : this._includesSingle(filter);
+
     return this;
   }
 
@@ -128,15 +133,15 @@ export class AnyMap {
   }
 
   private _includesString(searchString: string, base: AnyMapValue[]): AnyMapValue[] {
-    return base.filter((value: AnyMapValue): boolean => value[0].includes(`_${searchString}_`));
+    return base.filter((value: AnyMapValue): boolean => value.key.includes(`_${searchString}_`));
   }
 
   private _includesRegexp(regexp: RegExp, base: AnyMapValue[]): AnyMapValue[] {
-    return base.filter((value: AnyMapValue): boolean => regexp.test(value[0]));
+    return base.filter((value: AnyMapValue): boolean => regexp.test(value.key));
   }
 
   private _includesFunction(callback: (key: string) => boolean, base: AnyMapValue[]): AnyMapValue[] {
-    return base.filter((value: AnyMapValue): boolean => callback(value[0]));
+    return base.filter((value: AnyMapValue): boolean => callback(value.key));
   }
 
   /**
@@ -149,6 +154,7 @@ export class AnyMap {
    */
   excludes(filter: AnyMapFilter | AnyMapFilter[]): AnyMap {
     this._anyValues = Array.isArray(filter) ? this._excludesMultiple(filter) : this._excludesSingle(filter);
+
     return this;
   }
 
@@ -159,9 +165,9 @@ export class AnyMap {
       values = this._includesSingle(match, values);
     });
 
-    const keys: string[] = values.map((entry: AnyMapValue): string => entry[0]);
+    const keys: string[] = values.map((entry: AnyMapValue): string => entry.key);
 
-    return this._anyValues.filter((entry: AnyMapValue): boolean => !keys.includes(entry[0]));
+    return this._anyValues.filter((entry: AnyMapValue): boolean => !keys.includes(entry.key));
   }
 
   private _excludesSingle(filter: AnyMapFilter): AnyMapValue[] {
@@ -173,15 +179,15 @@ export class AnyMap {
   }
 
   private _excludesString(searchString: string): AnyMapValue[] {
-    return this._anyValues.filter((value: AnyMapValue): boolean => !value[0].includes(`_${searchString}_`));
+    return this._anyValues.filter((value: AnyMapValue): boolean => !value.key.includes(`_${searchString}_`));
   }
 
   private _excludesRegexp(regexp: RegExp): AnyMapValue[] {
-    return this._anyValues.filter((value: AnyMapValue): boolean => !regexp.test(value[0]));
+    return this._anyValues.filter((value: AnyMapValue): boolean => !regexp.test(value.key));
   }
 
   private _excludesFunction(callback: (key: string) => boolean): AnyMapValue[] {
-    return this._anyValues.filter((value: AnyMapValue): boolean => !callback(value[0]));
+    return this._anyValues.filter((value: AnyMapValue): boolean => !callback(value.key));
   }
 
   /**
@@ -192,6 +198,7 @@ export class AnyMap {
    */
   join(anyMap: AnyMap): AnyMap {
     this._anyValues = sortAnyMapValue([...this._anyValues, ...anyMap.entries()]);
+
     return this;
   }
 
@@ -203,7 +210,8 @@ export class AnyMap {
    */
   not(anyMap: AnyMap): AnyMap {
     const keys: string[] = anyMap.keys();
-    this._anyValues = this._anyValues.filter((value: AnyMapValue): boolean => !keys.includes(value[0]));
+    this._anyValues = this._anyValues.filter((value: AnyMapValue): boolean => !keys.includes(value.key));
+
     return this;
   }
 }
