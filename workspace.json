@@ -89,12 +89,6 @@
               }
             ]
           }
-        },
-        "version": {
-          "executor": "@jscutlery/semver:version",
-          "options": {
-            "syncVersions": false
-          }
         }
       }
     },
@@ -171,12 +165,6 @@
                 "command": "npm publish dist/packages/shared/common"
               }
             ]
-          }
-        },
-        "version": {
-          "executor": "@jscutlery/semver:version",
-          "options": {
-            "syncVersions": false
           }
         }
       }
@@ -263,12 +251,6 @@
                 "command": "npm publish dist/packages/shared/common-angular"
               }
             ]
-          }
-        },
-        "version": {
-          "executor": "@jscutlery/semver:version",
-          "options": {
-            "syncVersions": false
           }
         }
       }
