@@ -25,18 +25,13 @@
     "appsDir": "packages",
     "libsDir": "packages"
   },
-  "projects": {
-    "shared-devtools": {
-      "tags": ["scope:devDependencies", "scope:shared", "type:library"]
-    },
-    "shared-common": {
-      "tags": ["scope:dependencies", "scope:shared", "type:library"]
-    },
-    "shared-common-angular": {
-      "tags": []
-    },
-    "environment-common": {
-      "tags": []
-    }
+  "projects": {},
+  "targetDependencies": {
+    "build": [
+      {
+        "target": "build",
+        "projects": "dependencies"
+      }
+    ]
   }
 }

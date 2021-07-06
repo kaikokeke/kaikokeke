@@ -1,0 +1,78 @@
+{
+  "root": "packages/shared/devtools",
+  "sourceRoot": "packages/shared/devtools/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/node:package",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/shared/devtools",
+        "tsConfig": "packages/shared/devtools/tsconfig.lib.json",
+        "packageJson": "packages/shared/devtools/package.json",
+        "main": "packages/shared/devtools/src/index.ts",
+        "assets": ["packages/shared/devtools/*.md"]
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["packages/shared/devtools/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/packages/shared/devtools"],
+      "options": {
+        "jestConfig": "packages/shared/devtools/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "ciTest": {
+      "executor": "@nrwl/workspace:run-commands",
+      "options": {
+        "color": true,
+        "commands": [
+          {
+            "command": "nx test shared-devtools --code-coverage"
+          },
+          {
+            "command": "nx lint shared-devtools --format=json --outputFile=lint/shared-devtools.json"
+          }
+        ]
+      }
+    },
+    "ciSonar": {
+      "executor": "@nrwl/workspace:run-commands",
+      "options": {
+        "color": true,
+        "commands": [
+          {
+            "command": "node scripts/sonar-shared-devtools.js"
+          }
+        ]
+      }
+    },
+    "ciBuild": {
+      "executor": "@nrwl/workspace:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "nx build shared-devtools"
+          }
+        ]
+      }
+    },
+    "ciDeploy": {
+      "executor": "@nrwl/workspace:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "npm publish dist/packages/shared/devtools"
+          }
+        ]
+      }
+    }
+  },
+  "tags": ["scope:devDependencies", "scope:shared", "type:library"]
+}
