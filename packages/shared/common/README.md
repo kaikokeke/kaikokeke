@@ -12,6 +12,7 @@ yarn add @kaikokeke/common
 
 ## API
 
+- [mergeDeep](./src/lib/merge-deep/README.md): Recursively merges own and inherited enumerable string keyed properties of source objects.
 - [SafeRxJS](./src/lib/safe-rxjs/README.md): Manages safe RxJS subscriptions.
 - [SafeSubscription](./src/lib/safe-subscription/README.md): Safely store disposable resources, such as the execution of an Observable.
 - [Unfreeze](./src/lib/unfreeze/README.md): Unfreezes the frozen values creating a recursive shallow clone of each value emitted by the source Observable, and emitting the resulting deep cloned values as an Observable.
