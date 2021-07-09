@@ -1,4 +1,4 @@
-export * from './lib/deep-merge';
+export * from './lib/merge-deep/index';
 export * from './lib/safe-rxjs/index';
 export * from './lib/safe-subscription/index';
 export * from './lib/types/index';

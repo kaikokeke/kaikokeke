@@ -1,4 +1,4 @@
-# Merge deep
+# Merge Deep
 
 Recursively merges own and inherited enumerable string keyed properties of source objects.
 
