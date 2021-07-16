@@ -10,6 +10,11 @@ import { Properties } from './properties.type';
  */
 export abstract class PropertiesSource {
   /**
+   * The properties source name.
+   */
+  abstract readonly name: string;
+
+  /**
    * The path where the properties are set.
    */
   path?: Path;
@@ -28,6 +33,11 @@ export abstract class PropertiesSource {
    * The strategy to use to merge the values returned by the source. Defaults to `MERGE`.
    */
   mergeStrategy: MergeStrategy = MergeStrategy.MERGE;
+
+  /**
+   * Complete all other sources loading on finish.
+   */
+  completeLoading = false;
 
   /**
    * Loads environment properties from source asynchronously.

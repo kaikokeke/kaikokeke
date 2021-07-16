@@ -1,28 +1,119 @@
-import { mergeDeep } from '@kaikokeke/common';
+import { mergeDeep, SafeRxJS } from '@kaikokeke/common';
 import { get, set } from 'lodash-es';
+import { defer, Observable, of, throwError } from 'rxjs';
+import { catchError, concatAll, map, mergeAll, take, tap } from 'rxjs/operators';
 
-import { isPath, Path, Properties, PropertiesSource, PropertyStore } from '../types';
+import { isPath, LoadType, MergeStrategy, Path, Properties, PropertiesSource, PropertyStore } from '../types';
 
 /**
  * Sets properties in the environment store.
  */
 export abstract class EnvironmentService {
-  constructor(protected readonly store: PropertyStore, protected readonly sources?: PropertiesSource[]) {}
+  /**
+   * Manages safe RxJS subscriptions.
+   */
+  protected readonly rxjs: SafeRxJS = new SafeRxJS();
+
+  constructor(protected readonly store: PropertyStore, protected readonly sources: PropertiesSource[] = []) {}
 
   /**
    * Loads the environment properties from sources.
    * @returns A promise to report the loading of properties.
    */
   async load(): Promise<void> {
-    return Promise.resolve();
+    this.processDeferred();
+
+    return Promise.race([this.processImmediate(), this.processInitialization()]);
   }
 
   /**
    * Loads the environment properties for lazy loaded modules.
    * @returns A promise to report the loading of properties.
    */
-  async loadChild(): Promise<void> {
-    return Promise.resolve();
+  loadChild(sources: PropertiesSource[]): void {
+    of(this.loadSources$(sources)).pipe(mergeAll()).subscribe();
+  }
+
+  /**
+   * Stores the properties received by the immediate source.
+   * @returns A void Promise once the first source is resolved.
+   */
+  protected async processImmediate(): Promise<void> {
+    const immediate: PropertiesSource[] = this.sources.filter(
+      (source: PropertiesSource): boolean => source.loadType === LoadType.IMMEDIATE
+    );
+
+    return of(...this.loadSources$(immediate))
+      .pipe(take(1))
+      .pipe(map(() => undefined))
+      .toPromise();
+  }
+
+  /**
+   * Stores the properties received by the initialization sources.
+   * @returns A void Promise once all sources are resolved.
+   */
+  protected async processInitialization(): Promise<void> {
+    const initialization: PropertiesSource[] = this.sources.filter(
+      (source: PropertiesSource): boolean => source.loadType === LoadType.INITIALIZATION
+    );
+
+    return of(...this.loadSources$(initialization))
+      .pipe(concatAll())
+      .pipe(map(() => undefined))
+      .toPromise();
+  }
+
+  /**
+   * Stores the properties received by the deferred sources.
+   */
+  protected processDeferred(): void {
+    const deferred: PropertiesSource[] = this.sources.filter(
+      (source: PropertiesSource): boolean => source.loadType === LoadType.DEFERRED
+    );
+
+    of(...this.loadSources$(deferred))
+      .pipe(mergeAll())
+      .subscribe();
+  }
+
+  protected loadSources$(sources: PropertiesSource[]): Observable<Properties>[] {
+    return sources.map((source: PropertiesSource) =>
+      defer(() => source.load()).pipe(
+        catchError(() => this.checkRequiredBehavior$(source.required, source.name)),
+        tap({
+          next: (value: Properties) => {
+            this.saveToStore(value, source.mergeStrategy, source.path);
+          },
+        }),
+        tap({
+          next: () => {
+            if (source.completeLoading) {
+              this.rxjs.destroy$.next();
+            }
+          },
+        }),
+        this.rxjs.takeUntilDestroy()
+      )
+    );
+  }
+
+  protected checkRequiredBehavior$(required: boolean, name: string): Observable<PropertiesSource> {
+    return required ? this.onSourceError(name) : of({} as PropertiesSource);
+  }
+
+  protected onSourceError(name: string): Observable<never> {
+    this.store.resetProperties();
+
+    return throwError(new Error(`Required PropertiesSource "${name}" failed`));
+  }
+
+  protected saveToStore(value: Properties, mergeStrategy: MergeStrategy, path?: Path) {
+    if (mergeStrategy === MergeStrategy.MERGE) {
+      this.merge(value, path);
+    } else {
+      this.overwrite(value, path);
+    }
   }
 
   /**
@@ -97,11 +188,30 @@ export abstract class EnvironmentService {
     this.store.updateProperties(newState);
   }
 
+  /**
+   * Sets the properties at path.
+   * @param properties The properties to set at path.
+   * @param path The path to set the properties.
+   * @returns The properties at path.
+   */
   protected propertiesAtPath(properties: Properties, path?: Path): Properties {
     return path == null ? properties : this.valueAtPath(path, properties);
   }
 
+  /**
+   * Sets a value at path.
+   * @param path The path to set the value.
+   * @param value The value to set.
+   * @returns The properties with the new vale.
+   */
   protected valueAtPath<V>(path: Path, value: V): Properties {
     return isPath(path) ? set({}, path, value) : value;
+  }
+
+  /**
+   * Disposes the resource held by Observable subscriptions.
+   */
+  onDestroy(): void {
+    this.rxjs.onDestroy();
   }
 }
