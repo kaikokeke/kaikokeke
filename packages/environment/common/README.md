@@ -22,7 +22,9 @@ Sometimes is needed to provide a fallback source if the first one fails. This ca
 
 ```ts
 export class FileSource extends PropertiesSource {
-  constructor(protected readonly http: HttpClient) {}
+  constructor(protected readonly http: HttpClient) {
+    super();
+  }
 
   load(): Observable<Properties> {
     return this.http.get('environment.json').pipe(catchError(() => this.http.get('environment2.json')));
@@ -38,7 +40,9 @@ If the application needs to load the properties from sources that emit multiple 
 export class ServerSideEventSource extends PropertiesSource {
   readonly loadType: LoadType = LoadType.DEFERRED;
 
-  constructor(protected readonly sse: ServerSideEventClient) {}
+  constructor(protected readonly sse: ServerSideEventClient) {
+    super();
+  }
 
   load(): Observable<Properties> {
     return this.sse.get('/my-endpoint');
