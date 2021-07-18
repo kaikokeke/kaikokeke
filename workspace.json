@@ -5,19 +5,387 @@
   },
   "generators": {
     "@nrwl/angular:application": {
+      "style": "scss",
       "linter": "eslint",
-      "unitTestRunner": "jest"
+      "unitTestRunner": "jest",
+      "e2eTestRunner": "none"
     },
     "@nrwl/angular:library": {
+      "style": "scss",
       "linter": "eslint",
       "unitTestRunner": "jest"
     },
-    "@nrwl/angular:component": {}
+    "@nrwl/angular:component": {
+      "style": "scss"
+    }
   },
   "projects": {
-    "environment-common": "packages\\environment\\common",
-    "shared-common": "packages\\shared\\common",
-    "shared-common-angular": "packages\\shared\\common-angular",
-    "shared-devtools": "packages\\shared\\devtools"
+    "angular": {
+      "projectType": "application",
+      "root": "apps/angular",
+      "sourceRoot": "apps/angular/src",
+      "prefix": "kaikokeke",
+      "targets": {
+        "build": {
+          "executor": "@angular-devkit/build-angular:browser",
+          "outputs": ["{options.outputPath}"],
+          "options": {
+            "outputPath": "dist/apps/angular",
+            "index": "apps/angular/src/index.html",
+            "main": "apps/angular/src/main.ts",
+            "polyfills": "apps/angular/src/polyfills.ts",
+            "tsConfig": "apps/angular/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": ["apps/angular/src/favicon.ico", "apps/angular/src/assets"],
+            "styles": ["apps/angular/src/styles.scss"],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kb",
+                  "maximumError": "1mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kb",
+                  "maximumError": "4kb"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "apps/angular/src/environments/environment.ts",
+                  "with": "apps/angular/src/environments/environment.prod.ts"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "executor": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "browserTarget": "angular:build:production"
+            },
+            "development": {
+              "browserTarget": "angular:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "executor": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "browserTarget": "angular:build"
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["apps/angular/src/**/*.ts", "apps/angular/src/**/*.html"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/apps/angular"],
+          "options": {
+            "jestConfig": "apps/angular/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    },
+    "environment-common": {
+      "root": "packages/environment/common",
+      "sourceRoot": "packages/environment/common/src",
+      "projectType": "library",
+      "targets": {
+        "build": {
+          "executor": "@nrwl/node:package",
+          "outputs": ["{options.outputPath}"],
+          "options": {
+            "outputPath": "dist/packages/environment/common",
+            "tsConfig": "packages/environment/common/tsconfig.lib.json",
+            "packageJson": "packages/environment/common/package.json",
+            "main": "packages/environment/common/src/index.ts",
+            "assets": ["packages/environment/common/*.md"]
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["packages/environment/common/**/*.ts"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/packages/environment/common"],
+          "options": {
+            "jestConfig": "packages/environment/common/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      },
+      "tags": [],
+      "configFilePath": "packages\\environment\\common/project.json"
+    },
+    "shared-common": {
+      "root": "packages/shared/common",
+      "sourceRoot": "packages/shared/common/src",
+      "projectType": "library",
+      "targets": {
+        "build": {
+          "executor": "@nrwl/node:package",
+          "outputs": ["{options.outputPath}"],
+          "options": {
+            "outputPath": "dist/packages/shared/common",
+            "tsConfig": "packages/shared/common/tsconfig.lib.json",
+            "packageJson": "packages/shared/common/package.json",
+            "main": "packages/shared/common/src/index.ts",
+            "assets": ["packages/shared/common/*.md"]
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["packages/shared/common/**/*.ts"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/packages/shared/common"],
+          "options": {
+            "jestConfig": "packages/shared/common/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "ciTest": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "color": true,
+            "commands": [
+              {
+                "command": "nx test shared-common --code-coverage"
+              },
+              {
+                "command": "nx lint shared-common --format=json --outputFile=lint/shared-common.json"
+              }
+            ]
+          }
+        },
+        "ciSonar": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "color": true,
+            "commands": [
+              {
+                "command": "node scripts/sonar-shared-common.js"
+              }
+            ]
+          }
+        },
+        "ciBuild": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              {
+                "command": "nx build shared-common"
+              }
+            ]
+          }
+        },
+        "ciDeploy": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              {
+                "command": "npm publish dist/packages/shared/common"
+              }
+            ]
+          }
+        }
+      },
+      "tags": ["scope:dependencies", "scope:shared", "type:library"],
+      "configFilePath": "packages\\shared\\common/project.json"
+    },
+    "shared-common-angular": {
+      "projectType": "library",
+      "root": "packages/shared/common-angular",
+      "sourceRoot": "packages/shared/common-angular/src",
+      "prefix": "k",
+      "targets": {
+        "build": {
+          "executor": "@nrwl/angular:package",
+          "outputs": ["dist/packages/shared/common-angular"],
+          "options": {
+            "project": "packages/shared/common-angular/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "packages/shared/common-angular/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "packages/shared/common-angular/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/packages/shared/common-angular"],
+          "options": {
+            "jestConfig": "packages/shared/common-angular/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "packages/shared/common-angular/src/**/*.ts",
+              "packages/shared/common-angular/src/**/*.html"
+            ]
+          }
+        },
+        "ciTest": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "color": true,
+            "commands": [
+              {
+                "command": "nx test shared-common-angular --code-coverage"
+              },
+              {
+                "command": "nx lint shared-common-angular --format=json --outputFile=lint/shared-common-angular.json"
+              }
+            ]
+          }
+        },
+        "ciSonar": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "color": true,
+            "commands": [
+              {
+                "command": "node scripts/sonar-shared-common-angular.js"
+              }
+            ]
+          }
+        },
+        "ciBuild": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              {
+                "command": "nx build shared-common-angular --prod"
+              }
+            ]
+          }
+        },
+        "ciDeploy": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              {
+                "command": "npm publish dist/packages/shared/common-angular"
+              }
+            ]
+          }
+        }
+      },
+      "tags": [],
+      "configFilePath": "packages\\shared\\common-angular/project.json"
+    },
+    "shared-devtools": {
+      "root": "packages/shared/devtools",
+      "sourceRoot": "packages/shared/devtools/src",
+      "projectType": "library",
+      "targets": {
+        "build": {
+          "executor": "@nrwl/node:package",
+          "outputs": ["{options.outputPath}"],
+          "options": {
+            "outputPath": "dist/packages/shared/devtools",
+            "tsConfig": "packages/shared/devtools/tsconfig.lib.json",
+            "packageJson": "packages/shared/devtools/package.json",
+            "main": "packages/shared/devtools/src/index.ts",
+            "assets": ["packages/shared/devtools/*.md"]
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": ["packages/shared/devtools/**/*.ts"]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": ["coverage/packages/shared/devtools"],
+          "options": {
+            "jestConfig": "packages/shared/devtools/jest.config.js",
+            "passWithNoTests": true
+          }
+        },
+        "ciTest": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "color": true,
+            "commands": [
+              {
+                "command": "nx test shared-devtools --code-coverage"
+              },
+              {
+                "command": "nx lint shared-devtools --format=json --outputFile=lint/shared-devtools.json"
+              }
+            ]
+          }
+        },
+        "ciSonar": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "color": true,
+            "commands": [
+              {
+                "command": "node scripts/sonar-shared-devtools.js"
+              }
+            ]
+          }
+        },
+        "ciBuild": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              {
+                "command": "nx build shared-devtools"
+              }
+            ]
+          }
+        },
+        "ciDeploy": {
+          "executor": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              {
+                "command": "npm publish dist/packages/shared/devtools"
+              }
+            ]
+          }
+        }
+      },
+      "tags": ["scope:devDependencies", "scope:shared", "type:library"],
+      "configFilePath": "packages\\shared\\devtools/project.json"
+    }
   }
 }

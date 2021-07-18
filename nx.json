@@ -22,10 +22,14 @@
     }
   },
   "workspaceLayout": {
-    "appsDir": "packages",
+    "appsDir": "apps",
     "libsDir": "packages"
   },
-  "projects": {},
+  "projects": {
+    "angular": {
+      "tags": []
+    }
+  },
   "targetDependencies": {
     "build": [
       {
