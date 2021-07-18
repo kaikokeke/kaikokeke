@@ -28,6 +28,9 @@
   "projects": {
     "angular": {
       "tags": []
+    },
+    "shared-angular": {
+      "tags": []
     }
   },
   "targetDependencies": {
