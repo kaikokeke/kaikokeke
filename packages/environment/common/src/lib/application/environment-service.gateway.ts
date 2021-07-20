@@ -1,28 +1,36 @@
 import { mergeDeep, SafeRxJS } from '@kaikokeke/common';
 import { get, set } from 'lodash-es';
-import { defer, Observable, of, throwError } from 'rxjs';
-import { catchError, concatAll, map, mergeAll, take, tap } from 'rxjs/operators';
+import { defer, Observable, of, Subject, throwError } from 'rxjs';
+import { catchError, concatAll, map, mergeAll, tap } from 'rxjs/operators';
 
-import { isPath, LoadType, MergeStrategy, Path, Properties, PropertiesSource, PropertyStore } from '../types';
+import { EnvironmentStoreGateway, isPath, LoadType, MergeStrategy, Path, Properties, PropertiesSource } from '../types';
 
 /**
  * Sets properties in the environment store.
  */
-export abstract class EnvironmentService {
+export abstract class EnvironmentServiceGateway {
   /**
    * Manages safe RxJS subscriptions.
    */
   protected readonly rxjs: SafeRxJS = new SafeRxJS();
 
-  constructor(protected readonly store: PropertyStore, protected readonly sources: PropertiesSource[] = []) {}
+  /**
+   * Emits when an immediate sorce is resolved.
+   */
+  protected readonly immediate$: Subject<void> = new Subject();
+
+  /**
+   * Manages complete loading status.
+   */
+  protected isCompleteLoading = false;
+
+  constructor(protected readonly store: EnvironmentStoreGateway, protected readonly sources: PropertiesSource[] = []) {}
 
   /**
    * Loads the environment properties from sources.
    * @returns A promise to report the loading of properties.
    */
   async load(): Promise<void> {
-    this.processDeferred();
-
     return Promise.race([this.processImmediate(), this.processInitialization()]);
   }
 
@@ -31,7 +39,9 @@ export abstract class EnvironmentService {
    * @returns A promise to report the loading of properties.
    */
   loadChild(sources: PropertiesSource[]): void {
-    of(this.loadSources$(sources)).pipe(mergeAll()).subscribe();
+    of(...this.loadSources$(sources))
+      .pipe(mergeAll(), this.rxjs.takeUntilDestroy())
+      .subscribe();
   }
 
   /**
@@ -39,14 +49,7 @@ export abstract class EnvironmentService {
    * @returns A void Promise once the first source is resolved.
    */
   protected async processImmediate(): Promise<void> {
-    const immediate: PropertiesSource[] = this.sources.filter(
-      (source: PropertiesSource): boolean => source.loadType === LoadType.IMMEDIATE
-    );
-
-    return of(...this.loadSources$(immediate))
-      .pipe(take(1))
-      .pipe(map(() => undefined))
-      .toPromise();
+    return this.immediate$.toPromise();
   }
 
   /**
@@ -55,13 +58,18 @@ export abstract class EnvironmentService {
    */
   protected async processInitialization(): Promise<void> {
     const initialization: PropertiesSource[] = this.sources.filter(
-      (source: PropertiesSource): boolean => source.loadType === LoadType.INITIALIZATION
+      (source: PropertiesSource): boolean =>
+        source.loadType === LoadType.IMMEDIATE || source.loadType === LoadType.INITIALIZATION
     );
 
-    return of(...this.loadSources$(initialization))
-      .pipe(concatAll())
+    return (
+      this.areLoadable(initialization)
+        ? of(...this.loadSources$(initialization)).pipe(concatAll(), this.rxjs.takeUntilDestroy())
+        : of({})
+    )
       .pipe(map(() => undefined))
-      .toPromise();
+      .toPromise()
+      .then(() => this.processDeferred());
   }
 
   /**
@@ -72,9 +80,15 @@ export abstract class EnvironmentService {
       (source: PropertiesSource): boolean => source.loadType === LoadType.DEFERRED
     );
 
-    of(...this.loadSources$(deferred))
-      .pipe(mergeAll())
-      .subscribe();
+    if (this.areLoadable(deferred)) {
+      of(...this.loadSources$(deferred))
+        .pipe(mergeAll(), this.rxjs.takeUntilDestroy())
+        .subscribe();
+    }
+  }
+
+  protected areLoadable(sources: PropertiesSource[]): boolean {
+    return sources.length > 0 && !this.isCompleteLoading;
   }
 
   protected loadSources$(sources: PropertiesSource[]): Observable<Properties>[] {
@@ -84,22 +98,30 @@ export abstract class EnvironmentService {
         tap({
           next: (value: Properties) => {
             this.saveToStore(value, source.mergeStrategy, source.path);
+            this.checkImmediate(source);
+            this.checkCompleteLoading(source);
           },
-        }),
-        tap({
-          next: () => {
-            if (source.completeLoading) {
-              this.rxjs.destroy$.next();
-            }
-          },
-        }),
-        this.rxjs.takeUntilDestroy()
+        })
       )
     );
   }
 
-  protected checkRequiredBehavior$(required: boolean, name: string): Observable<PropertiesSource> {
-    return required ? this.onSourceError(name) : of({} as PropertiesSource);
+  protected checkImmediate(source: PropertiesSource): void {
+    if (source.loadType === LoadType.IMMEDIATE) {
+      this.immediate$.next();
+      this.immediate$.complete();
+    }
+  }
+
+  protected checkCompleteLoading(source: PropertiesSource): void {
+    if (source.completeLoading) {
+      this.isCompleteLoading = true;
+      this.rxjs.destroy$.next();
+    }
+  }
+
+  protected checkRequiredBehavior$(required: boolean, name: string): Observable<Properties> {
+    return required ? this.onSourceError(name) : of({});
   }
 
   protected onSourceError(name: string): Observable<never> {

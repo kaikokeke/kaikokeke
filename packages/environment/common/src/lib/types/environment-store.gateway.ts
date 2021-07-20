@@ -1,6 +1,6 @@
 import { Properties } from './properties.type';
 
-export interface PropertyStore {
+export interface EnvironmentStoreGateway {
   getProperties(): Properties;
   updateProperties(newProperties: Properties): void;
   resetProperties(): void;

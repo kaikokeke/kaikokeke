@@ -1,7 +1,7 @@
-import { Properties, PropertyStore } from '../types';
-import { EnvironmentService } from './environment.service';
+import { EnvironmentStoreGateway, Properties } from '../types';
+import { EnvironmentServiceGateway } from './environment-service.gateway';
 
-class TestStore implements PropertyStore {
+class TestStore implements EnvironmentStoreGateway {
   getProperties(): Properties {
     return {};
   }
@@ -9,17 +9,21 @@ class TestStore implements PropertyStore {
   updateProperties(newProperties: Properties): void {
     // any
   }
+
+  resetProperties(): void {
+    // any
+  }
 }
 
-class TestEnvironmentService extends EnvironmentService {
+class TestEnvironmentService extends EnvironmentServiceGateway {
   constructor(protected readonly store: TestStore) {
     super(store);
   }
 }
 
 describe('EnvironmentService', () => {
-  let service: EnvironmentService;
-  let store: PropertyStore;
+  let service: EnvironmentServiceGateway;
+  let store: EnvironmentStoreGateway;
 
   beforeEach(() => {
     store = new TestStore();
