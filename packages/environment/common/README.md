@@ -2,20 +2,6 @@
 
 ## Use cases
 
-### Max load time
-
-Since the application will not load until all initialization sources have been loaded, you may want to ensures that the system loads in a maximun time creating a `PropertiesSource` with load type immediate that emits at max load time.
-
-```ts
-export class MaxLoadTimeSource extends PropertiesSource {
-  readonly loadType: LoadType = LoadType.IMMEDIATE;
-
-  load(): Observable<Properties> {
-    return of({}).pipe(delay(5000));
-  }
-}
-```
-
 ### Fallback sources
 
 Sometimes is needed to provide a fallback source if the first one fails. This can be done easily in the original properties source with the `catchError` function. This condition can be chained as many times as necessary.

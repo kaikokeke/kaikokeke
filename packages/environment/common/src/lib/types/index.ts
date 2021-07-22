@@ -5,5 +5,4 @@ export * from './merge-strategy.enum';
 export * from './path.type';
 export * from './properties-source.type';
 export * from './properties.type';
-export * from './environment-store.gateway';
 export * from './property.type';

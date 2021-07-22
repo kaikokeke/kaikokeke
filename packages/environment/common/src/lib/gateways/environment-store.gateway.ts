@@ -1,4 +1,4 @@
-import { Properties } from './properties.type';
+import { Properties } from '../types';
 
 export interface EnvironmentStoreGateway {
   getProperties(): Properties;

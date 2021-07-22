@@ -15,22 +15,37 @@ export abstract class PropertiesSource {
   abstract readonly name: string;
 
   /**
-   * The path where the properties are set.
+   * The optional path where the loaded properties are going to be setted in the environment.
+   *
+   * If a path is not specified, the loaded properties will be set to the root of the environment properties.
+   * @see Path
    */
   path?: Path;
 
   /**
-   * Set it to false to ignore errors in the load. Defaults to `true`.
+   * Sets if the source is required.
+   *
+   * If the source is required and the load type is `IMMEDIATE` or `INITIALIZATION` the application will not load
+   * if the load fails. Set it to `false` to ignore the errors and load the application.
+   * Defaults to `true`.
    */
-  required = true;
+  isRequired = true;
 
   /**
-   * The load type used by this source. Defaults to `INITIALIZATION`.
+   * Sets the load type used by the source.
+   *
+   * Determines if the properties from the source must be loaded before the application load.
+   * Defaults to `INITIALIZATION`.
+   * @see LoadType
    */
   loadType: LoadType = LoadType.INITIALIZATION;
 
   /**
-   * The strategy to use to merge the values returned by the source. Defaults to `MERGE`.
+   * Sets the merge strategy used by the source.
+   *
+   * Determines the strategy to use to merge the properties returned by the source with the existing in the environment.
+   * Defaults to `MERGE`.
+   * @see MergeStrategy
    */
   mergeStrategy: MergeStrategy = MergeStrategy.MERGE;
 
@@ -38,6 +53,11 @@ export abstract class PropertiesSource {
    * Complete all other sources loading on finish.
    */
   completeLoading = false;
+
+  /**
+   * Set to `true` to reset the store before set the values.
+   */
+  resetEnvironment = false;
 
   /**
    * Loads environment properties from source asynchronously.

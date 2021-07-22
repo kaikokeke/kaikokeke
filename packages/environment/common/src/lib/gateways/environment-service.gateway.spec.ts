@@ -1,5 +1,6 @@
-import { EnvironmentStoreGateway, Properties } from '../types';
+import { Properties } from '../types';
 import { EnvironmentServiceGateway } from './environment-service.gateway';
+import { EnvironmentStoreGateway } from './environment-store.gateway';
 
 class TestStore implements EnvironmentStoreGateway {
   getProperties(): Properties {
@@ -17,7 +18,7 @@ class TestStore implements EnvironmentStoreGateway {
 
 class TestEnvironmentService extends EnvironmentServiceGateway {
   constructor(protected readonly store: TestStore) {
-    super(store);
+    super(store, {});
   }
 }
 
