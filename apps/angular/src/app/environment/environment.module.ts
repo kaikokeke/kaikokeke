@@ -1,13 +1,14 @@
 import { APP_INITIALIZER, Inject, Injectable, InjectionToken, ModuleWithProviders, NgModule } from '@angular/core';
 import { Query, Store, StoreConfig } from '@datorama/akita';
 import {
+  EnvironmentConfig,
   EnvironmentServiceGateway,
   EnvironmentStoreGateway,
   LoadType,
   Properties,
-  PropertiesSource,
+  PropertiesSource
 } from '@kaikokeke/environment';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
@@ -46,7 +47,7 @@ export class EnvironmentStore implements EnvironmentStoreGateway {
 @Injectable({ providedIn: 'root' })
 export class TestSources extends PropertiesSource {
   readonly name = 'TestSources';
-  readonly loadType: LoadType = LoadType.DEFERRED;
+  readonly loadType: LoadType = LoadType.INITIALIZATION;
 
   load(): Observable<Properties> {
     return of({ a: 0 }).pipe(delay(3000));
@@ -56,21 +57,22 @@ export class TestSources extends PropertiesSource {
 @Injectable({ providedIn: 'root' })
 export class TestSources2 extends PropertiesSource {
   readonly name = 'TestSources2';
-  readonly loadType: LoadType = LoadType.DEFERRED;
-  readonly completeLoading = true;
+  readonly loadType: LoadType = LoadType.INITIALIZATION;
 
   load(): Observable<Properties> {
-    return of({ b: 0 }).pipe(delay(3000));
+    return of({ b: 0 }).pipe(delay(5000));
   }
 }
 
 @Injectable({ providedIn: 'root' })
 export class TestSources3 extends PropertiesSource {
   readonly name = 'TestSources3';
-  readonly loadType: LoadType = LoadType.DEFERRED;
+  readonly loadType: LoadType = LoadType.INITIALIZATION;
+  isRequired = false;
 
   load(): Observable<Properties> {
-    return of({ c: 0 }).pipe(delay(5000));
+    // return of({ c: 0 }).pipe(delay(5000));
+    throw throwError(new Error('A custom error'));
   }
 }
 
@@ -78,13 +80,18 @@ export const ENVIRONMENT_SOURCES: InjectionToken<PropertiesSource[]> = new Injec
   'ENVIRONMENT_SOURCES'
 );
 
+export const ENVIRONMENT_CONFIG: InjectionToken<PropertiesSource[]> = new InjectionToken<Partial<EnvironmentConfig>>(
+  'ENVIRONMENT_CONFIG'
+);
+
 @Injectable({ providedIn: 'root' })
 export class EnvironmentService extends EnvironmentServiceGateway {
   constructor(
     protected readonly store: EnvironmentStore,
+    @Inject(ENVIRONMENT_CONFIG) protected readonly partialConfig: Partial<EnvironmentConfig>,
     @Inject(ENVIRONMENT_SOURCES) protected readonly sources: PropertiesSource[]
   ) {
-    super(store);
+    super(store, partialConfig, sources);
   }
 }
 
@@ -94,6 +101,7 @@ export function environmentForRoot(service: EnvironmentService) {
 
 @NgModule({
   providers: [
+    { provide: ENVIRONMENT_CONFIG, useValue: {} },
     { provide: ENVIRONMENT_SOURCES, useClass: TestSources, multi: true },
     { provide: ENVIRONMENT_SOURCES, useClass: TestSources2, multi: true },
     { provide: ENVIRONMENT_SOURCES, useClass: TestSources3, multi: true },
