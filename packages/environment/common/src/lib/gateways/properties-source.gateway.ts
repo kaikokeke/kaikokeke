@@ -1,14 +1,11 @@
 import { Observable } from 'rxjs';
 
-import { LoadType } from './load-type.enum';
-import { MergeStrategy } from './merge-strategy.enum';
-import { Path } from './path.type';
-import { Properties } from './properties.type';
+import { LoadType, MergeStrategy, Path, Properties } from '../types';
 
 /**
  * An environment properties source definition to get the application properties asynchronously.
  */
-export abstract class PropertiesSource {
+export abstract class PropertiesSourceGateway {
   /**
    * The properties source name.
    */
@@ -25,8 +22,8 @@ export abstract class PropertiesSource {
   /**
    * Sets if the source is required.
    *
-   * If the source is required and the load type is `IMMEDIATE` or `INITIALIZATION` the application will not load
-   * if the load fails. Set it to `false` to ignore the errors and load the application.
+   * If the source is required, the load type is `INITIALIZATION` and the application has not loaded yet the
+   * application will not load if the source load fails. Set it to `false` to ignore the errors.
    * Defaults to `true`.
    */
   isRequired = true;
@@ -50,17 +47,25 @@ export abstract class PropertiesSource {
   mergeStrategy: MergeStrategy = MergeStrategy.MERGE;
 
   /**
-   * Complete all other sources loading on finish.
+   * Dismiss the loading of all other sources afert this source load.
+   * Defaults to `false`.
    */
-  completeLoading = false;
+  dismissOtherSources = false;
 
   /**
-   * Set to `true` to reset the store before set the values.
+   * Sets whether the environment should be reset before inserting the properties for this source.
+   * Defaults to `false`.
    */
   resetEnvironment = false;
 
   /**
-   * Loads environment properties from source asynchronously.
+   * The application will load immediately after loading the source.
+   * Defaults to `false`.
+   */
+  immediate = false;
+
+  /**
+   * Asynchronously loads environment properties from source.
    */
   abstract load(): Observable<Properties> | Promise<Properties>;
 }
