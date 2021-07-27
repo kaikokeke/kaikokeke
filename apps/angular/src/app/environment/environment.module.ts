@@ -7,7 +7,7 @@ import {
   EnvironmentStoreGateway,
   LoadType,
   Properties,
-  PropertiesSourceGateway
+  PropertiesSourceGateway,
 } from '@kaikokeke/environment';
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
