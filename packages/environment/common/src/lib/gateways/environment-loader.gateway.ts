@@ -1,6 +1,6 @@
 import { coerceArray, SafeRxJS } from '@kaikokeke/common';
 import { defer, NEVER, Observable, ObservableInput, of, OperatorFunction, Subject, throwError } from 'rxjs';
-import { catchError, concatAll, delay, map, mergeAll, tap } from 'rxjs/operators';
+import { catchError, concatAll, delay, map, mergeAll, take, tap } from 'rxjs/operators';
 
 import { environmentConfigFactory } from '../application';
 import { EnvironmentServiceGateway, PropertiesSourceGateway } from '../gateways';
@@ -38,7 +38,7 @@ export abstract class EnvironmentLoaderGateway {
   constructor(
     protected readonly service: EnvironmentServiceGateway,
     protected readonly partialConfig: Partial<EnvironmentConfig>,
-    protected readonly sources: PropertiesSourceGateway[] = []
+    protected readonly sources: PropertiesSourceGateway[]
   ) {}
 
   /**
@@ -46,17 +46,10 @@ export abstract class EnvironmentLoaderGateway {
    * @returns A promise to start the application load.
    */
   async load(): Promise<void> {
-    this.watchApplicationLoaded();
     this.processDeferredNotInOrder();
 
-    return Promise.race([this.processMaxLoadTime(), this.processImmediate(), this.processInitialization()]);
-  }
-
-  protected watchApplicationLoaded(): void {
-    this.immediateLoad$.subscribe({
-      next: () => {
-        this.isApplicationLoaded = true;
-      },
+    return Promise.race([this.processMaxLoadTime(), this.processImmediate(), this.processInitialization()]).then(() => {
+      this.isApplicationLoaded = true;
     });
   }
 
@@ -89,7 +82,7 @@ export abstract class EnvironmentLoaderGateway {
    * @returns A void Promise once the first source is resolved.
    */
   protected async processImmediate(): Promise<void> {
-    return this.immediateLoad$.toPromise();
+    return this.immediateLoad$.pipe(take(1)).toPromise();
   }
 
   /**
@@ -153,9 +146,9 @@ export abstract class EnvironmentLoaderGateway {
         this.customLoadSourcesOperator(source),
         tap({
           next: (value: Properties) => {
-            this.checkImmediate(value, source);
             this.checkResetEnvironment(value, source);
             this.saveToStore(value, source);
+            this.checkImmediate(value, source);
             this.checkDismissOtherSources(value, source);
           },
         })
@@ -212,8 +205,9 @@ export abstract class EnvironmentLoaderGateway {
   }
 
   protected checkImmediate(value: Properties, source: PropertiesSourceGateway): void {
-    if (source.immediate) {
+    if (source.immediate && !this.immediateLoad$.isStopped) {
       this.immediateLoad$.next();
+      this.immediateLoad$.complete();
     }
   }
 

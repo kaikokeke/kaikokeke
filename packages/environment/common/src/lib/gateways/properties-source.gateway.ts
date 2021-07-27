@@ -12,12 +12,13 @@ export abstract class PropertiesSourceGateway {
   abstract readonly name: string;
 
   /**
-   * The optional path where the loaded properties are going to be setted in the environment.
+   * Sets the load type used by the source.
    *
-   * If a path is not specified, the loaded properties will be set to the root of the environment properties.
-   * @see Path
+   * Determines if the properties from the source must be loaded before the application load.
+   * Defaults to `INITIALIZATION`.
+   * @see LoadType
    */
-  path?: Path;
+  loadType: LoadType = LoadType.INITIALIZATION;
 
   /**
    * Sets if the source is required.
@@ -29,13 +30,12 @@ export abstract class PropertiesSourceGateway {
   isRequired = true;
 
   /**
-   * Sets the load type used by the source.
+   * The optional path where the loaded properties are going to be setted in the environment.
    *
-   * Determines if the properties from the source must be loaded before the application load.
-   * Defaults to `INITIALIZATION`.
-   * @see LoadType
+   * If a path is not specified, the loaded properties will be set to the root of the environment properties.
+   * @see Path
    */
-  loadType: LoadType = LoadType.INITIALIZATION;
+  path?: Path;
 
   /**
    * Sets the merge strategy used by the source.
