@@ -1,6 +1,6 @@
 import { coerceArray, SafeRxJS } from '@kaikokeke/common';
 import { defer, NEVER, Observable, ObservableInput, of, OperatorFunction, Subject, throwError } from 'rxjs';
-import { catchError, concatAll, delay, map, mergeAll, take, tap } from 'rxjs/operators';
+import { catchError, concatAll, delay, finalize, map, mergeAll, take, tap } from 'rxjs/operators';
 
 import { environmentConfigFactory } from '../application';
 import { EnvironmentServiceGateway, PropertiesSourceGateway } from '../gateways';
@@ -46,14 +46,14 @@ export abstract class EnvironmentLoaderGateway {
    * @returns A promise to start the application load.
    */
   async load(): Promise<void> {
-    this.processDeferredNotInOrder();
+    this.checkProcessDeferredNotInOrder();
 
     return Promise.race([this.processMaxLoadTime(), this.processImmediate(), this.processInitialization()]).then(() => {
       this.isApplicationLoaded = true;
     });
   }
 
-  protected processDeferredNotInOrder(): void {
+  protected checkProcessDeferredNotInOrder(): void {
     if (!this.config.loadInOrder) {
       this.processDeferred();
     }
@@ -101,11 +101,11 @@ export abstract class EnvironmentLoaderGateway {
             .pipe(map(() => undefined))
         : of(undefined)
     )
-      .toPromise()
-      .then(() => this.processDeferredInOrder());
+      .pipe(finalize(() => this.checkProcessDeferredInOrder()))
+      .toPromise();
   }
 
-  protected processDeferredInOrder(): void {
+  protected checkProcessDeferredInOrder(): void {
     if (this.config.loadInOrder) {
       this.processDeferred();
     }

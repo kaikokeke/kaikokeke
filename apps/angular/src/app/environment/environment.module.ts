@@ -67,12 +67,9 @@ export class TestSources2 extends PropertiesSourceGateway {
 @Injectable({ providedIn: 'root' })
 export class TestSources3 extends PropertiesSourceGateway {
   readonly name = 'TestSources3';
-  readonly loadType = LoadType.DEFERRED;
-  // readonly isRequired = false;
 
-  load(): Observable<Properties> {
-    return of({ c: 0 }).pipe(delay(3000));
-    // throw throwError(new Error('A custom error'));
+  async load(): Promise<Properties> {
+    return Promise.resolve({ c: 0 });
   }
 }
 

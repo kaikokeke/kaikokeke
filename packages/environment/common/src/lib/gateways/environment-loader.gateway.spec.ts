@@ -3,7 +3,6 @@
 import { SafeRxJS } from '@kaikokeke/common';
 import { isPlainObject } from 'lodash-es';
 import { Observable, of, Subject, throwError } from 'rxjs';
-import { fakeSchedulers } from 'rxjs-marbles/jest';
 import { delay } from 'rxjs/operators';
 
 import { LoadType, Properties } from '../types';
@@ -94,7 +93,7 @@ describe('EnvironmentLoaderGateway', () => {
       }
     }
 
-    it(`load() returns resolved Promise on maxLoadTime ms`, () => {
+    it(`returns resolved Promise on maxLoadTime ms`, () => {
       (loader as unknown)['config'] = { maxLoadTime: 500 };
       (loader as unknown)['sources'] = [new DefaultSource()];
       expect(loader.load()).toResolve();
@@ -111,7 +110,7 @@ describe('EnvironmentLoaderGateway', () => {
       }
     }
 
-    it(`load() returns resolved Promise when all initialization sources are resolved`, () => {
+    it(`returns resolved Promise when all initialization sources are resolved`, () => {
       (loader as unknown)['sources'] = [new DefaultSource(), new InitializationSource()];
       expect(loader.load()).toResolve();
       jest.advanceTimersByTime(1999);
@@ -128,7 +127,7 @@ describe('EnvironmentLoaderGateway', () => {
       }
     }
 
-    it(`load() returns resolved Promise when an immediate source is resolved`, () => {
+    it(`returns resolved Promise when an immediate source is resolved`, () => {
       (loader as unknown)['sources'] = [new ImmediateSource(), new DefaultSource()];
       expect(loader.load()).toResolve();
       jest.advanceTimersByTime(999);
@@ -144,7 +143,7 @@ describe('EnvironmentLoaderGateway', () => {
       }
     }
 
-    it(`load() returns rejected Promise when a source returns an error`, () => {
+    it(`returns rejected Promise when a source returns an error`, () => {
       (loader as unknown)['sources'] = [new ErrorSource(), new DefaultSource()];
       expect(loader.load()).toReject();
       jest.advanceTimersByTime(999);
@@ -161,7 +160,7 @@ describe('EnvironmentLoaderGateway', () => {
       }
     }
 
-    it(`load() returns resolved Promise when a non required source returns an error`, () => {
+    it(`returns resolved Promise when a non required source returns an error`, () => {
       (loader as unknown)['sources'] = [new ErrorNoRequiredSource(), new DefaultSource()];
       expect(loader.load()).toResolve();
       jest.advanceTimersByTime(1999);
@@ -170,7 +169,7 @@ describe('EnvironmentLoaderGateway', () => {
       expect.assertions(1);
     });
 
-    it(`load() returns resolved Promise when no sources`, () => {
+    it(`returns resolved Promise when no sources`, () => {
       (loader as unknown)['sources'] = [];
       expect(loader.load()).toResolve();
       expect.assertions(0);
@@ -186,7 +185,7 @@ describe('EnvironmentLoaderGateway', () => {
       }
     }
 
-    it(`load() returns resolved Promise when no INITIALIZATION sources`, () => {
+    it(`returns resolved Promise when no INITIALIZATION sources`, () => {
       (loader as unknown)['sources'] = [new DeferredSource()];
       expect(loader.load()).toResolve();
       expect.assertions(0);
@@ -220,34 +219,60 @@ describe('EnvironmentLoaderGateway', () => {
       }
     }
 
-    it(
-      `load() with config loadInOrder true loads the sources in order`,
-      fakeSchedulers((advance) => {
-        jest.spyOn(service, 'merge');
-        (loader as unknown)['config'] = { loadInOrder: true };
-        (loader as unknown)['sources'] = [new LoadInOrderASource(), new LoadInOrderBSource(), new LoadInOrderCSource()];
-        loader.load();
-        advance(500);
-        expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
-        advance(400);
-        expect(service.merge).toHaveBeenNthCalledWith(2, { b: 0 }, undefined);
-        advance(3000);
-        expect(service.merge).toHaveBeenNthCalledWith(3, { c: 0 }, undefined);
-      })
-    );
+    it(`resolves the sources in order if config.loadInOrder`, () => {
+      jest.spyOn(service, 'merge');
+      (loader as unknown)['config'] = { loadInOrder: true };
+      (loader as unknown)['sources'] = [new LoadInOrderCSource(), new LoadInOrderASource(), new LoadInOrderBSource()];
+      loader.load();
+      jest.advanceTimersByTime(900);
+      expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+      jest.advanceTimersByTime(400);
+      expect(service.merge).toHaveBeenNthCalledWith(2, { b: 0 }, undefined);
+      jest.advanceTimersByTime(300);
+      expect(service.merge).toHaveBeenNthCalledWith(3, { c: 0 }, undefined);
+    });
 
-    it(
-      `load() with config loadInOrder false loads the sources in all at a time`,
-      fakeSchedulers((advance) => {
-        jest.spyOn(service, 'merge');
-        (loader as unknown)['config'] = { loadInOrder: false };
-        (loader as unknown)['sources'] = [new LoadInOrderASource(), new LoadInOrderBSource(), new LoadInOrderCSource()];
-        loader.load();
-        advance(500);
-        expect(service.merge).toHaveBeenNthCalledWith(1, { c: 0 }, undefined);
-        expect(service.merge).toHaveBeenNthCalledWith(2, { b: 0 }, undefined);
-        expect(service.merge).toHaveBeenNthCalledWith(3, { a: 0 }, undefined);
-      })
-    );
+    it(`resolves the sources all at once if no config.loadInOrder`, () => {
+      jest.spyOn(service, 'merge');
+      (loader as unknown)['config'] = { loadInOrder: false };
+      (loader as unknown)['sources'] = [new LoadInOrderCSource(), new LoadInOrderASource(), new LoadInOrderBSource()];
+      loader.load();
+      jest.advanceTimersByTime(300);
+      expect(service.merge).toHaveBeenNthCalledWith(1, { c: 0 }, undefined);
+      jest.advanceTimersByTime(100);
+      expect(service.merge).toHaveBeenNthCalledWith(2, { b: 0 }, undefined);
+      jest.advanceTimersByTime(100);
+      expect(service.merge).toHaveBeenNthCalledWith(3, { a: 0 }, undefined);
+    });
+
+    // Promise and Observable
+
+    class ObservableSource extends PropertiesSourceGateway {
+      name = 'ObservableSource';
+      load(): Observable<Properties> {
+        return of({ a: 0 });
+      }
+    }
+
+    class PromiseSource extends PropertiesSourceGateway {
+      name = 'PromiseSource';
+      async load(): Promise<Properties> {
+        return Promise.resolve({ b: 0 });
+      }
+    }
+
+    it(`resolves if source is an Observable`, async () => {
+      jest.spyOn(service, 'merge');
+      (loader as unknown)['sources'] = [new ObservableSource()];
+      await loader.load();
+      expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+    });
+
+    it(`resolves if source is a Promise`, async () => {
+      jest.spyOn(service, 'merge');
+      (loader as unknown)['sources'] = [new PromiseSource()];
+      await loader.load();
+      expect(service.merge).toHaveBeenNthCalledWith(1, { b: 0 }, undefined);
+    });
   });
 });
