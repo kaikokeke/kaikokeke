@@ -30,11 +30,6 @@ export abstract class EnvironmentLoaderGateway {
    */
   protected dismissOtherSources = false;
 
-  /**
-   * Manages if the application have been loaded.
-   */
-  protected isApplicationLoaded = false;
-
   constructor(
     protected readonly service: EnvironmentServiceGateway,
     protected readonly partialConfig: Partial<EnvironmentConfig>,
@@ -48,9 +43,7 @@ export abstract class EnvironmentLoaderGateway {
   async load(): Promise<void> {
     this.checkProcessDeferredNotInOrder();
 
-    return Promise.race([this.processMaxLoadTime(), this.processImmediate(), this.processInitialization()]).then(() => {
-      this.isApplicationLoaded = true;
-    });
+    return Promise.race([this.processMaxLoadTime(), this.processImmediate(), this.processInitialization()]);
   }
 
   protected checkProcessDeferredNotInOrder(): void {
@@ -142,7 +135,7 @@ export abstract class EnvironmentLoaderGateway {
   protected loadSources$(sources: PropertiesSourceGateway[]): Observable<Properties>[] {
     return sources.map((source: PropertiesSourceGateway) =>
       defer(() => source.load()).pipe(
-        catchError((error: Error) => this.checkRequired$(error, source)),
+        catchError((error: Error) => this.checkLoadError$(error, source)),
         this.customLoadSourcesOperator(source),
         tap({
           next: (value: Properties) => {
@@ -166,28 +159,26 @@ export abstract class EnvironmentLoaderGateway {
     return (observable: Observable<T>): Observable<T | K> => observable;
   }
 
-  protected checkRequired$(error: Error, source: PropertiesSourceGateway): Observable<Properties> {
-    return source.isRequired && !this.isApplicationLoaded
+  protected checkLoadError$(error: Error, source: PropertiesSourceGateway): Observable<Properties> {
+    return source.isRequired && source.loadType === LoadType.INITIALIZATION
       ? this.onRequiredError(error, source)
       : this.onNotRequiredError(error, source);
   }
 
   protected onRequiredError(error: Error, source: PropertiesSourceGateway): Observable<never> {
-    this.service.reset();
-
-    return throwError(this.getLoadError(error, source.name));
+    return throwError(new Error(this.getLoadErrorMessage(error, source.name)));
   }
 
   protected onNotRequiredError(error: Error, source: PropertiesSourceGateway): Observable<Properties> {
-    console.error(this.getLoadError(error, source.name));
+    console.error(new Error(this.getLoadErrorMessage(error, source.name)));
 
     return of({});
   }
 
-  protected getLoadError(error: Error, name: string): Error {
+  protected getLoadErrorMessage(error: Error, name: string): string {
     const message: string = error.message ? `: ${error.message}` : '';
 
-    return new Error(`Required Environment PropertiesSource "${name}" failed to load${message}`);
+    return `Required Environment PropertiesSource "${name}" failed to load${message}`;
   }
 
   protected checkResetEnvironment(value: Properties, source: PropertiesSourceGateway): void {
