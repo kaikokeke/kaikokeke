@@ -8,7 +8,7 @@ import {
   of,
   OperatorFunction,
   ReplaySubject,
-  throwError
+  throwError,
 } from 'rxjs';
 import { catchError, concatAll, finalize, map, mergeAll, take, tap } from 'rxjs/operators';
 
