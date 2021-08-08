@@ -5,7 +5,7 @@ import { isPlainObject } from 'lodash-es';
 import { Observable, of, Subject, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 
-import { LoadType, Properties } from '../types';
+import { LoadType, MergeStrategy, Properties } from '../types';
 import { EnvironmentLoaderGateway } from './environment-loader.gateway';
 import { EnvironmentServiceGateway } from './environment-service.gateway';
 import { EnvironmentStoreGateway } from './environment-store.gateway';
@@ -45,7 +45,7 @@ describe('EnvironmentLoaderGateway', () => {
   });
 
   it(`.immediateLoad$ is a Subject`, () => {
-    expect(loader['immediateLoad$']).toBeInstanceOf(Subject);
+    expect(loader['appLoad$']).toBeInstanceOf(Subject);
   });
 
   it(`.config is setted`, () => {
@@ -174,7 +174,7 @@ describe('EnvironmentLoaderGateway', () => {
       (loader as unknown)['sources'] = [];
       expect(loader.load()).toResolve();
       expect.assertions(0);
-      jest.advanceTimersByTime(1);
+      jest.runAllTimers();
       expect.assertions(1);
     });
 
@@ -282,6 +282,7 @@ describe('EnvironmentLoaderGateway', () => {
 
     class ObservableSource extends PropertiesSourceGateway {
       name = 'ObservableSource';
+      loadType: LoadType.INITIALIZATION;
       load(): Observable<Properties> {
         return of({ a: 0 });
       }
@@ -296,6 +297,7 @@ describe('EnvironmentLoaderGateway', () => {
 
     class PromiseSource extends PropertiesSourceGateway {
       name = 'PromiseSource';
+      loadType: LoadType.INITIALIZATION;
       async load(): Promise<Properties> {
         return Promise.resolve({ b: 0 });
       }
@@ -319,7 +321,6 @@ describe('EnvironmentLoaderGateway', () => {
     }
 
     it(`displays a console.error if no INITIALIZATION source`, () => {
-      jest.spyOn(console, 'error').mockImplementation(() => null);
       (loader as unknown)['sources'] = [new ErrorDeferredSource()];
       loader.load();
       jest.advanceTimersByTime(1);
@@ -331,6 +332,7 @@ describe('EnvironmentLoaderGateway', () => {
 
     class ErrorNotRequiredInitializationSource extends PropertiesSourceGateway {
       name = 'ErrorNotRequiredInitializationSource';
+      loadType: LoadType.INITIALIZATION;
       isRequired = false;
       load(): Observable<Properties> {
         return throwError(new Error('error'));
@@ -338,7 +340,6 @@ describe('EnvironmentLoaderGateway', () => {
     }
 
     it(`displays a console.error if source is not required and INITIALIZATION`, () => {
-      jest.spyOn(console, 'error').mockImplementation(() => null);
       (loader as unknown)['sources'] = [new ErrorNotRequiredInitializationSource()];
       loader.load();
       jest.runAllTimers();
@@ -350,36 +351,206 @@ describe('EnvironmentLoaderGateway', () => {
 
     class ErrorInitializationSource extends PropertiesSourceGateway {
       name = 'ErrorInitializationSource';
+      loadType: LoadType.INITIALIZATION;
       load(): Observable<Properties> {
         return throwError(new Error('error')).pipe(delay(1000));
       }
     }
 
-    it(`throws error if required and INITIALIZATION`, (done) => {
-      jest.spyOn(console, 'error').mockImplementation(() => null);
+    it(`throws error if required and INITIALIZATION`, () => {
       (loader as unknown)['sources'] = [new ErrorInitializationSource()];
       loader.load().catch((error) => {
         expect(error.message).toEqual(
           'Required Environment PropertiesSource "ErrorInitializationSource" failed to load: error'
         );
-        done();
       });
     });
 
-    it(`displays a console.error if required and INITIALIZATION and app loaded`, () => {
-      jest.spyOn(console, 'error').mockImplementation(() => null);
-      (loader as unknown)['sources'] = [new ImmediateSource(), new ErrorInitializationSource()];
+    class ErrorWithMessageSource extends PropertiesSourceGateway {
+      name = 'ErrorWithMessageSource';
+      loadType: LoadType.INITIALIZATION;
+      load(): Observable<Properties> {
+        return throwError(new Error('error'));
+      }
+    }
+
+    it(`throws error with message`, () => {
+      (loader as unknown)['sources'] = [new ErrorWithMessageSource()];
+      loader.load().catch((error) => {
+        expect(error.message).toEqual(
+          'Required Environment PropertiesSource "ErrorWithMessageSource" failed to load: error'
+        );
+      });
+    });
+
+    class ErrorWithoutMessageSource extends PropertiesSourceGateway {
+      name = 'ErrorWithoutMessageSource';
+      loadType: LoadType.INITIALIZATION;
+      load(): Observable<Properties> {
+        return throwError(new Error());
+      }
+    }
+
+    it(`throws error without message`, () => {
+      (loader as unknown)['sources'] = [new ErrorWithoutMessageSource()];
+      loader.load().catch((error) => {
+        expect(error.message).toEqual(
+          'Required Environment PropertiesSource "ErrorWithoutMessageSource" failed to load'
+        );
+      });
+    });
+
+    // actions on app load error
+
+    it(`resolves the non error sources if app loaded`, () => {
+      jest.spyOn(service, 'merge');
+      (loader as unknown)['sources'] = [new ImmediateSource(), new ErrorSource(), new DefaultSource()];
       loader.load();
       jest.runAllTimers();
-      expect(console.error).toHaveBeenNthCalledWith(
-        1,
-        new Error('Required Environment PropertiesSource "ErrorInitializationSource" failed to load: error')
-      );
+      expect(service.merge).toHaveBeenCalledTimes(3);
     });
+
+    it(`do not resolves sources after error`, () => {
+      jest.spyOn(service, 'merge');
+      (loader as unknown)['sources'] = [new DefaultSource(), new ErrorSource(), new DefaultSource()];
+      loader.load();
+      jest.runAllTimers();
+      expect(service.merge).toHaveBeenCalledTimes(1);
+    });
+
+    // class ErrorAppLoadedSource extends PropertiesSourceGateway {
+    //   name = 'ErrorAppLoadedSource';
+    //   loadType: LoadType.INITIALIZATION;
+    //   load(): Observable<Properties> {
+    //     return throwError(new Error()).pipe(delay(1000));
+    //   }
+    // }
+
+    // it(`display console.error if required and INITIALIZATION but app loaded`, () => {
+    //   (loader as unknown)['sources'] = [new DefaultSource(), new ErrorAppLoadedSource()];
+    //   loader.load();
+    //   jest.advanceTimersByTime(2000);
+    //   expect(console.error).toHaveBeenNthCalledWith(
+    //     1,
+    //     new Error('Required Environment PropertiesSource "ErrorAppLoadedSource" failed to load: test')
+    //   );
+    // });
 
     // reset the store
 
+    class ResetSource extends PropertiesSourceGateway {
+      name = 'ResetSource';
+      resetEnvironment = true;
+      load(): Observable<Properties> {
+        return of({ r: 0 }).pipe(delay(1000));
+      }
+    }
+
+    it(`resets the source if resetEnvironment`, () => {
+      jest.spyOn(service, 'reset');
+      (loader as unknown)['sources'] = [new ResetSource()];
+      loader.load();
+      jest.advanceTimersByTime(999);
+      expect(service.reset).not.toHaveBeenCalled();
+      jest.advanceTimersByTime(1);
+      expect(service.reset).toHaveBeenCalledTimes(1);
+    });
+
+    class NoResetSource extends PropertiesSourceGateway {
+      name = 'NoResetSource';
+      resetEnvironment = false;
+      load(): Observable<Properties> {
+        return of({ r: 0 }).pipe(delay(1000));
+      }
+    }
+
+    it(`doesn't reset the source if no resetEnvironment`, () => {
+      jest.spyOn(service, 'reset');
+      (loader as unknown)['sources'] = [new NoResetSource()];
+      loader.load();
+      jest.advanceTimersByTime(999);
+      expect(service.reset).not.toHaveBeenCalled();
+      jest.advanceTimersByTime(1);
+      expect(service.reset).not.toHaveBeenCalled();
+    });
+
     // check merge strategy
+
+    class MergeSource extends PropertiesSourceGateway {
+      name = 'MergeSource';
+      mergeStrategy = MergeStrategy.MERGE;
+      load(): Observable<Properties> {
+        return of({ m: 0 }).pipe(delay(1000));
+      }
+    }
+
+    it(`uses the MERGE strategy`, () => {
+      jest.spyOn(service, 'merge');
+      (loader as unknown)['sources'] = [new MergeSource()];
+      loader.load();
+      jest.advanceTimersByTime(999);
+      expect(service.merge).not.toHaveBeenCalled();
+      jest.advanceTimersByTime(1);
+      expect(service.merge).toHaveBeenNthCalledWith(1, { m: 0 }, undefined);
+    });
+
+    class OverwriteSource extends PropertiesSourceGateway {
+      name = 'OverwriteSource';
+      mergeStrategy = MergeStrategy.OVERWRITE;
+      load(): Observable<Properties> {
+        return of({ m: 0 }).pipe(delay(1000));
+      }
+    }
+
+    it(`uses the OVERWRITE strategy`, () => {
+      jest.spyOn(service, 'overwrite');
+      (loader as unknown)['sources'] = [new OverwriteSource()];
+      loader.load();
+      jest.advanceTimersByTime(999);
+      expect(service.overwrite).not.toHaveBeenCalled();
+      jest.advanceTimersByTime(1);
+      expect(service.overwrite).toHaveBeenNthCalledWith(1, { m: 0 }, undefined);
+    });
+
+    // uses the path
+
+    class PathMergeSource extends PropertiesSourceGateway {
+      name = 'PathMergeSource';
+      path = 'a';
+      mergeStrategy = MergeStrategy.MERGE;
+      load(): Observable<Properties> {
+        return of({ m: 0 }).pipe(delay(1000));
+      }
+    }
+
+    it(`uses the MERGE strategy with path`, () => {
+      jest.spyOn(service, 'merge');
+      (loader as unknown)['sources'] = [new PathMergeSource()];
+      loader.load();
+      jest.advanceTimersByTime(999);
+      expect(service.merge).not.toHaveBeenCalled();
+      jest.advanceTimersByTime(1);
+      expect(service.merge).toHaveBeenNthCalledWith(1, { m: 0 }, 'a');
+    });
+
+    class PathOverwriteSource extends PropertiesSourceGateway {
+      name = 'PathOverwriteSource';
+      path = 'a';
+      mergeStrategy = MergeStrategy.OVERWRITE;
+      load(): Observable<Properties> {
+        return of({ m: 0 }).pipe(delay(1000));
+      }
+    }
+
+    it(`uses the OVERWRITE strategy with path`, () => {
+      jest.spyOn(service, 'overwrite');
+      (loader as unknown)['sources'] = [new PathOverwriteSource()];
+      loader.load();
+      jest.advanceTimersByTime(999);
+      expect(service.overwrite).not.toHaveBeenCalled();
+      jest.advanceTimersByTime(1);
+      expect(service.overwrite).toHaveBeenNthCalledWith(1, { m: 0 }, 'a');
+    });
 
     // check dismiss other sources
 
