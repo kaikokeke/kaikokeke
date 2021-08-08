@@ -1,6 +1,15 @@
 import { coerceArray, SafeRxJS } from '@kaikokeke/common';
 import { delay, merge } from 'lodash-es';
-import { defer, Observable, ObservableInput, of, OperatorFunction, ReplaySubject, throwError } from 'rxjs';
+import {
+  defer,
+  MonoTypeOperatorFunction,
+  Observable,
+  ObservableInput,
+  of,
+  OperatorFunction,
+  ReplaySubject,
+  throwError
+} from 'rxjs';
 import { catchError, concatAll, finalize, map, mergeAll, take, tap } from 'rxjs/operators';
 
 import { environmentConfigFactory } from '../application';
@@ -23,33 +32,47 @@ export abstract class EnvironmentLoaderGateway {
     protected readonly sources: PropertiesSourceGateway[]
   ) {}
 
+  /**
+   * Initializes the application once the sources are loaded.
+   * @returns A Promise to initialize the application.
+   */
   async load(): Promise<void> {
     this.processMaxLoadTime();
     this.processInitializationSources();
     this.processDeferredSourcesNotInOrder();
 
-    return this.appLoad$.pipe(this.onAppLoadErrorOperator()).toPromise();
+    return this.appLoad$.pipe(this.appLoadErrorOperator()).toPromise();
   }
 
-  loadChild(sources: PropertiesSourceGateway[], config?: Partial<EnvironmentConfig>): Promise<void> {
+  /**
+   * Initializes a module once the sources are loaded.
+   * @param sources The sources to be processed by the module.
+   * @param config The custom config of the module. Will be merged with the application config.
+   * @returns A Promise to initialize the module.
+   */
+  loadModule(sources: PropertiesSourceGateway[], config?: Partial<EnvironmentConfig>): Promise<void> {
     if (this.appLoad$.closed) {
       this.appLoad$ = new ReplaySubject();
     }
     this.dismissOtherSources = false;
 
-    const childConfig = merge({}, this.config, environmentConfigFactory(config));
+    const moduleConfig = merge({}, this.config, environmentConfigFactory(config));
 
-    this.processMaxLoadTime(childConfig.maxLoadTime);
-    this.processInitializationSources(sources, childConfig);
-    this.processDeferredSourcesNotInOrder(sources, childConfig);
+    this.processMaxLoadTime(moduleConfig.maxLoadTime);
+    this.processInitializationSources(sources, moduleConfig);
+    this.processDeferredSourcesNotInOrder(sources, moduleConfig);
 
-    return this.appLoad$.pipe(this.onAppLoadErrorOperator()).toPromise();
+    return this.appLoad$.pipe(this.appLoadErrorOperator()).toPromise();
   }
 
-  protected onAppLoadErrorOperator<T, K = T>(): OperatorFunction<T, T | K> {
-    return (observable: Observable<T>): Observable<T | K> =>
+  /**
+   * Destroys all pending sources loads on load error.
+   * @returns An Observable that emits an error notification on error.
+   */
+  protected appLoadErrorOperator(): MonoTypeOperatorFunction<void> {
+    return (observable: Observable<void>): Observable<void> =>
       observable.pipe(
-        catchError((error: Error) => {
+        catchError((error: Error): Observable<never> => {
           this.rxjs.onDestroy();
 
           return throwError(error);
@@ -57,15 +80,10 @@ export abstract class EnvironmentLoaderGateway {
       );
   }
 
-  protected processDeferredSourcesNotInOrder(
-    sources: PropertiesSourceGateway[] = this.sources,
-    config: Partial<EnvironmentConfig> = this.config
-  ): void {
-    if (!config.loadInOrder) {
-      this.processDeferred(sources);
-    }
-  }
-
+  /**
+   * Emits a message to load the application once the `maxLoadTime` is reached.
+   * @param maxLoadTime The max load time to load the application.
+   */
   protected processMaxLoadTime(maxLoadTime: number | undefined = this.config.maxLoadTime): void {
     if (maxLoadTime != null) {
       delay(() => {
@@ -85,7 +103,7 @@ export abstract class EnvironmentLoaderGateway {
 
     (initializationSources.length > 0
       ? of(...this.loadSources$(initializationSources, config))
-          .pipe(this.loadInOrderOperator(), this.rxjs.takeUntilDestroy())
+          .pipe(this.onLoadInOrderOperator(), this.rxjs.takeUntilDestroy())
           .pipe(map(() => undefined))
       : of(undefined)
     )
@@ -111,9 +129,18 @@ export abstract class EnvironmentLoaderGateway {
     }
   }
 
-  protected loadInOrderOperator(): OperatorFunction<ObservableInput<Properties>, Properties> {
+  protected onLoadInOrderOperator(): OperatorFunction<ObservableInput<Properties>, Properties> {
     return (observable: Observable<ObservableInput<Properties>>): Observable<Properties> =>
       observable.pipe(this.config.loadInOrder ? concatAll<Properties>() : mergeAll<Properties>());
+  }
+
+  protected processDeferredSourcesNotInOrder(
+    sources: PropertiesSourceGateway[] = this.sources,
+    config: EnvironmentConfig = this.config
+  ): void {
+    if (!config.loadInOrder) {
+      this.processDeferred(sources);
+    }
   }
 
   protected processDeferred(originalSources: PropertiesSourceGateway[], config: EnvironmentConfig = this.config): void {
@@ -135,12 +162,12 @@ export abstract class EnvironmentLoaderGateway {
         tap({
           next: (value: Properties) => {
             this.checkResetEnvironment(value, source, config);
-            this.checkImmediateLoad(value, source);
-            this.checkDismissOtherSources(value, source);
-            this.saveToStore(value, source);
+            this.checkImmediateLoad(value, source, config);
+            this.checkDismissOtherSources(value, source, config);
+            this.saveToStore(value, source, config);
           },
         }),
-        this.onInitializationTakeOneOperator(source)
+        this.initializationTakeOneOperator(source, config)
       )
     );
   }
@@ -168,7 +195,7 @@ export abstract class EnvironmentLoaderGateway {
     }
   }
 
-  protected saveToStore(value: Properties, source: PropertiesSourceGateway) {
+  protected saveToStore(value: Properties, source: PropertiesSourceGateway, config: EnvironmentConfig) {
     if (source.mergeStrategy === MergeStrategy.MERGE) {
       this.service.merge(value, source.path);
     } else {
@@ -176,21 +203,28 @@ export abstract class EnvironmentLoaderGateway {
     }
   }
 
-  protected checkImmediateLoad(value: Properties, source: PropertiesSourceGateway): void {
+  protected checkImmediateLoad(value: Properties, source: PropertiesSourceGateway, config: EnvironmentConfig): void {
     if (source.immediate) {
       this.appLoad$.next();
       this.appLoad$.complete();
     }
   }
 
-  protected checkDismissOtherSources(value: Properties, source: PropertiesSourceGateway): void {
+  protected checkDismissOtherSources(
+    value: Properties,
+    source: PropertiesSourceGateway,
+    config: EnvironmentConfig
+  ): void {
     if (source.dismissOtherSources) {
       this.dismissOtherSources = true;
       this.rxjs.destroy$.next();
     }
   }
 
-  protected onInitializationTakeOneOperator<T, K = T>(source: PropertiesSourceGateway): OperatorFunction<T, T | K> {
+  protected initializationTakeOneOperator<T, K = T>(
+    source: PropertiesSourceGateway,
+    config: EnvironmentConfig
+  ): OperatorFunction<T, T | K> {
     return (observable: Observable<T>): Observable<T | K> =>
       source.loadType === LoadType.INITIALIZATION ? observable.pipe(take(1)) : observable;
   }
