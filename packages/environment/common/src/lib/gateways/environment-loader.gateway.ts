@@ -8,7 +8,7 @@ import {
   of,
   OperatorFunction,
   ReplaySubject,
-  throwError,
+  throwError
 } from 'rxjs';
 import { catchError, concatAll, finalize, map, mergeAll, take, tap } from 'rxjs/operators';
 
@@ -102,9 +102,11 @@ export abstract class EnvironmentLoaderGateway {
     );
 
     (initializationSources.length > 0
-      ? of(...this.loadSources$(initializationSources, config))
-          .pipe(this.onLoadInOrderOperator(), this.rxjs.takeUntilDestroy())
-          .pipe(map(() => undefined))
+      ? of(...this.loadSources$(initializationSources, config)).pipe(
+          this.onLoadInOrderOperator(),
+          map(() => undefined),
+          this.rxjs.takeUntilDestroy()
+        )
       : of(undefined)
     )
       .pipe(

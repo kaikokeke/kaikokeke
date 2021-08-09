@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { SafeRxJS } from '@kaikokeke/common';
 import { isPlainObject } from 'lodash-es';
-import { Observable, of, Subject, throwError } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { interval, Observable, of, Subject, throwError } from 'rxjs';
+import { delay, map } from 'rxjs/operators';
 
 import { LoadType, MergeStrategy, Properties } from '../types';
 import { EnvironmentLoaderGateway } from './environment-loader.gateway';
@@ -86,15 +86,15 @@ describe('EnvironmentLoaderGateway', () => {
       name = 'MaxLoadSource';
       loadType = LoadType.INITIALIZATION;
       load(): Observable<Properties> {
-        return of({ a: 0 }).pipe(delay(1000));
+        return of({ a: 0 }).pipe(delay(10));
       }
     }
 
     it(`returns resolved Promise on maxLoadTime ms`, () => {
-      (loader as unknown)['config'] = { maxLoadTime: 500 };
+      (loader as unknown)['config'] = { maxLoadTime: 5 };
       (loader as unknown)['sources'] = [new DefaultSource()];
       expect(loader.load()).toResolve();
-      jest.advanceTimersByTime(499);
+      jest.advanceTimersByTime(4);
       expect.assertions(0);
       jest.advanceTimersByTime(1);
       expect.assertions(1);
@@ -104,14 +104,14 @@ describe('EnvironmentLoaderGateway', () => {
       name = 'InitializationSource';
       loadType = LoadType.INITIALIZATION;
       load(): Observable<Properties> {
-        return of({ b: 0 }).pipe(delay(1000));
+        return of({ b: 0 }).pipe(delay(10));
       }
     }
 
     it(`returns resolved Promise when all initialization sources are resolved`, () => {
       (loader as unknown)['sources'] = [new DefaultSource(), new InitializationSource()];
       expect(loader.load()).toResolve();
-      jest.advanceTimersByTime(1999);
+      jest.advanceTimersByTime(19);
       expect.assertions(0);
       jest.advanceTimersByTime(1);
       expect.assertions(1);
@@ -122,14 +122,14 @@ describe('EnvironmentLoaderGateway', () => {
       loadType = LoadType.INITIALIZATION;
       immediate = true;
       load(): Observable<Properties> {
-        return of({ c: 0 }).pipe(delay(1000));
+        return of({ c: 0 }).pipe(delay(10));
       }
     }
 
     it(`returns resolved Promise when an immediate source is resolved`, () => {
       (loader as unknown)['sources'] = [new ImmediateSource(), new DefaultSource()];
       expect(loader.load()).toResolve();
-      jest.advanceTimersByTime(999);
+      jest.advanceTimersByTime(9);
       expect.assertions(0);
       jest.advanceTimersByTime(1);
       expect.assertions(1);
@@ -139,14 +139,14 @@ describe('EnvironmentLoaderGateway', () => {
       name = 'ErrorSource';
       loadType = LoadType.INITIALIZATION;
       load(): Observable<Properties> {
-        return throwError(new Error('error')).pipe(delay(1000));
+        return throwError(new Error('error')).pipe(delay(10));
       }
     }
 
     it(`returns rejected Promise when a INITIALIZATION source returns an error`, () => {
       (loader as unknown)['sources'] = [new ErrorSource(), new DefaultSource()];
       expect(loader.load()).toReject();
-      jest.advanceTimersByTime(999);
+      jest.advanceTimersByTime(9);
       expect.assertions(0);
       jest.advanceTimersByTime(1);
       expect.assertions(1);
@@ -157,14 +157,14 @@ describe('EnvironmentLoaderGateway', () => {
       loadType = LoadType.INITIALIZATION;
       isRequired = false;
       load(): Observable<Properties> {
-        return throwError(new Error('error')).pipe(delay(1000));
+        return throwError(new Error('error')).pipe(delay(10));
       }
     }
 
     it(`returns resolved Promise when a non required INITIALIZATION source returns an error`, () => {
       (loader as unknown)['sources'] = [new ErrorNoRequiredSource(), new DefaultSource()];
       expect(loader.load()).toResolve();
-      jest.advanceTimersByTime(1999);
+      jest.advanceTimersByTime(9);
       expect.assertions(0);
       jest.advanceTimersByTime(1);
       expect.assertions(1);
@@ -174,7 +174,7 @@ describe('EnvironmentLoaderGateway', () => {
       (loader as unknown)['sources'] = [];
       expect(loader.load()).toResolve();
       expect.assertions(0);
-      jest.runAllTimers();
+      jest.advanceTimersByTime(1);
       expect.assertions(1);
     });
 
@@ -183,14 +183,14 @@ describe('EnvironmentLoaderGateway', () => {
       loadType = LoadType.INITIALIZATION;
       dismissOtherSources = true;
       load(): Observable<Properties> {
-        return of({ d: 0 }).pipe(delay(500));
+        return of({ d: 0 }).pipe(delay(5));
       }
     }
 
     it(`returns resolved Promise when a dismissOtherSources INITIALIZATION source returns`, () => {
       (loader as unknown)['sources'] = [new DidmissOtherSourcesSource(), new DefaultSource()];
       expect(loader.load()).toResolve();
-      jest.advanceTimersByTime(499);
+      jest.advanceTimersByTime(4);
       expect.assertions(0);
       jest.advanceTimersByTime(1);
       expect.assertions(1);
@@ -200,7 +200,7 @@ describe('EnvironmentLoaderGateway', () => {
       name = 'DeferredSource';
       loadType = LoadType.DEFERRED;
       load(): Observable<Properties> {
-        return of({ d: 0 }).pipe(delay(1000));
+        return of({ d: 0 }).pipe(delay(10));
       }
     }
 
@@ -212,13 +212,30 @@ describe('EnvironmentLoaderGateway', () => {
       expect.assertions(1);
     });
 
+    class MultipleInitializationSource extends PropertiesSourceGateway {
+      name = 'DeferredSource';
+      loadType = LoadType.INITIALIZATION;
+      load(): Observable<Properties> {
+        return interval(10).pipe(map((n) => ({ a: n })));
+      }
+    }
+
+    it(`returns resolved Promise from multiple emitter INITIALIZATION sources`, () => {
+      (loader as unknown)['sources'] = [new MultipleInitializationSource()];
+      expect(loader.load()).toResolve();
+      jest.advanceTimersByTime(9);
+      expect.assertions(0);
+      jest.advanceTimersByTime(1);
+      expect.assertions(1);
+    });
+
     // load in order
 
     class LoadInOrderASource extends PropertiesSourceGateway {
       name = 'LoadInOrderASource';
       loadType = LoadType.INITIALIZATION;
       load(): Observable<Properties> {
-        return of({ a: 0 }).pipe(delay(500));
+        return of({ a: 0 }).pipe(delay(5));
       }
     }
 
@@ -226,7 +243,7 @@ describe('EnvironmentLoaderGateway', () => {
       name = 'LoadInOrderBSource';
       loadType = LoadType.INITIALIZATION;
       load(): Observable<Properties> {
-        return of({ b: 0 }).pipe(delay(400));
+        return of({ b: 0 }).pipe(delay(4));
       }
     }
 
@@ -234,7 +251,7 @@ describe('EnvironmentLoaderGateway', () => {
       name = 'LoadInOrderCSource';
       loadType = LoadType.DEFERRED;
       load(): Observable<Properties> {
-        return of({ c: 0 }).pipe(delay(300));
+        return of({ c: 0 }).pipe(delay(3));
       }
     }
 
@@ -245,15 +262,15 @@ describe('EnvironmentLoaderGateway', () => {
       (loader as unknown)['config'] = { loadInOrder: true };
       (loader as unknown)['sources'] = loadInOrderSources;
       loader.load();
-      jest.advanceTimersByTime(499);
+      jest.advanceTimersByTime(4);
       expect(service.merge).not.toHaveBeenCalled();
       jest.advanceTimersByTime(1);
       expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
-      jest.advanceTimersByTime(399);
+      jest.advanceTimersByTime(3);
       expect(service.merge).toHaveBeenCalledTimes(1);
       jest.advanceTimersByTime(1);
       expect(service.merge).toHaveBeenNthCalledWith(2, { b: 0 }, undefined);
-      jest.advanceTimersByTime(299);
+      jest.advanceTimersByTime(2);
       expect(service.merge).toHaveBeenCalledTimes(2);
       jest.advanceTimersByTime(1);
       expect(service.merge).toHaveBeenNthCalledWith(3, { c: 0 }, undefined);
@@ -264,18 +281,17 @@ describe('EnvironmentLoaderGateway', () => {
       (loader as unknown)['config'] = { loadInOrder: false };
       (loader as unknown)['sources'] = loadInOrderSources;
       loader.load();
-      jest.advanceTimersByTime(299);
+      jest.advanceTimersByTime(2);
       expect(service.merge).not.toHaveBeenCalled();
       jest.advanceTimersByTime(1);
       expect(service.merge).toHaveBeenNthCalledWith(1, { c: 0 }, undefined);
-      jest.advanceTimersByTime(99);
       expect(service.merge).toHaveBeenCalledTimes(1);
       jest.advanceTimersByTime(1);
       expect(service.merge).toHaveBeenNthCalledWith(2, { b: 0 }, undefined);
-      jest.advanceTimersByTime(99);
       expect(service.merge).toHaveBeenCalledTimes(2);
       jest.advanceTimersByTime(1);
       expect(service.merge).toHaveBeenNthCalledWith(3, { a: 0 }, undefined);
+      expect(service.merge).toHaveBeenCalledTimes(3);
     });
 
     // works with Promise and Observable
@@ -353,7 +369,7 @@ describe('EnvironmentLoaderGateway', () => {
       name = 'ErrorInitializationSource';
       loadType: LoadType.INITIALIZATION;
       load(): Observable<Properties> {
-        return throwError(new Error('error')).pipe(delay(1000));
+        return throwError(new Error('error')).pipe(delay(10));
       }
     }
 
@@ -422,14 +438,14 @@ describe('EnvironmentLoaderGateway', () => {
     //   name = 'ErrorAppLoadedSource';
     //   loadType: LoadType.INITIALIZATION;
     //   load(): Observable<Properties> {
-    //     return throwError(new Error()).pipe(delay(1000));
+    //     return throwError(new Error()).pipe(delay(10));
     //   }
     // }
 
     // it(`display console.error if required and INITIALIZATION but app loaded`, () => {
     //   (loader as unknown)['sources'] = [new DefaultSource(), new ErrorAppLoadedSource()];
     //   loader.load();
-    //   jest.advanceTimersByTime(2000);
+    //   jest.advanceTimersByTime(20);
     //   expect(console.error).toHaveBeenNthCalledWith(
     //     1,
     //     new Error('Required Environment PropertiesSource "ErrorAppLoadedSource" failed to load: test')
@@ -442,7 +458,7 @@ describe('EnvironmentLoaderGateway', () => {
       name = 'ResetSource';
       resetEnvironment = true;
       load(): Observable<Properties> {
-        return of({ r: 0 }).pipe(delay(1000));
+        return of({ r: 0 }).pipe(delay(10));
       }
     }
 
@@ -450,7 +466,7 @@ describe('EnvironmentLoaderGateway', () => {
       jest.spyOn(service, 'reset');
       (loader as unknown)['sources'] = [new ResetSource()];
       loader.load();
-      jest.advanceTimersByTime(999);
+      jest.advanceTimersByTime(9);
       expect(service.reset).not.toHaveBeenCalled();
       jest.advanceTimersByTime(1);
       expect(service.reset).toHaveBeenCalledTimes(1);
@@ -460,7 +476,7 @@ describe('EnvironmentLoaderGateway', () => {
       name = 'NoResetSource';
       resetEnvironment = false;
       load(): Observable<Properties> {
-        return of({ r: 0 }).pipe(delay(1000));
+        return of({ r: 0 }).pipe(delay(10));
       }
     }
 
@@ -468,7 +484,7 @@ describe('EnvironmentLoaderGateway', () => {
       jest.spyOn(service, 'reset');
       (loader as unknown)['sources'] = [new NoResetSource()];
       loader.load();
-      jest.advanceTimersByTime(999);
+      jest.advanceTimersByTime(9);
       expect(service.reset).not.toHaveBeenCalled();
       jest.advanceTimersByTime(1);
       expect(service.reset).not.toHaveBeenCalled();
@@ -480,7 +496,7 @@ describe('EnvironmentLoaderGateway', () => {
       name = 'MergeSource';
       mergeStrategy = MergeStrategy.MERGE;
       load(): Observable<Properties> {
-        return of({ m: 0 }).pipe(delay(1000));
+        return of({ m: 0 }).pipe(delay(10));
       }
     }
 
@@ -488,7 +504,7 @@ describe('EnvironmentLoaderGateway', () => {
       jest.spyOn(service, 'merge');
       (loader as unknown)['sources'] = [new MergeSource()];
       loader.load();
-      jest.advanceTimersByTime(999);
+      jest.advanceTimersByTime(9);
       expect(service.merge).not.toHaveBeenCalled();
       jest.advanceTimersByTime(1);
       expect(service.merge).toHaveBeenNthCalledWith(1, { m: 0 }, undefined);
@@ -498,7 +514,7 @@ describe('EnvironmentLoaderGateway', () => {
       name = 'OverwriteSource';
       mergeStrategy = MergeStrategy.OVERWRITE;
       load(): Observable<Properties> {
-        return of({ m: 0 }).pipe(delay(1000));
+        return of({ m: 0 }).pipe(delay(10));
       }
     }
 
@@ -506,7 +522,7 @@ describe('EnvironmentLoaderGateway', () => {
       jest.spyOn(service, 'overwrite');
       (loader as unknown)['sources'] = [new OverwriteSource()];
       loader.load();
-      jest.advanceTimersByTime(999);
+      jest.advanceTimersByTime(9);
       expect(service.overwrite).not.toHaveBeenCalled();
       jest.advanceTimersByTime(1);
       expect(service.overwrite).toHaveBeenNthCalledWith(1, { m: 0 }, undefined);
@@ -519,7 +535,7 @@ describe('EnvironmentLoaderGateway', () => {
       path = 'a';
       mergeStrategy = MergeStrategy.MERGE;
       load(): Observable<Properties> {
-        return of({ m: 0 }).pipe(delay(1000));
+        return of({ m: 0 }).pipe(delay(10));
       }
     }
 
@@ -527,7 +543,7 @@ describe('EnvironmentLoaderGateway', () => {
       jest.spyOn(service, 'merge');
       (loader as unknown)['sources'] = [new PathMergeSource()];
       loader.load();
-      jest.advanceTimersByTime(999);
+      jest.advanceTimersByTime(9);
       expect(service.merge).not.toHaveBeenCalled();
       jest.advanceTimersByTime(1);
       expect(service.merge).toHaveBeenNthCalledWith(1, { m: 0 }, 'a');
@@ -538,7 +554,7 @@ describe('EnvironmentLoaderGateway', () => {
       path = 'a';
       mergeStrategy = MergeStrategy.OVERWRITE;
       load(): Observable<Properties> {
-        return of({ m: 0 }).pipe(delay(1000));
+        return of({ m: 0 }).pipe(delay(10));
       }
     }
 
@@ -546,7 +562,7 @@ describe('EnvironmentLoaderGateway', () => {
       jest.spyOn(service, 'overwrite');
       (loader as unknown)['sources'] = [new PathOverwriteSource()];
       loader.load();
-      jest.advanceTimersByTime(999);
+      jest.advanceTimersByTime(9);
       expect(service.overwrite).not.toHaveBeenCalled();
       jest.advanceTimersByTime(1);
       expect(service.overwrite).toHaveBeenNthCalledWith(1, { m: 0 }, 'a');
@@ -561,7 +577,7 @@ describe('EnvironmentLoaderGateway', () => {
       (loader as unknown)['config'] = { loadInOrder: true };
       (loader as unknown)['sources'] = dismissOtherSourcesSources;
       loader.load();
-      jest.advanceTimersByTime(499);
+      jest.advanceTimersByTime(4);
       expect(service.merge).not.toHaveBeenCalled();
       jest.advanceTimersByTime(1);
       expect(service.merge).toHaveBeenNthCalledWith(1, { d: 0 }, undefined);
@@ -574,7 +590,7 @@ describe('EnvironmentLoaderGateway', () => {
       (loader as unknown)['config'] = { loadInOrder: false };
       (loader as unknown)['sources'] = dismissOtherSourcesSources;
       loader.load();
-      jest.advanceTimersByTime(499);
+      jest.advanceTimersByTime(4);
       expect(service.merge).not.toHaveBeenCalled();
       jest.advanceTimersByTime(1);
       expect(service.merge).toHaveBeenNthCalledWith(1, { d: 0 }, undefined);
