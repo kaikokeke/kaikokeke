@@ -10,23 +10,47 @@ import {
   ReplaySubject,
   throwError,
 } from 'rxjs';
-import { catchError, concatAll, finalize, map, mergeAll, take, tap } from 'rxjs/operators';
+import { catchError, concatAll, finalize, mergeAll, take, tap } from 'rxjs/operators';
 
 import { environmentConfigFactory } from '../application';
 import { EnvironmentServiceGateway, PropertiesSourceGateway } from '../gateways';
 import { EnvironmentConfig, LoadType, MergeStrategy, Properties } from '../types';
 
 /**
- * Loads properties and set them in the environment store.
+ * Loads properties from asynchronous sources and sets them in the environment store.
  */
 export abstract class EnvironmentLoaderGateway {
+  /**
+   * Manages safe RxJS subscriptions.
+   */
   protected readonly rxjs: SafeRxJS = new SafeRxJS();
-  protected readonly appLoad$: ReplaySubject<void> = new ReplaySubject();
+
+  /**
+   * Emits when the app or module is loaded.
+   */
+  protected readonly loaded$: ReplaySubject<void> = new ReplaySubject();
+
+  /**
+   * Configuration parameters for the Environment module with the default values.
+   */
   protected readonly config: EnvironmentConfig = environmentConfigFactory(this.partialConfig);
 
+  /**
+   * The dismiss other sources state.
+   */
   protected dismissOtherSources = false;
+
+  /**
+   * The app or module loading state.
+   */
   protected isLoaded = false;
 
+  /**
+   * Loads properties from asynchronous sources and sets them in the environment store.
+   * @param service Sets properties in the environment store.
+   * @param partialConfig Partial configuration parameters for the Environment module.
+   * @param sources An array of source definition to get the application properties asynchronously.
+   */
   constructor(
     protected readonly service: EnvironmentServiceGateway,
     protected readonly partialConfig: Partial<EnvironmentConfig>,
@@ -42,7 +66,7 @@ export abstract class EnvironmentLoaderGateway {
     this.processInitializationSources();
     this.processDeferredSourcesNotInOrder();
 
-    return this.appLoad$.pipe(this.appLoadErrorOperator()).toPromise();
+    return this.loaded$.pipe(this.appLoadErrorOperator()).toPromise();
   }
 
   /**
@@ -55,13 +79,13 @@ export abstract class EnvironmentLoaderGateway {
     this.dismissOtherSources = false;
     this.isLoaded = false;
 
-    const moduleConfig = merge({}, this.config, environmentConfigFactory(config));
+    const moduleConfig = environmentConfigFactory(merge({}, this.config, config));
 
     this.processMaxLoadTime(moduleConfig.maxLoadTime);
     this.processInitializationSources(sources, moduleConfig);
     this.processDeferredSourcesNotInOrder(sources, moduleConfig);
 
-    return this.appLoad$.pipe(this.appLoadErrorOperator()).toPromise();
+    return this.loaded$.pipe(this.appLoadErrorOperator()).toPromise();
   }
 
   /**
@@ -89,8 +113,8 @@ export abstract class EnvironmentLoaderGateway {
   protected processMaxLoadTime(maxLoadTime: number | undefined = this.config.maxLoadTime): void {
     if (maxLoadTime != null) {
       delay(() => {
-        this.appLoad$.next();
-        this.appLoad$.complete();
+        this.loaded$.next();
+        this.loaded$.complete();
       }, maxLoadTime);
     }
   }
@@ -106,18 +130,17 @@ export abstract class EnvironmentLoaderGateway {
     (initializationSources.length > 0
       ? of(...this.loadSources$(initializationSources, config)).pipe(
           this.onLoadInOrderOperator(config),
-          map(() => undefined),
           this.rxjs.takeUntilDestroy(),
         )
       : of(undefined)
     )
       .pipe(
         tap(() => {
-          this.appLoad$.next();
+          this.loaded$.next();
         }),
         finalize(() => {
           this.checkProcessDeferredInOrder(sources, config);
-          this.appLoad$.complete();
+          this.loaded$.complete();
         }),
       )
       .subscribe();
@@ -183,7 +206,7 @@ export abstract class EnvironmentLoaderGateway {
     const errorMessage = new Error(`Required Environment PropertiesSource "${source.name}" failed to load${message}`);
 
     if (source.isRequired && source.loadType === LoadType.INITIALIZATION && !this.isLoaded) {
-      this.appLoad$.error(errorMessage);
+      this.loaded$.error(errorMessage);
     } else {
       console.error(errorMessage);
     }
@@ -207,8 +230,8 @@ export abstract class EnvironmentLoaderGateway {
 
   protected checkImmediateLoad(value: Properties, source: PropertiesSourceGateway, config: EnvironmentConfig): void {
     if (source.immediate) {
-      this.appLoad$.next();
-      this.appLoad$.complete();
+      this.loaded$.next();
+      this.loaded$.complete();
     }
   }
 
@@ -236,8 +259,8 @@ export abstract class EnvironmentLoaderGateway {
    */
   onDestroy(): void {
     this.dismissOtherSources = true;
-    this.appLoad$.next();
-    this.appLoad$.complete();
+    this.loaded$.next();
+    this.loaded$.complete();
     this.rxjs.onDestroy();
   }
 }

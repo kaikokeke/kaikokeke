@@ -1,6 +1,6 @@
 import { SafeRxJS } from '@kaikokeke/common';
 import { isPlainObject } from 'lodash-es';
-import { interval, Observable, of, Subject, throwError } from 'rxjs';
+import { interval, Observable, of, ReplaySubject, throwError } from 'rxjs';
 import { delay, map, take } from 'rxjs/operators';
 
 import { LoadType, MergeStrategy, Properties } from '../types';
@@ -276,8 +276,8 @@ describe('EnvironmentLoaderGateway', () => {
     expect(loader['rxjs']).toBeInstanceOf(SafeRxJS);
   });
 
-  it(`.immediateLoad$ is a Subject`, () => {
-    expect(loader['appLoad$']).toBeInstanceOf(Subject);
+  it(`.loaded$ is a ReplaySubject`, () => {
+    expect(loader['loaded$']).toBeInstanceOf(ReplaySubject);
   });
 
   it(`.config is setted`, () => {
@@ -288,7 +288,7 @@ describe('EnvironmentLoaderGateway', () => {
     expect(loader['dismissOtherSources']).toEqual(false);
   });
 
-  it(`.isAppLoaded is false`, () => {
+  it(`.isLoaded is false`, () => {
     expect(loader['isLoaded']).toEqual(false);
   });
 
