@@ -17,7 +17,7 @@ localAnyMap.push(
   { key: '_primitive_boolean_falsy_', value: false, description: 'false' },
   { key: '_primitive_boolean_', value: true, description: 'true' },
   { key: '_object_namedObject_Boolean_', value: new Boolean(false), description: 'Boolean false' },
-  { key: '_object_namedObject_Boolean_', value: new Boolean(true), description: 'Boolean true' }
+  { key: '_object_namedObject_Boolean_', value: new Boolean(true), description: 'Boolean true' },
 );
 
 // undefined
@@ -34,7 +34,7 @@ localAnyMap.push({ key: '_primitive_object_null_falsy_nullish_', value: null, de
 localAnyMap.push(
   { key: '_primitive_string_falsy_iterable_', value: '', description: "string ''" },
   { key: '_primitive_string_iterable_', value: 'a', description: 'string' },
-  { key: '_object_namedObject_String_iterable_', value: new String(''), description: 'String' }
+  { key: '_object_namedObject_String_iterable_', value: new String(''), description: 'String' },
 );
 
 // symbol
@@ -57,7 +57,7 @@ localAnyMap.push(
   { key: '_primitive_number_octal_', value: 0o1, description: 'number octal' },
   { key: '_primitive_number_hexadecimal_', value: 0x1, description: 'number hexadecimal' },
   { key: '_primitive_number_exponent_', value: 1e1, description: 'number exponent' },
-  { key: '_object_namedObject_Number_', value: new Number(0), description: 'Number' }
+  { key: '_object_namedObject_Number_', value: new Number(0), description: 'Number' },
 );
 
 // bigint
@@ -66,7 +66,7 @@ localAnyMap.push(
 localAnyMap.push(
   { key: '_primitive_bigint_falsy_', value: BigInt(0), description: 'bigint 0n' },
   { key: '_primitive_bigint_', value: BigInt(1), description: 'bigint' },
-  { key: '_primitive_bigint_negative_', value: BigInt(-1), description: 'bigint negative' }
+  { key: '_primitive_bigint_negative_', value: BigInt(-1), description: 'bigint negative' },
 );
 
 // Math
@@ -78,14 +78,14 @@ localAnyMap.push({ key: '_object_namedObject_Math_', value: Math, description: '
 localAnyMap.push(
   { key: '_object_plainObject_', value: {}, description: 'object {}' },
   { key: '_object_plainObject_', value: Object.create(null), description: 'Object.create(null)' },
-  { key: '_object_namedObject_', value: new TestClass(), description: 'object custom' }
+  { key: '_object_namedObject_', value: new TestClass(), description: 'object custom' },
 );
 
 // function
 // https://tc39.es/ecma262/#sec-function-objects
 localAnyMap.push(
   { key: '_function_anonymousFunction_', value: () => null, description: 'anonymous function' },
-  { key: '_function_namedFunction_', value: testFunction, description: 'named function' }
+  { key: '_function_namedFunction_', value: testFunction, description: 'named function' },
 );
 
 // Array
@@ -133,7 +133,7 @@ localAnyMap.push(
     key: '_object_namedObject_TypedArray_BigUint64Array_iterable_',
     value: new BigUint64Array(0),
     description: 'BigUint64Array',
-  }
+  },
 );
 
 // ArrayBuffer
@@ -197,7 +197,7 @@ localAnyMap.push(
   { key: '_object_namedObject_Error_ReferenceError_', value: new ReferenceError(), description: 'ReferenceError' },
   { key: '_object_namedObject_Error_SyntaxError_', value: new SyntaxError(), description: 'SyntaxError' },
   { key: '_object_namedObject_Error_TypeError_', value: new TypeError(), description: 'TypeError' },
-  { key: '_object_namedObject_Error_URIError_', value: new URIError(), description: 'URIError' }
+  { key: '_object_namedObject_Error_URIError_', value: new URIError(), description: 'URIError' },
 );
 
 // Element

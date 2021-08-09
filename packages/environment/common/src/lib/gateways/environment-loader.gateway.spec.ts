@@ -96,7 +96,7 @@ class MultipleInitializationSource extends PropertiesSourceGateway {
   load(): Observable<Properties> {
     return interval(10).pipe(
       map((n) => ({ a: n })),
-      take(3)
+      take(3),
     );
   }
 }
@@ -250,7 +250,7 @@ class MultipleDeferedSource extends PropertiesSourceGateway {
   load(): Observable<Properties> {
     return interval(10).pipe(
       map((n) => ({ b: n })),
-      take(3)
+      take(3),
     );
   }
 }
@@ -448,7 +448,7 @@ describe('EnvironmentLoaderGateway', () => {
       jest.advanceTimersByTime(1);
       expect(console.error).toHaveBeenNthCalledWith(
         1,
-        new Error('Required Environment PropertiesSource "ErrorDeferredSource" failed to load: test')
+        new Error('Required Environment PropertiesSource "ErrorDeferredSource" failed to load: test'),
       );
     });
 
@@ -458,7 +458,7 @@ describe('EnvironmentLoaderGateway', () => {
       jest.runAllTimers();
       expect(console.error).toHaveBeenNthCalledWith(
         1,
-        new Error('Required Environment PropertiesSource "ErrorNotRequiredInitializationSource" failed to load: error')
+        new Error('Required Environment PropertiesSource "ErrorNotRequiredInitializationSource" failed to load: error'),
       );
     });
 
@@ -466,7 +466,7 @@ describe('EnvironmentLoaderGateway', () => {
       (loader as unknown)['sources'] = [new ErrorInitializationSource()];
       loader.load().catch((error) => {
         expect(error.message).toEqual(
-          'Required Environment PropertiesSource "ErrorInitializationSource" failed to load: error'
+          'Required Environment PropertiesSource "ErrorInitializationSource" failed to load: error',
         );
         expect(console.error).not.toHaveBeenCalled();
       });
@@ -478,7 +478,7 @@ describe('EnvironmentLoaderGateway', () => {
       jest.advanceTimersByTime(20);
       expect(console.error).toHaveBeenNthCalledWith(
         1,
-        new Error('Required Environment PropertiesSource "ErrorAppLoadedSource" failed to load')
+        new Error('Required Environment PropertiesSource "ErrorAppLoadedSource" failed to load'),
       );
     });
 
@@ -486,7 +486,7 @@ describe('EnvironmentLoaderGateway', () => {
       (loader as unknown)['sources'] = [new ErrorWithMessageSource()];
       loader.load().catch((error) => {
         expect(error.message).toEqual(
-          'Required Environment PropertiesSource "ErrorWithMessageSource" failed to load: error'
+          'Required Environment PropertiesSource "ErrorWithMessageSource" failed to load: error',
         );
       });
     });
@@ -495,7 +495,7 @@ describe('EnvironmentLoaderGateway', () => {
       (loader as unknown)['sources'] = [new ErrorWithoutMessageSource()];
       loader.load().catch((error) => {
         expect(error.message).toEqual(
-          'Required Environment PropertiesSource "ErrorWithoutMessageSource" failed to load'
+          'Required Environment PropertiesSource "ErrorWithoutMessageSource" failed to load',
         );
       });
     });
@@ -641,7 +641,7 @@ describe('EnvironmentLoaderGateway', () => {
     });
   });
 
-  describe('loadModule()', () => {
+  describe('loadModule(sources, config?)', () => {
     it(`returns resolved Promise on config.maxLoadTime ms`, () => {
       expect(loader.loadModule([new DefaultSource()], { maxLoadTime: 5 })).toResolve();
       jest.advanceTimersByTime(4);
@@ -768,7 +768,7 @@ describe('EnvironmentLoaderGateway', () => {
       jest.advanceTimersByTime(1);
       expect(console.error).toHaveBeenNthCalledWith(
         1,
-        new Error('Required Environment PropertiesSource "ErrorDeferredSource" failed to load: test')
+        new Error('Required Environment PropertiesSource "ErrorDeferredSource" failed to load: test'),
       );
     });
 
@@ -777,14 +777,14 @@ describe('EnvironmentLoaderGateway', () => {
       jest.runAllTimers();
       expect(console.error).toHaveBeenNthCalledWith(
         1,
-        new Error('Required Environment PropertiesSource "ErrorNotRequiredInitializationSource" failed to load: error')
+        new Error('Required Environment PropertiesSource "ErrorNotRequiredInitializationSource" failed to load: error'),
       );
     });
 
     it(`throws error if required and INITIALIZATION`, () => {
       loader.loadModule([new ErrorInitializationSource()]).catch((error) => {
         expect(error.message).toEqual(
-          'Required Environment PropertiesSource "ErrorInitializationSource" failed to load: error'
+          'Required Environment PropertiesSource "ErrorInitializationSource" failed to load: error',
         );
         expect(console.error).not.toHaveBeenCalled();
       });
@@ -795,14 +795,14 @@ describe('EnvironmentLoaderGateway', () => {
       jest.advanceTimersByTime(20);
       expect(console.error).toHaveBeenNthCalledWith(
         1,
-        new Error('Required Environment PropertiesSource "ErrorAppLoadedSource" failed to load')
+        new Error('Required Environment PropertiesSource "ErrorAppLoadedSource" failed to load'),
       );
     });
 
     it(`throws error with message`, () => {
       loader.loadModule([new ErrorWithMessageSource()]).catch((error) => {
         expect(error.message).toEqual(
-          'Required Environment PropertiesSource "ErrorWithMessageSource" failed to load: error'
+          'Required Environment PropertiesSource "ErrorWithMessageSource" failed to load: error',
         );
       });
     });
@@ -810,7 +810,7 @@ describe('EnvironmentLoaderGateway', () => {
     it(`throws error without message`, () => {
       loader.loadModule([new ErrorWithoutMessageSource()]).catch((error) => {
         expect(error.message).toEqual(
-          'Required Environment PropertiesSource "ErrorWithoutMessageSource" failed to load'
+          'Required Environment PropertiesSource "ErrorWithoutMessageSource" failed to load',
         );
       });
     });

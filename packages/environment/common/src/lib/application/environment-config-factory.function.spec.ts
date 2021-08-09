@@ -13,7 +13,7 @@ describe('environmentConfigFactory(config?)', () => {
 
   it(`({ interpolation }) returns custom interpolation`, () => {
     expect(environmentConfigFactory({ interpolation: ['(', ')'] })).toEqual(
-      expect.objectContaining({ interpolation: ['(', ')'] })
+      expect.objectContaining({ interpolation: ['(', ')'] }),
     );
   });
 

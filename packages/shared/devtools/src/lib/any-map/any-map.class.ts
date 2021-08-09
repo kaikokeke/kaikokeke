@@ -63,7 +63,7 @@ export class AnyMap {
         keys
           .join('_')
           .split('_')
-          .filter((key: string): boolean => key !== '')
+          .filter((key: string): boolean => key !== ''),
       ),
     ].join('_')}_`;
   }

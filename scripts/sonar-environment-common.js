@@ -8,5 +8,5 @@ scanner(
     token: process.env.SONAR_TOKEN,
     options: getSonarOptions('environment', packageJson),
   },
-  () => process.exit()
+  () => process.exit(),
 );

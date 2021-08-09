@@ -13,7 +13,7 @@ import { serviceInjector } from './service-injector.module';
 export function Autowired<O, T>(
   token: Type<T> | InjectionToken<T> | AbstractType<T>,
   notFoundValue?: T,
-  flags?: InjectFlags
+  flags?: InjectFlags,
 ): (target: O, propertyKey: PropertyKey) => void {
   return (target: O, propertyKey: PropertyKey) => {
     Object.defineProperty(target, propertyKey, {

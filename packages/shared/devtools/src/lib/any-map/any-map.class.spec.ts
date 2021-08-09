@@ -8,7 +8,7 @@ import { ANY_MAP } from './any-map.constant';
  * All ANY_MAP values except [false, true].
  */
 const valuesWithoutBoolean: any[] = ANY_MAP.filter(
-  (value: AnyMapValue) => value.value !== true && value.value !== false
+  (value: AnyMapValue) => value.value !== true && value.value !== false,
 ).map((value: AnyMapValue) => value.value);
 
 describe('AnyMap', () => {

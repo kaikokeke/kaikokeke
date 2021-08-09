@@ -103,7 +103,7 @@ export class EnvironmentLoader extends EnvironmentLoaderGateway {
   constructor(
     protected readonly service: EnvironmentService,
     @Inject(ENVIRONMENT_CONFIG) protected readonly partialConfig: Partial<EnvironmentConfig>,
-    @Inject(ENVIRONMENT_SOURCES) protected readonly sources: PropertiesSourceGateway[]
+    @Inject(ENVIRONMENT_SOURCES) protected readonly sources: PropertiesSourceGateway[],
   ) {
     super(service, partialConfig, sources);
   }

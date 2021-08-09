@@ -8,7 +8,7 @@ import {
   of,
   OperatorFunction,
   ReplaySubject,
-  throwError
+  throwError,
 } from 'rxjs';
 import { catchError, concatAll, finalize, map, mergeAll, take, tap } from 'rxjs/operators';
 
@@ -30,7 +30,7 @@ export abstract class EnvironmentLoaderGateway {
   constructor(
     protected readonly service: EnvironmentServiceGateway,
     protected readonly partialConfig: Partial<EnvironmentConfig>,
-    protected readonly sources: PropertiesSourceGateway[]
+    protected readonly sources: PropertiesSourceGateway[],
   ) {}
 
   /**
@@ -78,7 +78,7 @@ export abstract class EnvironmentLoaderGateway {
         }),
         finalize(() => {
           this.isLoaded = true;
-        })
+        }),
       );
   }
 
@@ -97,17 +97,17 @@ export abstract class EnvironmentLoaderGateway {
 
   protected processInitializationSources(
     sources: PropertiesSourceGateway[] = this.sources,
-    config: EnvironmentConfig = this.config
+    config: EnvironmentConfig = this.config,
   ): void {
     const initializationSources: PropertiesSourceGateway[] = coerceArray(sources).filter(
-      (source: PropertiesSourceGateway): boolean => source.loadType === LoadType.INITIALIZATION
+      (source: PropertiesSourceGateway): boolean => source.loadType === LoadType.INITIALIZATION,
     );
 
     (initializationSources.length > 0
       ? of(...this.loadSources$(initializationSources, config)).pipe(
           this.onLoadInOrderOperator(config),
           map(() => undefined),
-          this.rxjs.takeUntilDestroy()
+          this.rxjs.takeUntilDestroy(),
         )
       : of(undefined)
     )
@@ -118,7 +118,7 @@ export abstract class EnvironmentLoaderGateway {
         finalize(() => {
           this.checkProcessDeferredInOrder(sources, config);
           this.appLoad$.complete();
-        })
+        }),
       )
       .subscribe();
   }
@@ -130,7 +130,7 @@ export abstract class EnvironmentLoaderGateway {
   }
 
   protected onLoadInOrderOperator(
-    config: EnvironmentConfig
+    config: EnvironmentConfig,
   ): OperatorFunction<ObservableInput<Properties>, Properties> {
     return (observable: Observable<ObservableInput<Properties>>): Observable<Properties> =>
       observable.pipe(config.loadInOrder ? concatAll<Properties>() : mergeAll<Properties>());
@@ -138,7 +138,7 @@ export abstract class EnvironmentLoaderGateway {
 
   protected processDeferredSourcesNotInOrder(
     sources: PropertiesSourceGateway[] = this.sources,
-    config: EnvironmentConfig = this.config
+    config: EnvironmentConfig = this.config,
   ): void {
     if (!config.loadInOrder) {
       this.processDeferred(sources, config);
@@ -147,7 +147,7 @@ export abstract class EnvironmentLoaderGateway {
 
   protected processDeferred(originalSources: PropertiesSourceGateway[], config: EnvironmentConfig): void {
     const deferredSources: PropertiesSourceGateway[] = coerceArray(originalSources).filter(
-      (source: PropertiesSourceGateway): boolean => source.loadType === LoadType.DEFERRED
+      (source: PropertiesSourceGateway): boolean => source.loadType === LoadType.DEFERRED,
     );
 
     if (deferredSources.length > 0 && !this.dismissOtherSources) {
@@ -169,15 +169,15 @@ export abstract class EnvironmentLoaderGateway {
             this.saveToStore(value, source, config);
           },
         }),
-        this.initializationTakeOneOperator(source, config)
-      )
+        this.initializationTakeOneOperator(source, config),
+      ),
     );
   }
 
   protected checkLoadError$(
     error: Error,
     source: PropertiesSourceGateway,
-    config: EnvironmentConfig
+    config: EnvironmentConfig,
   ): Observable<Properties> {
     const message: string = error.message ? `: ${error.message}` : '';
     const errorMessage = new Error(`Required Environment PropertiesSource "${source.name}" failed to load${message}`);
@@ -215,7 +215,7 @@ export abstract class EnvironmentLoaderGateway {
   protected checkDismissOtherSources(
     value: Properties,
     source: PropertiesSourceGateway,
-    config: EnvironmentConfig
+    config: EnvironmentConfig,
   ): void {
     if (source.dismissOtherSources) {
       this.dismissOtherSources = true;
@@ -225,7 +225,7 @@ export abstract class EnvironmentLoaderGateway {
 
   protected initializationTakeOneOperator<T, K = T>(
     source: PropertiesSourceGateway,
-    config: EnvironmentConfig
+    config: EnvironmentConfig,
   ): OperatorFunction<T, T | K> {
     return (observable: Observable<T>): Observable<T | K> =>
       source.loadType === LoadType.INITIALIZATION ? observable.pipe(take(1)) : observable;

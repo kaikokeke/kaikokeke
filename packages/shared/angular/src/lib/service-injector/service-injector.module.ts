@@ -14,7 +14,7 @@ let InternalServiceInjector: Injector;
 export function serviceInjector<T>(
   token: Type<T> | InjectionToken<T> | AbstractType<T>,
   notFoundValue?: T,
-  flags?: InjectFlags
+  flags?: InjectFlags,
 ): T {
   if (InternalServiceInjector == null) {
     throw new Error(`Import the 'ServiceInjectorModule' module to use serviceInjector()`);
