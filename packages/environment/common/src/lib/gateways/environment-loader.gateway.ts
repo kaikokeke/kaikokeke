@@ -75,7 +75,7 @@ export abstract class EnvironmentLoaderGateway {
    * @param config The custom config of the module. Will be merged with the application config.
    * @returns A Promise to initialize the module.
    */
-  loadModule(sources: PropertiesSourceGateway[], config?: Partial<EnvironmentConfig>): Promise<void> {
+  async loadModule(sources: PropertiesSourceGateway[], config?: Partial<EnvironmentConfig>): Promise<void> {
     this.dismissOtherSources = false;
     this.isLoaded = false;
 
