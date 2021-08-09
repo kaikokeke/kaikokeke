@@ -20,11 +20,12 @@ import { EnvironmentConfig, LoadType, MergeStrategy, Properties } from '../types
  * Loads properties and set them in the environment store.
  */
 export abstract class EnvironmentLoaderGateway {
-  protected appLoad$: ReplaySubject<void> = new ReplaySubject();
-  protected dismissOtherSources = false;
-
   protected readonly rxjs: SafeRxJS = new SafeRxJS();
+  protected readonly appLoad$: ReplaySubject<void> = new ReplaySubject();
   protected readonly config: EnvironmentConfig = environmentConfigFactory(this.partialConfig);
+
+  protected dismissOtherSources = false;
+  protected isLoaded = false;
 
   constructor(
     protected readonly service: EnvironmentServiceGateway,
@@ -51,10 +52,8 @@ export abstract class EnvironmentLoaderGateway {
    * @returns A Promise to initialize the module.
    */
   loadModule(sources: PropertiesSourceGateway[], config?: Partial<EnvironmentConfig>): Promise<void> {
-    if (this.appLoad$.closed) {
-      this.appLoad$ = new ReplaySubject();
-    }
     this.dismissOtherSources = false;
+    this.isLoaded = false;
 
     const moduleConfig = merge({}, this.config, environmentConfigFactory(config));
 
@@ -76,6 +75,9 @@ export abstract class EnvironmentLoaderGateway {
           this.rxjs.onDestroy();
 
           return throwError(error);
+        }),
+        finalize(() => {
+          this.isLoaded = true;
         })
       );
   }
@@ -103,37 +105,35 @@ export abstract class EnvironmentLoaderGateway {
 
     (initializationSources.length > 0
       ? of(...this.loadSources$(initializationSources, config)).pipe(
-          this.onLoadInOrderOperator(),
+          this.onLoadInOrderOperator(config),
           map(() => undefined),
           this.rxjs.takeUntilDestroy()
         )
       : of(undefined)
     )
       .pipe(
+        tap(() => {
+          this.appLoad$.next();
+        }),
         finalize(() => {
-          this.checkProcessDeferredInOrder();
+          this.checkProcessDeferredInOrder(sources, config);
           this.appLoad$.complete();
         })
       )
-      .subscribe({
-        next: () => {
-          this.appLoad$.next();
-        },
-        error: (error: Error) => {
-          this.appLoad$.error(error);
-        },
-      });
+      .subscribe();
   }
 
-  protected checkProcessDeferredInOrder(sources: PropertiesSourceGateway[] = this.sources): void {
-    if (this.config.loadInOrder) {
-      this.processDeferred(sources);
+  protected checkProcessDeferredInOrder(sources: PropertiesSourceGateway[], config: EnvironmentConfig): void {
+    if (config.loadInOrder) {
+      this.processDeferred(sources, config);
     }
   }
 
-  protected onLoadInOrderOperator(): OperatorFunction<ObservableInput<Properties>, Properties> {
+  protected onLoadInOrderOperator(
+    config: EnvironmentConfig
+  ): OperatorFunction<ObservableInput<Properties>, Properties> {
     return (observable: Observable<ObservableInput<Properties>>): Observable<Properties> =>
-      observable.pipe(this.config.loadInOrder ? concatAll<Properties>() : mergeAll<Properties>());
+      observable.pipe(config.loadInOrder ? concatAll<Properties>() : mergeAll<Properties>());
   }
 
   protected processDeferredSourcesNotInOrder(
@@ -141,11 +141,11 @@ export abstract class EnvironmentLoaderGateway {
     config: EnvironmentConfig = this.config
   ): void {
     if (!config.loadInOrder) {
-      this.processDeferred(sources);
+      this.processDeferred(sources, config);
     }
   }
 
-  protected processDeferred(originalSources: PropertiesSourceGateway[], config: EnvironmentConfig = this.config): void {
+  protected processDeferred(originalSources: PropertiesSourceGateway[], config: EnvironmentConfig): void {
     const deferredSources: PropertiesSourceGateway[] = coerceArray(originalSources).filter(
       (source: PropertiesSourceGateway): boolean => source.loadType === LoadType.DEFERRED
     );
@@ -182,7 +182,7 @@ export abstract class EnvironmentLoaderGateway {
     const message: string = error.message ? `: ${error.message}` : '';
     const errorMessage = new Error(`Required Environment PropertiesSource "${source.name}" failed to load${message}`);
 
-    if (source.isRequired && source.loadType === LoadType.INITIALIZATION) {
+    if (source.isRequired && source.loadType === LoadType.INITIALIZATION && !this.isLoaded) {
       this.appLoad$.error(errorMessage);
     } else {
       console.error(errorMessage);
@@ -235,6 +235,8 @@ export abstract class EnvironmentLoaderGateway {
    * Disposes the resource held by Observable subscriptions.
    */
   onDestroy(): void {
+    this.dismissOtherSources = true;
+    this.appLoad$.next();
     this.appLoad$.complete();
     this.rxjs.onDestroy();
   }
