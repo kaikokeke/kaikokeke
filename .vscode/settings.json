@@ -15,6 +15,6 @@
   "editor.rulers": [120],
   "typescriptHero.imports.multiLineWrapThreshold": 120,
   "typescriptHero.imports.organizeOnSave": true,
-  "typescriptHero.imports.multiLineTrailingComma": false,
+  "typescriptHero.imports.multiLineTrailingComma": true,
   "typescriptHero.imports.grouping": ["Plains", "Modules", "Workspace"]
 }
