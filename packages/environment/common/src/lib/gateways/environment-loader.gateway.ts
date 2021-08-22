@@ -32,7 +32,7 @@ export abstract class EnvironmentLoaderGateway {
    * @returns A promise to load the application once the required properties are loaded.
    */
   async load(): Promise<void> {
-    return this.loadApp(coerceArray(this.sources));
+    return this.loadSources(coerceArray(this.sources));
   }
 
   /**
@@ -41,10 +41,10 @@ export abstract class EnvironmentLoaderGateway {
    * @returns A promise to load the submodule once the required properties are loaded.
    */
   async loadSubmodule(sources: PropertiesSourceGateway[]): Promise<void> {
-    return this.loadApp(sources);
+    return this.loadSources(sources);
   }
 
-  protected async loadApp(sources: PropertiesSourceGateway[]): Promise<void> {
+  protected async loadSources(sources: PropertiesSourceGateway[]): Promise<void> {
     const index: number = this.loadIndex++;
 
     this.destroy$[index] = new ReplaySubject();
