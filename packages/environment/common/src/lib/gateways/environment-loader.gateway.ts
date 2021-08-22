@@ -32,14 +32,7 @@ export abstract class EnvironmentLoaderGateway {
    * @returns A promise to load the application once the required properties are loaded.
    */
   async load(): Promise<void> {
-    const index: number = this.getLoadIndex();
-    const sources: PropertiesSourceGateway[] = coerceArray(this.sources);
-
-    this.processLoadBeforeAppSources(index, sources);
-    this.processUnorderedSources(index, sources);
-    this.processOrderedSources(index, sources);
-
-    return this.loadApp(index);
+    return this.loadApp(coerceArray(this.sources));
   }
 
   /**
@@ -48,26 +41,20 @@ export abstract class EnvironmentLoaderGateway {
    * @returns A promise to load the submodule once the required properties are loaded.
    */
   async loadSubmodule(sources: PropertiesSourceGateway[]): Promise<void> {
-    const index: number = this.getLoadIndex();
-
-    this.processLoadBeforeAppSources(index, sources);
-    this.processUnorderedSources(index, sources);
-    this.processOrderedSources(index, sources);
-
-    return this.loadApp(index);
+    return this.loadApp(sources);
   }
 
-  protected getLoadIndex(): number {
+  protected async loadApp(sources: PropertiesSourceGateway[]): Promise<void> {
     const index: number = this.loadIndex++;
 
     this.destroy$[index] = new ReplaySubject();
     this.loadApp$[index] = new ReplaySubject();
     this.loadBeforeApp$[index] = new BehaviorSubject(new Set());
 
-    return index;
-  }
+    this.processLoadBeforeAppSources(index, sources);
+    this.processUnorderedSources(index, sources);
+    this.processOrderedSources(index, sources);
 
-  protected async loadApp(index: number): Promise<void> {
     return this.loadApp$[index].pipe(take(1), takeUntil(this.destroy$[index])).toPromise();
   }
 
