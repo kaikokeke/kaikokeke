@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Properties } from '../types';
 import { EnvironmentServiceGateway } from './environment-service.gateway';
 import { EnvironmentStoreGateway } from './environment-store.gateway';
 
+/* eslint-disable @typescript-eslint/no-empty-function */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 class TestStore extends EnvironmentStoreGateway {
   getAll(): Properties {
     return {};
@@ -119,7 +119,7 @@ describe('EnvironmentServiceGateway', () => {
     jest.spyOn(store, 'update');
     expect(store.update).not.toHaveBeenCalled();
     service.merge({ a: [1], b: { a: 0 } });
-    expect(store.update).toHaveBeenNthCalledWith(1, { a: [0, 1], b: { a: 0, b: 0 } });
+    expect(store.update).toHaveBeenNthCalledWith(1, { a: [1], b: { a: 0 } });
   });
 
   it(`merge(properties, path) sets the new properties at path using the merge strategy`, () => {
@@ -127,7 +127,7 @@ describe('EnvironmentServiceGateway', () => {
     jest.spyOn(store, 'update');
     expect(store.update).not.toHaveBeenCalled();
     service.merge({ a: 0 }, 'b');
-    expect(store.update).toHaveBeenNthCalledWith(1, { b: { a: 0, b: 0 } });
+    expect(store.update).toHaveBeenNthCalledWith(1, { b: { a: 0 } });
   });
 
   it(`merge(properties, path) sets the new properties using the merge strategy if path is invalid`, () => {
@@ -135,30 +135,30 @@ describe('EnvironmentServiceGateway', () => {
     jest.spyOn(store, 'update');
     expect(store.update).not.toHaveBeenCalled();
     service.merge({ a: { a: 0 } }, '');
-    expect(store.update).toHaveBeenNthCalledWith(1, { a: { a: 0, b: 0 } });
+    expect(store.update).toHaveBeenNthCalledWith(1, { a: { a: 0 } });
   });
 
-  it(`overwrite(properties) sets the new properties using the overwrite strategy`, () => {
+  it(`deepMerge(properties) sets the new properties using the deep merge strategy`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue({ a: [0], b: { b: 0 } });
     jest.spyOn(store, 'update');
     expect(store.update).not.toHaveBeenCalled();
-    service.overwrite({ a: [1], b: { a: 0 } });
-    expect(store.update).toHaveBeenNthCalledWith(1, { a: [1], b: { a: 0 } });
+    service.deepMerge({ a: [1], b: { a: 0 } });
+    expect(store.update).toHaveBeenNthCalledWith(1, { a: [0, 1], b: { a: 0, b: 0 } });
   });
 
-  it(`overwrite(properties, path) sets the new properties at path using the overwrite strategy`, () => {
+  it(`deepMerge(properties, path) sets the new properties at path using the deep merge strategy`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue({ b: { b: 0 } });
     jest.spyOn(store, 'update');
     expect(store.update).not.toHaveBeenCalled();
-    service.overwrite({ a: 0 }, 'b');
-    expect(store.update).toHaveBeenNthCalledWith(1, { b: { a: 0 } });
+    service.deepMerge({ a: 0 }, 'b');
+    expect(store.update).toHaveBeenNthCalledWith(1, { b: { a: 0, b: 0 } });
   });
 
-  it(`overwrite(properties, path) sets the new properties using the overwrite strategy if path is invalid`, () => {
+  it(`deepMerge(properties, path) sets the new properties using the deep merge strategy if path is invalid`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue({ a: { b: 0 } });
     jest.spyOn(store, 'update');
     expect(store.update).not.toHaveBeenCalled();
-    service.overwrite({ a: { a: 0 } }, '');
-    expect(store.update).toHaveBeenNthCalledWith(1, { a: { a: 0 } });
+    service.deepMerge({ a: { a: 0 } }, '');
+    expect(store.update).toHaveBeenNthCalledWith(1, { a: { a: 0, b: 0 } });
   });
 });

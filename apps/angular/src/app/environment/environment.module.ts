@@ -1,11 +1,9 @@
 import { APP_INITIALIZER, Inject, Injectable, InjectionToken, ModuleWithProviders, NgModule } from '@angular/core';
 import { Query, Store, StoreConfig } from '@datorama/akita';
 import {
-  EnvironmentConfig,
   EnvironmentLoaderGateway,
   EnvironmentServiceGateway,
   EnvironmentStoreGateway,
-  LoadType,
   Properties,
   PropertiesSourceGateway,
 } from '@kaikokeke/environment';
@@ -48,7 +46,9 @@ export class EnvironmentStore extends EnvironmentStoreGateway {
 
 @Injectable({ providedIn: 'root' })
 export class TestSources extends PropertiesSourceGateway {
-  readonly name = 'TestSources';
+  readonly loadInOrder = true;
+  readonly loadBeforeApp = false;
+  readonly loadImmediately = true;
 
   load(): Observable<Properties> {
     return of({ a: 0 }).pipe(delay(3000));
@@ -57,7 +57,8 @@ export class TestSources extends PropertiesSourceGateway {
 
 @Injectable({ providedIn: 'root' })
 export class TestSources2 extends PropertiesSourceGateway {
-  readonly name = 'TestSources2';
+  readonly loadInOrder = true;
+  readonly loadBeforeApp = false;
 
   load(): Observable<Properties> {
     return of({ b: 0 }).pipe(delay(3000));
@@ -66,17 +67,18 @@ export class TestSources2 extends PropertiesSourceGateway {
 
 @Injectable({ providedIn: 'root' })
 export class TestSources3 extends PropertiesSourceGateway {
-  readonly name = 'TestSources3';
+  readonly loadInOrder = true;
+  readonly loadBeforeApp = true;
 
-  async load(): Promise<Properties> {
-    return Promise.resolve({ c: 0 });
+  load(): Observable<Properties> {
+    return of({ c: 0 }).pipe(delay(3000));
   }
 }
 
 @Injectable({ providedIn: 'root' })
-export class DeferredSource extends PropertiesSourceGateway {
-  readonly name = 'DeferredSource';
-  readonly loadType = LoadType.DEFERRED;
+export class TestSources4 extends PropertiesSourceGateway {
+  readonly loadInOrder = false;
+  readonly loadBeforeApp = false;
 
   load(): Observable<Properties> {
     return of({ d: 0 }).pipe(delay(5000));
@@ -86,10 +88,6 @@ export class DeferredSource extends PropertiesSourceGateway {
 export const ENVIRONMENT_SOURCES: InjectionToken<PropertiesSourceGateway[]> = new InjectionToken<
   PropertiesSourceGateway[]
 >('ENVIRONMENT_SOURCES');
-
-export const ENVIRONMENT_CONFIG: InjectionToken<PropertiesSourceGateway[]> = new InjectionToken<
-  Partial<EnvironmentConfig>
->('ENVIRONMENT_CONFIG');
 
 @Injectable({ providedIn: 'root' })
 export class EnvironmentService extends EnvironmentServiceGateway {
@@ -102,10 +100,9 @@ export class EnvironmentService extends EnvironmentServiceGateway {
 export class EnvironmentLoader extends EnvironmentLoaderGateway {
   constructor(
     protected readonly service: EnvironmentService,
-    @Inject(ENVIRONMENT_CONFIG) protected readonly partialConfig: Partial<EnvironmentConfig>,
     @Inject(ENVIRONMENT_SOURCES) protected readonly sources: PropertiesSourceGateway[],
   ) {
-    super(service, partialConfig, sources);
+    super(service, sources);
   }
 }
 
@@ -116,10 +113,10 @@ export function environmentForRoot(loader: EnvironmentLoaderGateway): () => Prom
 @NgModule({
   providers: [
     { provide: EnvironmentStoreGateway, useClass: EnvironmentStore },
-    { provide: ENVIRONMENT_CONFIG, useValue: {} },
     { provide: ENVIRONMENT_SOURCES, useClass: TestSources, multi: true },
     { provide: ENVIRONMENT_SOURCES, useClass: TestSources2, multi: true },
     { provide: ENVIRONMENT_SOURCES, useClass: TestSources3, multi: true },
+    { provide: ENVIRONMENT_SOURCES, useClass: TestSources4, multi: true },
   ],
 })
 export class AkitaEnvironmentModule {

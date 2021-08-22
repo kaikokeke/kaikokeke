@@ -1,212 +1,126 @@
-import { coerceArray, SafeRxJS } from '@kaikokeke/common';
-import { delay, merge } from 'lodash-es';
-import {
-  defer,
-  MonoTypeOperatorFunction,
-  Observable,
-  ObservableInput,
-  of,
-  OperatorFunction,
-  ReplaySubject,
-  throwError,
-} from 'rxjs';
-import { catchError, concatAll, finalize, mergeAll, take, tap } from 'rxjs/operators';
+import { coerceArray } from '@kaikokeke/common';
+import { isEqual } from 'lodash-es';
+import { BehaviorSubject, concat, defer, merge, Observable, of, ReplaySubject, Subject } from 'rxjs';
+import { catchError, filter, take, takeUntil, tap } from 'rxjs/operators';
 
-import { environmentConfigFactory } from '../application';
-import { EnvironmentServiceGateway, PropertiesSourceGateway } from '../gateways';
-import { EnvironmentConfig, LoadType, MergeStrategy, Properties } from '../types';
+import { Properties } from '../types';
+import { EnvironmentServiceGateway } from './environment-service.gateway';
+import { PropertiesSourceGateway } from './properties-source.gateway';
 
-/**
- * Loads properties from asynchronous sources and sets them in the environment store.
- */
 export abstract class EnvironmentLoaderGateway {
-  /**
-   * Manages safe RxJS subscriptions.
-   */
-  protected readonly rxjs: SafeRxJS = new SafeRxJS();
+  protected readonly destroy$List: Subject<void>[] = [];
+  protected readonly load$List: ReplaySubject<void>[] = [];
+  protected readonly beforeApp$List: BehaviorSubject<Set<string>>[] = [];
+  protected readonly sources: PropertiesSourceGateway[] = coerceArray(this.originalSources);
 
-  /**
-   * Emits when the app or module is loaded.
-   */
-  protected readonly loaded$: ReplaySubject<void> = new ReplaySubject();
+  protected index = 0;
 
-  /**
-   * Configuration parameters for the Environment module with the default values.
-   */
-  protected readonly config: EnvironmentConfig = environmentConfigFactory(this.partialConfig);
-
-  /**
-   * The dismiss other sources state.
-   */
-  protected dismissOtherSources = false;
-
-  /**
-   * The app or module loading state.
-   */
-  protected isLoaded = false;
-
-  /**
-   * Loads properties from asynchronous sources and sets them in the environment store.
-   * @param service Sets properties in the environment store.
-   * @param partialConfig Partial configuration parameters for the Environment module.
-   * @param sources An array of source definition to get the application properties asynchronously.
-   */
   constructor(
     protected readonly service: EnvironmentServiceGateway,
-    protected readonly partialConfig: Partial<EnvironmentConfig>,
-    protected readonly sources: PropertiesSourceGateway[],
+    protected readonly originalSources: PropertiesSourceGateway | PropertiesSourceGateway[],
   ) {}
 
-  /**
-   * Initializes the application once the sources are loaded.
-   * @returns A Promise to initialize the application.
-   */
   async load(): Promise<void> {
-    this.processMaxLoadTime();
-    this.processInitializationSources();
-    this.processDeferredSourcesNotInOrder();
+    const index = this.getIndex();
 
-    return this.loaded$.pipe(this.appLoadErrorOperator()).toPromise();
+    this.processBeforeAppSources(index, this.sources);
+    this.processUnorderedSources(index, this.sources);
+    this.processOrderedSources(index, this.sources);
+
+    return this.loadAsPromise(index);
   }
 
-  /**
-   * Initializes a module once the sources are loaded.
-   * @param sources The sources to be processed by the module.
-   * @param config The custom config of the module. Will be merged with the application config.
-   * @returns A Promise to initialize the module.
-   */
-  async loadModule(sources: PropertiesSourceGateway[], config?: Partial<EnvironmentConfig>): Promise<void> {
-    this.dismissOtherSources = false;
-    this.isLoaded = false;
+  async loadModule(sources: PropertiesSourceGateway[]): Promise<void> {
+    const index = this.getIndex();
 
-    const moduleConfig = environmentConfigFactory(merge({}, this.config, config));
+    this.processBeforeAppSources(index, sources);
+    this.processUnorderedSources(index, sources);
+    this.processOrderedSources(index, sources);
 
-    this.processMaxLoadTime(moduleConfig.maxLoadTime);
-    this.processInitializationSources(sources, moduleConfig);
-    this.processDeferredSourcesNotInOrder(sources, moduleConfig);
-
-    return this.loaded$.pipe(this.appLoadErrorOperator()).toPromise();
+    return this.loadAsPromise(index);
   }
 
-  /**
-   * Destroys all pending sources loads on load error.
-   * @returns An Observable that emits an error notification on error.
-   */
-  protected appLoadErrorOperator(): MonoTypeOperatorFunction<void> {
-    return (observable: Observable<void>): Observable<void> =>
-      observable.pipe(
-        catchError((error: Error): Observable<never> => {
-          this.rxjs.onDestroy();
+  protected getIndex(): number {
+    const index = this.index++;
 
-          return throwError(error);
-        }),
-        finalize(() => {
-          this.isLoaded = true;
-        }),
-      );
+    this.destroy$List[index] = new Subject();
+    this.load$List[index] = new ReplaySubject();
+    this.beforeApp$List[index] = new BehaviorSubject(new Set());
+
+    return index;
   }
 
-  /**
-   * Emits a message to load the application once the `maxLoadTime` is reached.
-   * @param maxLoadTime The max load time to load the application.
-   */
-  protected processMaxLoadTime(maxLoadTime: number | undefined = this.config.maxLoadTime): void {
-    if (maxLoadTime != null) {
-      delay(() => {
-        this.loaded$.next();
-        this.loaded$.complete();
-      }, maxLoadTime);
-    }
+  protected async loadAsPromise(index: number): Promise<void> {
+    return this.load$List[index].pipe(take(1), takeUntil(this.destroy$List[index])).toPromise();
   }
 
-  protected processInitializationSources(
-    sources: PropertiesSourceGateway[] = this.sources,
-    config: EnvironmentConfig = this.config,
-  ): void {
-    const initializationSources: PropertiesSourceGateway[] = coerceArray(sources).filter(
-      (source: PropertiesSourceGateway): boolean => source.loadType === LoadType.INITIALIZATION,
+  protected processBeforeAppSources(index: number, sources: PropertiesSourceGateway[]): void {
+    const beforeAppSources: Set<string> = new Set(
+      sources
+        .filter((source: PropertiesSourceGateway) => source.loadBeforeApp)
+        .map((source: PropertiesSourceGateway) => source.name),
     );
 
-    (initializationSources.length > 0
-      ? of(...this.loadSources$(initializationSources, config)).pipe(
-          this.onLoadInOrderOperator(config),
-          this.rxjs.takeUntilDestroy(),
-        )
-      : of(undefined)
-    )
+    this.beforeApp$List[index]
       .pipe(
-        tap(() => {
-          this.loaded$.next();
+        filter((beforeAppLoaded: Set<string>) => isEqual(beforeAppLoaded, beforeAppSources)),
+        tap({
+          next: () => {
+            this.onSourceLoad(index);
+          },
         }),
-        finalize(() => {
-          this.checkProcessDeferredInOrder(sources, config);
-          this.loaded$.complete();
-        }),
+        take(1),
+        takeUntil(this.destroy$List[index]),
       )
       .subscribe();
   }
 
-  protected checkProcessDeferredInOrder(sources: PropertiesSourceGateway[], config: EnvironmentConfig): void {
-    if (config.loadInOrder) {
-      this.processDeferred(sources, config);
-    }
+  protected processUnorderedSources(index: number, sources: PropertiesSourceGateway[]): void {
+    merge(
+      ...this.getSourcesObservable(
+        index,
+        sources.filter((source: PropertiesSourceGateway) => !source.loadInOrder),
+      ),
+    )
+      .pipe(takeUntil(this.destroy$List[index]))
+      .subscribe();
   }
 
-  protected onLoadInOrderOperator(
-    config: EnvironmentConfig,
-  ): OperatorFunction<ObservableInput<Properties>, Properties> {
-    return (observable: Observable<ObservableInput<Properties>>): Observable<Properties> =>
-      observable.pipe(config.loadInOrder ? concatAll<Properties>() : mergeAll<Properties>());
+  protected processOrderedSources(index: number, sources: PropertiesSourceGateway[]): void {
+    concat(
+      ...this.getSourcesObservable(
+        index,
+        sources.filter((source: PropertiesSourceGateway) => source.loadInOrder),
+      ),
+    )
+      .pipe(takeUntil(this.destroy$List[index]))
+      .subscribe();
   }
 
-  protected processDeferredSourcesNotInOrder(
-    sources: PropertiesSourceGateway[] = this.sources,
-    config: EnvironmentConfig = this.config,
-  ): void {
-    if (!config.loadInOrder) {
-      this.processDeferred(sources, config);
-    }
-  }
-
-  protected processDeferred(originalSources: PropertiesSourceGateway[], config: EnvironmentConfig): void {
-    const deferredSources: PropertiesSourceGateway[] = coerceArray(originalSources).filter(
-      (source: PropertiesSourceGateway): boolean => source.loadType === LoadType.DEFERRED,
-    );
-
-    if (deferredSources.length > 0 && !this.dismissOtherSources) {
-      of(...this.loadSources$(deferredSources, config))
-        .pipe(mergeAll(), this.rxjs.takeUntilDestroy())
-        .subscribe();
-    }
-  }
-
-  protected loadSources$(sources: PropertiesSourceGateway[], config: EnvironmentConfig): Observable<Properties>[] {
+  protected getSourcesObservable(index: number, sources: PropertiesSourceGateway[]): Observable<Properties>[] {
     return sources.map((source: PropertiesSourceGateway) =>
       defer(() => source.load()).pipe(
-        catchError((error: Error) => this.checkLoadError$(error, source, config)),
+        catchError((error: Error) => this.checkLoadError(index, error, source)),
         tap({
           next: (value: Properties) => {
-            this.checkResetEnvironment(value, source, config);
-            this.checkImmediateLoad(value, source, config);
-            this.checkDismissOtherSources(value, source, config);
-            this.saveToStore(value, source, config);
+            this.checkResetEnvironment(index, value, source);
+            this.saveSourceValueToStore(index, value, source);
+            this.checkLoadImmediately(index, value, source);
+            this.checkInitializationSourcesLoaded(index, value, source);
+            this.checkDismissOtherSources(index, value, source);
           },
         }),
-        this.initializationTakeOneOperator(source, config),
       ),
     );
   }
 
-  protected checkLoadError$(
-    error: Error,
-    source: PropertiesSourceGateway,
-    config: EnvironmentConfig,
-  ): Observable<Properties> {
-    const message: string = error.message ? `: ${error.message}` : '';
-    const errorMessage = new Error(`Required Environment PropertiesSource "${source.name}" failed to load${message}`);
+  protected checkLoadError(index: number, error: Error, source: PropertiesSourceGateway): Observable<Properties> {
+    const originalMessage: string = error.message ? `: ${error.message}` : '';
+    const errorMessage = `Required Environment PropertiesSource "${source.name}" failed to load${originalMessage}`;
 
-    if (source.isRequired && source.loadType === LoadType.INITIALIZATION && !this.isLoaded) {
-      this.loaded$.error(errorMessage);
+    if (source.isRequired && source.loadBeforeApp && !this.load$List[index].isStopped) {
+      this.load$List[index].error(new Error(errorMessage));
+      this.onSourceDestroy(index);
     } else {
       console.error(errorMessage);
     }
@@ -214,53 +128,56 @@ export abstract class EnvironmentLoaderGateway {
     return of({});
   }
 
-  protected checkResetEnvironment(value: Properties, source: PropertiesSourceGateway, config: EnvironmentConfig): void {
+  protected checkResetEnvironment(index: number, value: Properties, source: PropertiesSourceGateway): void {
     if (source.resetEnvironment) {
       this.service.reset();
     }
   }
 
-  protected saveToStore(value: Properties, source: PropertiesSourceGateway, config: EnvironmentConfig) {
-    if (source.mergeStrategy === MergeStrategy.MERGE) {
-      this.service.merge(value, source.path);
-    } else {
-      this.service.overwrite(value, source.path);
+  protected saveSourceValueToStore(index: number, value: Properties, source: PropertiesSourceGateway): void {
+    if (Object.keys(value).length > 0) {
+      if (source.deepMergeValues) {
+        this.service.deepMerge(value, source.path);
+      } else {
+        this.service.merge(value, source.path);
+      }
     }
   }
 
-  protected checkImmediateLoad(value: Properties, source: PropertiesSourceGateway, config: EnvironmentConfig): void {
-    if (source.immediate) {
-      this.loaded$.next();
-      this.loaded$.complete();
+  protected checkLoadImmediately(index: number, value: Properties, source: PropertiesSourceGateway): void {
+    if (source.loadImmediately) {
+      this.onSourceLoad(index);
     }
   }
 
-  protected checkDismissOtherSources(
-    value: Properties,
-    source: PropertiesSourceGateway,
-    config: EnvironmentConfig,
-  ): void {
+  protected checkInitializationSourcesLoaded(index: number, value: Properties, source: PropertiesSourceGateway): void {
+    if (source.loadBeforeApp) {
+      this.beforeApp$List[index].next(this.beforeApp$List[index].getValue().add(source.name));
+    }
+  }
+
+  protected checkDismissOtherSources(index: number, value: Properties, source: PropertiesSourceGateway): void {
     if (source.dismissOtherSources) {
-      this.dismissOtherSources = true;
-      this.rxjs.destroy$.next();
+      this.onSourceDestroy(index);
     }
   }
 
-  protected initializationTakeOneOperator<T, K = T>(
-    source: PropertiesSourceGateway,
-    config: EnvironmentConfig,
-  ): OperatorFunction<T, T | K> {
-    return (observable: Observable<T>): Observable<T | K> =>
-      source.loadType === LoadType.INITIALIZATION ? observable.pipe(take(1)) : observable;
+  protected onSourceLoad(index: number): void {
+    this.load$List[index].next();
+    this.load$List[index].complete();
   }
 
-  /**
-   * Disposes the resource held by Observable subscriptions.
-   */
+  protected onSourceDestroy(index: number): void {
+    this.destroy$List[index].next();
+    this.destroy$List[index].complete();
+  }
+
   onDestroy(): void {
-    this.dismissOtherSources = true;
-    this.loaded$.next();
-    this.loaded$.complete();
-    this.rxjs.onDestroy();
+    this.destroy$List.forEach((subject: Subject<void>) => {
+      subject.next();
+      subject.complete();
+    });
+    this.load$List.forEach((subject: ReplaySubject<void>) => subject.complete());
+    this.beforeApp$List.forEach((subject: BehaviorSubject<Set<string>>) => subject.complete());
   }
 }

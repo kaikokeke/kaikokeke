@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 
-import { LoadType, MergeStrategy, Path, Properties } from '../types';
+import { Path, Properties } from '../types';
 
 /**
  * An environment properties source definition to get the application properties asynchronously.
@@ -8,61 +8,62 @@ import { LoadType, MergeStrategy, Path, Properties } from '../types';
 export abstract class PropertiesSourceGateway {
   /**
    * The properties source name.
+   * Defaults to the class name.
    */
-  abstract readonly name: string;
+  readonly name: string = this.constructor.name;
 
   /**
-   * Sets the load type used by the source.
-   *
-   * Determines if the properties from the source must be loaded before the application load.
-   * Defaults to `INITIALIZATION`.
-   * @see LoadType
-   */
-  loadType: LoadType = LoadType.INITIALIZATION;
-
-  /**
-   * Sets if the source is required.
-   *
-   * If the source is required, the load type is `INITIALIZATION` and the application has not loaded yet the
-   * application will not load if the source load fails. Set it to `false` to ignore the errors.
-   * Defaults to `true`.
-   */
-  isRequired = true;
-
-  /**
-   * The optional path where the loaded properties are going to be setted in the environment.
-   *
-   * If a path is not specified, the loaded properties will be set to the root of the environment properties.
-   * @see Path
-   */
-  path?: Path;
-
-  /**
-   * Sets the merge strategy used by the source.
-   *
-   * Determines the strategy to use to merge the properties returned by the source with the existing in the environment.
-   * Defaults to `MERGE`.
-   * @see MergeStrategy
-   */
-  mergeStrategy: MergeStrategy = MergeStrategy.MERGE;
-
-  /**
-   * Dismiss the loading of all other sources afert this source load.
+   * Determines if the source should be loaded before the application initializes.
    * Defaults to `false`.
    */
-  dismissOtherSources = false;
+  readonly loadBeforeApp: boolean = false;
 
   /**
-   * Sets whether the environment should be reset before inserting the properties for this source.
+   * Determines if the source should be loaded in the order defined in the array.
+   * The ordered sources will wait until the previous ordered source completes to start.
    * Defaults to `false`.
    */
-  resetEnvironment = false;
+  readonly loadInOrder: boolean = false;
 
   /**
    * The application will load immediately after loading the source.
    * Defaults to `false`.
    */
-  immediate = false;
+  readonly loadImmediately: boolean = false;
+
+  /**
+   * Dismiss the loading of all other sources after this source load and loads the application.
+   * Defaults to `false`.
+   */
+  readonly dismissOtherSources: boolean = false;
+
+  /**
+   * Recursively merge own and inherited enumerable values into the properties.
+   * Defaults to `false`.
+   */
+  readonly deepMergeValues: boolean = false;
+
+  /**
+   * The optional path where the loaded properties are going to be setted in the environment.
+   * If a path is not specified, the loaded properties will be set to the root of the environment properties.
+   * @see Path
+   */
+  readonly path?: Path;
+
+  /**
+   * Sets whether the environment should be reset before inserting the properties for this source.
+   * Defaults to `false`.
+   */
+  readonly resetEnvironment: boolean = false;
+
+  /**
+   * Sets if the source is required.
+   *
+   * If the source is required, loads during initialization and the application has not loaded yet the
+   * application will not load if the source load fails. Set it to `false` to ignore the errors.
+   * Defaults to `true`.
+   */
+  readonly isRequired: boolean = true;
 
   /**
    * Asynchronously loads environment properties from source.

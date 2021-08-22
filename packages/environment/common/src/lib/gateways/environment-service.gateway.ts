@@ -70,18 +70,18 @@ export abstract class EnvironmentServiceGateway {
    * @param path The path where the properties will be set. If it is undefined, the environment root will be used.
    */
   merge(properties: Properties, path?: Path): void {
-    const newState: Properties = mergeDeep(this.store.getAll(), this.propertiesAtPath(properties, path)) as Properties;
+    const newState: Properties = { ...this.store.getAll(), ...this.propertiesAtPath(properties, path) };
 
     this.store.update(newState);
   }
 
   /**
-   * Upserts a set of properties in the environment store using the overwrite strategy.
+   * Upserts a set of properties in the environment store using the deep merge strategy.
    * @param properties The set of properties to upsert.
    * @param path The path where the properties will be set. If it is undefined, the environment root will be used.
    */
-  overwrite(properties: Properties, path?: Path): void {
-    const newState: Properties = { ...this.store.getAll(), ...this.propertiesAtPath(properties, path) };
+  deepMerge(properties: Properties, path?: Path): void {
+    const newState: Properties = mergeDeep(this.store.getAll(), this.propertiesAtPath(properties, path)) as Properties;
 
     this.store.update(newState);
   }

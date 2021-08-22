@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 
-import { LoadType, MergeStrategy, Properties } from '../types';
+import { Properties } from '../types';
 import { PropertiesSourceGateway } from './properties-source.gateway';
 
 class TestPropertiesSource extends PropertiesSourceGateway {
@@ -17,31 +17,35 @@ describe('PropertiesSource', () => {
     source = new TestPropertiesSource();
   });
 
-  it(`.name is setted`, () => {
-    expect(source).toHaveProperty('name');
+  it(`.name is setted with the class name`, () => {
+    expect(source.name).toEqual('TestPropertiesSource');
   });
 
-  it(`.isRequired is true by default`, () => {
-    expect(source.isRequired).toEqual(true);
+  it(`.loadBeforeApp is false by default`, () => {
+    expect(source.loadBeforeApp).toEqual(false);
   });
 
-  it(`.loadType is INITIALIZATION by default`, () => {
-    expect(source.loadType).toEqual(LoadType.INITIALIZATION);
+  it(`.loadInOrder is false by default`, () => {
+    expect(source.loadInOrder).toEqual(false);
   });
 
-  it(`.mergeStrategy is MERGE by default`, () => {
-    expect(source.mergeStrategy).toEqual(MergeStrategy.MERGE);
+  it(`.loadImmediately is false by default`, () => {
+    expect(source.loadImmediately).toEqual(false);
   });
 
   it(`.dismissOtherSources is false by default`, () => {
     expect(source.dismissOtherSources).toEqual(false);
   });
 
+  it(`.deepMergeValues is false by default`, () => {
+    expect(source.deepMergeValues).toEqual(false);
+  });
+
   it(`.resetEnvironment is false by default`, () => {
     expect(source.resetEnvironment).toEqual(false);
   });
 
-  it(`.immediate is false by default`, () => {
-    expect(source.resetEnvironment).toEqual(false);
+  it(`.isRequired is true by default`, () => {
+    expect(source.isRequired).toEqual(true);
   });
 });

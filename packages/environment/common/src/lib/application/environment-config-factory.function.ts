@@ -8,7 +8,5 @@ import { EnvironmentConfig } from '../types';
 export function environmentConfigFactory(config?: Partial<EnvironmentConfig>): EnvironmentConfig {
   return {
     interpolation: config?.interpolation ?? ['{{', '}}'],
-    loadInOrder: config?.loadInOrder ?? true,
-    maxLoadTime: config?.maxLoadTime != null && config.maxLoadTime >= 0 ? config.maxLoadTime : undefined,
   };
 }
