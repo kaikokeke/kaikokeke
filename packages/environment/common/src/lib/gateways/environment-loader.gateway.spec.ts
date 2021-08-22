@@ -196,6 +196,13 @@ class RequiredNoInitErrorSource extends PropertiesSourceGateway {
   }
 }
 
+class PromiseSource extends PropertiesSourceGateway {
+  loadBeforeApp = true;
+  async load(): Promise<Properties> {
+    return Promise.resolve({ p: 0 });
+  }
+}
+
 const orderedSources = [
   new InitOrderedSource(),
   new NoInitOrderedSource(),
@@ -608,20 +615,30 @@ describe('EnvironmentLoaderGateway', () => {
         `Required Environment PropertiesSource "ErrorNoMessageSource" failed to load`,
       );
     });
+
+    // Load Promise
+
+    it(`works if source load returns a Promise`, () => {
+      (loader as unknown)['sources'] = [new PromiseSource()];
+      return loader.load().then(() => {
+        expect(service.merge).toHaveBeenNthCalledWith(1, { p: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(1);
+      });
+    });
   });
 
-  describe('loadModule(sources)', () => {
+  describe('loadSubmodule(sources)', () => {
     // no sources
 
     it(`returns resolved Promise immedialely if no sources`, () => {
-      return loader.loadModule([]).then(() => {
+      return loader.loadSubmodule([]).then(() => {
         expect(service.merge).not.toHaveBeenCalled();
       });
     });
 
     it(`loads nothing if no sources`, () => {
       jest.useFakeTimers();
-      loader.loadModule([]);
+      loader.loadSubmodule([]);
       jest.runAllTimers();
       expect(service.merge).not.toHaveBeenCalled();
     });
@@ -629,7 +646,7 @@ describe('EnvironmentLoaderGateway', () => {
     // PropertiesSourceGateway.loadBeforeApp
 
     it(`returns resolved Promise when all sources with loadBeforeApp loads`, () => {
-      return loader.loadModule(orderedSources).then(() => {
+      return loader.loadSubmodule(orderedSources).then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
         expect(service.merge).toHaveBeenNthCalledWith(2, { nio: 0 }, undefined);
         expect(service.merge).toHaveBeenNthCalledWith(3, { io2: 0 }, undefined);
@@ -638,14 +655,14 @@ describe('EnvironmentLoaderGateway', () => {
     });
 
     it(`returns resolved Promise immedialely if no sources with loadBeforeApp`, () => {
-      return loader.loadModule(noInitSources).then(() => {
+      return loader.loadSubmodule(noInitSources).then(() => {
         expect(service.merge).not.toHaveBeenCalled();
       });
     });
 
     it(`loads all sources ignoring loadBeforeApp`, () => {
       jest.useFakeTimers();
-      loader.loadModule(mixedOrderSources);
+      loader.loadSubmodule(mixedOrderSources);
       jest.runAllTimers();
       expect(service.merge).toHaveBeenCalledTimes(4);
     });
@@ -654,7 +671,7 @@ describe('EnvironmentLoaderGateway', () => {
 
     it(`loads all sources in order if loadInOrder`, () => {
       jest.useFakeTimers();
-      loader.loadModule(orderedSources);
+      loader.loadSubmodule(orderedSources);
       jest.advanceTimersByTime(9);
       expect(service.merge).not.toHaveBeenCalled();
       jest.advanceTimersByTime(1);
@@ -679,7 +696,7 @@ describe('EnvironmentLoaderGateway', () => {
 
     it(`loads all sources at once if no loadInOrder`, () => {
       jest.useFakeTimers();
-      loader.loadModule(unorderedSources);
+      loader.loadSubmodule(unorderedSources);
       jest.advanceTimersByTime(9);
       expect(service.merge).not.toHaveBeenCalled();
       jest.advanceTimersByTime(1);
@@ -691,7 +708,7 @@ describe('EnvironmentLoaderGateway', () => {
 
     it(`loads all sources mixing loadInOrder and no loadInOrder values`, () => {
       jest.useFakeTimers();
-      loader.loadModule(mixedOrderSources);
+      loader.loadSubmodule(mixedOrderSources);
       jest.advanceTimersByTime(9);
       expect(service.merge).not.toHaveBeenCalled();
       jest.advanceTimersByTime(1);
@@ -708,7 +725,7 @@ describe('EnvironmentLoaderGateway', () => {
 
     it(`loads all sources with loadInOrder if one is multiple and completes`, () => {
       jest.useFakeTimers();
-      loader.loadModule(multipleSources);
+      loader.loadSubmodule(multipleSources);
       jest.advanceTimersByTime(9);
       expect(service.merge).not.toHaveBeenCalled();
       jest.advanceTimersByTime(1);
@@ -732,7 +749,7 @@ describe('EnvironmentLoaderGateway', () => {
     // PropertiesSourceGateway.loadImmediately
 
     it(`returns resolved Promise just after loadImmediately source load `, () => {
-      return loader.loadModule(loadImmediatellySources).then(() => {
+      return loader.loadSubmodule(loadImmediatellySources).then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
         expect(service.merge).toHaveBeenNthCalledWith(2, { li: 0 }, undefined);
         expect(service.merge).toHaveBeenCalledTimes(2);
@@ -741,7 +758,7 @@ describe('EnvironmentLoaderGateway', () => {
 
     it(`loads all sources if loadImmediately`, () => {
       jest.useFakeTimers();
-      loader.loadModule(loadImmediatellySources);
+      loader.loadSubmodule(loadImmediatellySources);
       jest.runAllTimers();
       expect(service.merge).toHaveBeenCalledTimes(3);
     });
@@ -749,7 +766,7 @@ describe('EnvironmentLoaderGateway', () => {
     // PropertiesSourceGateway.dismissOtherSources
 
     it(`returns resolved Promise just after dismissOtherSources source load `, () => {
-      return loader.loadModule(dismissOtherSourcesSources).then(() => {
+      return loader.loadSubmodule(dismissOtherSourcesSources).then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { dos: 0 }, undefined);
         expect(service.merge).toHaveBeenCalledTimes(1);
       });
@@ -757,7 +774,7 @@ describe('EnvironmentLoaderGateway', () => {
 
     it(`loads sources until source with dismissOtherSources`, () => {
       jest.useFakeTimers();
-      loader.loadModule(dismissOtherSourcesSources);
+      loader.loadSubmodule(dismissOtherSourcesSources);
       jest.advanceTimersByTime(5);
       expect(service.merge).toHaveBeenNthCalledWith(1, { dos: 0 }, undefined);
       jest.runAllTimers();
@@ -768,7 +785,7 @@ describe('EnvironmentLoaderGateway', () => {
 
     it(`loads sources using merge strategy if no deepMergeValues`, () => {
       jest.useFakeTimers();
-      loader.loadModule([new MergeSource()]);
+      loader.loadSubmodule([new MergeSource()]);
       jest.advanceTimersByTime(10);
       expect(service.merge).toHaveBeenNthCalledWith(1, { mv: 0 }, undefined);
       jest.runAllTimers();
@@ -778,7 +795,7 @@ describe('EnvironmentLoaderGateway', () => {
     it(`loads sources using deep merge strategy if deepMergeValues`, () => {
       jest.spyOn(service, 'deepMerge');
       jest.useFakeTimers();
-      loader.loadModule([new DeepMergeSource()]);
+      loader.loadSubmodule([new DeepMergeSource()]);
       jest.advanceTimersByTime(10);
       expect(service.deepMerge).toHaveBeenNthCalledWith(1, { dmv: 0 }, undefined);
       jest.runAllTimers();
@@ -789,7 +806,7 @@ describe('EnvironmentLoaderGateway', () => {
 
     it(`loads sources using merge strategy and path`, () => {
       jest.useFakeTimers();
-      loader.loadModule([new PathMergeSource()]);
+      loader.loadSubmodule([new PathMergeSource()]);
       jest.advanceTimersByTime(10);
       expect(service.merge).toHaveBeenNthCalledWith(1, { pmv: 0 }, 'a');
       jest.runAllTimers();
@@ -799,7 +816,7 @@ describe('EnvironmentLoaderGateway', () => {
     it(`loads sources using deep merge strategy and path`, () => {
       jest.spyOn(service, 'deepMerge');
       jest.useFakeTimers();
-      loader.loadModule([new PathDeepMergeSource()]);
+      loader.loadSubmodule([new PathDeepMergeSource()]);
       jest.advanceTimersByTime(10);
       expect(service.deepMerge).toHaveBeenNthCalledWith(1, { pdmv: 0 }, 'a');
       jest.runAllTimers();
@@ -811,7 +828,7 @@ describe('EnvironmentLoaderGateway', () => {
     it(`loads sources resetting the environment if resetEnvironment`, () => {
       jest.spyOn(service, 'reset');
       jest.useFakeTimers();
-      loader.loadModule([new ResetEnvironmentSource()]);
+      loader.loadSubmodule([new ResetEnvironmentSource()]);
       jest.advanceTimersByTime(9);
       expect(service.reset).not.toHaveBeenCalled();
       jest.advanceTimersByTime(1);
@@ -821,7 +838,7 @@ describe('EnvironmentLoaderGateway', () => {
     it(`loads sources without resetting the environment if no resetEnvironment`, () => {
       jest.spyOn(service, 'reset');
       jest.useFakeTimers();
-      loader.loadModule([new InitOrderedSource()]);
+      loader.loadSubmodule([new InitOrderedSource()]);
       jest.runAllTimers();
       expect(service.reset).not.toHaveBeenCalled();
     });
@@ -829,7 +846,7 @@ describe('EnvironmentLoaderGateway', () => {
     // On error
 
     it(`returns rejected Promise if source error, loadBeforeApp, isRequired and app not loaded`, () => {
-      return loader.loadModule(errorRequiredInit).catch((error) => {
+      return loader.loadSubmodule(errorRequiredInit).catch((error) => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
         expect(service.merge).toHaveBeenCalledTimes(1);
         expect(error.message).toEqual(
@@ -839,7 +856,7 @@ describe('EnvironmentLoaderGateway', () => {
     });
 
     it(`returns resolved Promise if source error, no loadBeforeApp, isRequired and app not loaded`, () => {
-      return loader.loadModule(errorRequiredNoInit).then(() => {
+      return loader.loadSubmodule(errorRequiredNoInit).then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
         expect(service.merge).toHaveBeenNthCalledWith(2, { io2: 0 }, undefined);
         expect(service.merge).toHaveBeenCalledTimes(2);
@@ -847,7 +864,7 @@ describe('EnvironmentLoaderGateway', () => {
     });
 
     it(`returns resolved Promise if source error, loadBeforeApp, no isRequired and app not loaded`, () => {
-      return loader.loadModule(errorNoRequiredInit).then(() => {
+      return loader.loadSubmodule(errorNoRequiredInit).then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
         expect(service.merge).toHaveBeenNthCalledWith(2, { io2: 0 }, undefined);
         expect(service.merge).toHaveBeenCalledTimes(2);
@@ -855,34 +872,34 @@ describe('EnvironmentLoaderGateway', () => {
     });
 
     it(`returns resolved Promise if source error, loadBeforeApp, isRequired and app loaded`, () => {
-      return loader.loadModule([new LoadImmediatelySource(), ...errorRequiredInit]).then(() => {
+      return loader.loadSubmodule([new LoadImmediatelySource(), ...errorRequiredInit]).then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { li: 0 }, undefined);
         expect(service.merge).toHaveBeenCalledTimes(1);
       });
     });
 
     it(`loads sources until source error if loadBeforeApp, isRequired and app not loaded`, async () => {
-      await expect(loader.loadModule(errorRequiredInit)).toReject();
+      await expect(loader.loadSubmodule(errorRequiredInit)).toReject();
       expect(service.merge).toHaveBeenCalledTimes(1);
     });
 
     it(`loads all sources if source error, no loadBeforeApp, isRequired and app not loaded`, () => {
       jest.useFakeTimers();
-      loader.loadModule(errorRequiredNoInit);
+      loader.loadSubmodule(errorRequiredNoInit);
       jest.runAllTimers();
       expect(service.merge).toHaveBeenCalledTimes(2);
     });
 
     it(`loads all sources if source error, loadBeforeApp, no isRequired and app not loaded`, () => {
       jest.useFakeTimers();
-      loader.loadModule(errorNoRequiredInit);
+      loader.loadSubmodule(errorNoRequiredInit);
       jest.runAllTimers();
       expect(service.merge).toHaveBeenCalledTimes(2);
     });
 
     it(`loads all sources if source error, loadBeforeApp, isRequired and app loaded`, () => {
       jest.useFakeTimers();
-      loader.loadModule([new LoadImmediatelySource(), ...errorRequiredInit]);
+      loader.loadSubmodule([new LoadImmediatelySource(), ...errorRequiredInit]);
       jest.runAllTimers();
       expect(service.merge).toHaveBeenCalledTimes(3);
     });
@@ -890,13 +907,13 @@ describe('EnvironmentLoaderGateway', () => {
     // console.error
 
     it(`doesn't display console error if source error, loadBeforeApp, isRequired and app not loaded`, async () => {
-      await expect(loader.loadModule(errorRequiredInit)).toReject();
+      await expect(loader.loadSubmodule(errorRequiredInit)).toReject();
       expect(console.error).not.toHaveBeenCalled();
     });
 
     it(`displays console.error if source error, no loadBeforeApp, isRequired and app not loaded`, () => {
       jest.useFakeTimers();
-      loader.loadModule(errorRequiredNoInit);
+      loader.loadSubmodule(errorRequiredNoInit);
       jest.runAllTimers();
       expect(console.error).toHaveBeenNthCalledWith(
         1,
@@ -906,7 +923,7 @@ describe('EnvironmentLoaderGateway', () => {
 
     it(`displays console.error if source error, loadBeforeApp, no isRequired and app not loaded`, () => {
       jest.useFakeTimers();
-      loader.loadModule(errorNoRequiredInit);
+      loader.loadSubmodule(errorNoRequiredInit);
       jest.runAllTimers();
       expect(console.error).toHaveBeenNthCalledWith(
         1,
@@ -916,7 +933,7 @@ describe('EnvironmentLoaderGateway', () => {
 
     it(`displays console.error if source error, loadBeforeApp, isRequired and app loaded`, () => {
       jest.useFakeTimers();
-      loader.loadModule([new LoadImmediatelySource(), ...errorRequiredInit]).catch();
+      loader.loadSubmodule([new LoadImmediatelySource(), ...errorRequiredInit]).catch();
       jest.runAllTimers();
       expect(console.error).toHaveBeenNthCalledWith(
         1,
@@ -926,12 +943,21 @@ describe('EnvironmentLoaderGateway', () => {
 
     it(`displays console.error without error message`, () => {
       jest.useFakeTimers();
-      loader.loadModule([new ErrorNoMessageSource()]);
+      loader.loadSubmodule([new ErrorNoMessageSource()]);
       jest.runAllTimers();
       expect(console.error).toHaveBeenNthCalledWith(
         1,
         `Required Environment PropertiesSource "ErrorNoMessageSource" failed to load`,
       );
+    });
+
+    // Load Promise
+
+    it(`works if source load returns a Promise`, () => {
+      return loader.loadSubmodule([new PromiseSource()]).then(() => {
+        expect(service.merge).toHaveBeenNthCalledWith(1, { p: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(1);
+      });
     });
   });
 
@@ -942,10 +968,10 @@ describe('EnvironmentLoaderGateway', () => {
       loader.load();
       jest.advanceTimersByTime(10);
       expect(service.merge).toHaveBeenCalledTimes(1);
-      expect(loader['destroy$List'][0].isStopped).toEqual(false);
+      expect(loader['destroy$'][0].isStopped).toEqual(false);
       loader.onDestroy();
       jest.runAllTimers();
-      expect(loader['destroy$List'][0].isStopped).toEqual(true);
+      expect(loader['destroy$'][0].isStopped).toEqual(true);
       expect(service.merge).toHaveBeenCalledTimes(1);
     });
 
@@ -954,10 +980,10 @@ describe('EnvironmentLoaderGateway', () => {
       jest.useFakeTimers();
       loader.load();
       jest.advanceTimersByTime(10);
-      expect(loader['load$List'][0].isStopped).toEqual(false);
+      expect(loader['loadApp$'][0].isStopped).toEqual(false);
       loader.onDestroy();
       jest.runAllTimers();
-      expect(loader['load$List'][0].isStopped).toEqual(true);
+      expect(loader['loadApp$'][0].isStopped).toEqual(true);
     });
 
     it(`completes the beforeApp sources`, () => {
@@ -965,10 +991,10 @@ describe('EnvironmentLoaderGateway', () => {
       jest.useFakeTimers();
       loader.load();
       jest.advanceTimersByTime(10);
-      expect(loader['beforeApp$List'][0].isStopped).toEqual(false);
+      expect(loader['loadBeforeApp$'][0].isStopped).toEqual(false);
       loader.onDestroy();
       jest.runAllTimers();
-      expect(loader['beforeApp$List'][0].isStopped).toEqual(true);
+      expect(loader['loadBeforeApp$'][0].isStopped).toEqual(true);
     });
   });
 });
