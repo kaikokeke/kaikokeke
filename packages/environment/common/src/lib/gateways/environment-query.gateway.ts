@@ -1,4 +1,4 @@
-import { get } from 'lodash-es';
+import { get, isEqual } from 'lodash-es';
 import { Observable } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 
@@ -34,7 +34,7 @@ export abstract class EnvironmentQueryGateway {
    * @returns The environment properties values as Observable.
    */
   getProperties$(): Observable<Properties> {
-    return this.store.getAll$().pipe(distinctUntilChanged());
+    return this.store.getAll$().pipe(distinctUntilChanged(isEqual));
   }
 
   /**
@@ -53,7 +53,7 @@ export abstract class EnvironmentQueryGateway {
   getProperty$<V>(path: Path): Observable<V | undefined> {
     return this.store.getAll$().pipe(
       map((properties: Properties) => get(properties, path)),
-      distinctUntilChanged(),
+      distinctUntilChanged(isEqual),
     );
   }
 
@@ -77,7 +77,7 @@ export abstract class EnvironmentQueryGateway {
     return this.store.getAll$().pipe(
       map((properties: Properties) => get(properties, path)),
       map((value?: T) => (value === undefined ? undefined : targetType(value))),
-      distinctUntilChanged(),
+      distinctUntilChanged(isEqual),
     );
   }
 
@@ -102,7 +102,7 @@ export abstract class EnvironmentQueryGateway {
   getRequiredProperty$<V>(path: Path, defaultValue: V): Observable<V> {
     return this.store.getAll$().pipe(
       map((properties: Properties) => get(properties, path, defaultValue)),
-      distinctUntilChanged(),
+      distinctUntilChanged(isEqual),
     );
   }
 
@@ -128,7 +128,7 @@ export abstract class EnvironmentQueryGateway {
     return this.store.getAll$().pipe(
       map((properties: Properties) => get(properties, path, defaultValue)),
       map((value: T) => targetType(value)),
-      distinctUntilChanged(),
+      distinctUntilChanged(isEqual),
     );
   }
 
