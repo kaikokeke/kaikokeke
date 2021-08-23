@@ -8,6 +8,10 @@ import { isPath, Path, Properties } from '../types';
  * Sets properties in the environment store.
  */
 export abstract class EnvironmentServiceGateway {
+  /**
+   * Sets properties in the environment store.
+   * @param store The environment store.
+   */
   constructor(protected readonly store: EnvironmentStoreGateway) {}
 
   /**
@@ -86,22 +90,10 @@ export abstract class EnvironmentServiceGateway {
     this.store.update(newState);
   }
 
-  /**
-   * Sets the properties at path.
-   * @param properties The properties to set at path.
-   * @param path The path to set the properties.
-   * @returns The properties at path.
-   */
   protected propertiesAtPath(properties: Properties, path?: Path): Properties {
     return path == null ? properties : this.valueAtPath(path, properties);
   }
 
-  /**
-   * Sets a value at path.
-   * @param path The path to set the value.
-   * @param value The value to set.
-   * @returns The properties with the new vale.
-   */
   protected valueAtPath<V>(path: Path, value: V): Properties {
     return isPath(path) ? set({}, path, value) : value;
   }

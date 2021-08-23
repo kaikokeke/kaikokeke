@@ -11,9 +11,9 @@ import { PropertiesSourceGateway } from './properties-source.gateway';
  * Loads the environment properties from the provided asynchronous sources.
  */
 export abstract class EnvironmentLoaderGateway {
-  protected readonly destroy$: ReplaySubject<void>[] = [];
-  protected readonly loadApp$: ReplaySubject<void>[] = [];
-  protected readonly loadBeforeApp$: BehaviorSubject<Set<string>>[] = [];
+  protected readonly load$List: ReplaySubject<void>[] = [];
+  protected readonly destroy$List: ReplaySubject<void>[] = [];
+  protected readonly requiredToLoad$List: BehaviorSubject<Set<string>>[] = [];
 
   protected loadIndex = 0;
 
@@ -47,57 +47,57 @@ export abstract class EnvironmentLoaderGateway {
   protected async loadSources(sources: PropertiesSourceGateway[]): Promise<void> {
     const index: number = this.loadIndex++;
 
-    this.destroy$[index] = new ReplaySubject();
-    this.loadApp$[index] = new ReplaySubject();
-    this.loadBeforeApp$[index] = new BehaviorSubject(new Set());
+    this.load$List[index] = new ReplaySubject();
+    this.destroy$List[index] = new ReplaySubject();
+    this.requiredToLoad$List[index] = new BehaviorSubject(new Set());
 
-    this.processLoadBeforeAppSources(index, sources);
-    this.processUnorderedSources(index, sources);
-    this.processOrderedSources(index, sources);
+    this.watchRequiredToLoadSources(index, sources);
+    this.loadUnorderedSources(index, sources);
+    this.loadOrderedSources(index, sources);
 
-    return this.loadApp$[index].pipe(take(1), takeUntil(this.destroy$[index])).toPromise();
+    return this.load$List[index].pipe(take(1), takeUntil(this.destroy$List[index])).toPromise();
   }
 
-  protected processLoadBeforeAppSources(index: number, sources: PropertiesSourceGateway[]): void {
-    const loadBeforeAppSources: Set<string> = new Set(
+  protected watchRequiredToLoadSources(index: number, sources: PropertiesSourceGateway[]): void {
+    const requiredToLoadSources: Set<string> = new Set(
       sources
-        .filter((source: PropertiesSourceGateway) => source.loadBeforeApp)
+        .filter((source: PropertiesSourceGateway) => source.requiredToLoad)
         .map((source: PropertiesSourceGateway) => source.name),
     );
 
-    this.loadBeforeApp$[index]
+    this.requiredToLoad$List[index]
       .pipe(
-        filter((loadBeforeAppLoaded: Set<string>) => isEqual(loadBeforeAppLoaded, loadBeforeAppSources)),
-        tap({ next: () => this.onSourceLoad(index) }),
+        filter((requiredToLoadLoaded: Set<string>) => isEqual(requiredToLoadLoaded, requiredToLoadSources)),
+        tap({ next: () => this.onLoadSources(index) }),
         take(1),
-        takeUntil(this.destroy$[index]),
+        takeUntil(this.destroy$List[index]),
       )
       .subscribe();
   }
 
-  protected processUnorderedSources(index: number, sources: PropertiesSourceGateway[]): void {
+  protected loadUnorderedSources(index: number, sources: PropertiesSourceGateway[]): void {
     merge(
-      ...this.getSourcesLoad(
+      ...this.getSources$List(
         index,
         sources.filter((source: PropertiesSourceGateway) => !source.loadInOrder),
       ),
     )
-      .pipe(takeUntil(this.destroy$[index]))
+      .pipe(takeUntil(this.destroy$List[index]))
       .subscribe();
   }
 
-  protected processOrderedSources(index: number, sources: PropertiesSourceGateway[]): void {
+  protected loadOrderedSources(index: number, sources: PropertiesSourceGateway[]): void {
     concat(
-      ...this.getSourcesLoad(
+      ...this.getSources$List(
         index,
         sources.filter((source: PropertiesSourceGateway) => source.loadInOrder),
       ),
     )
-      .pipe(takeUntil(this.destroy$[index]))
+      .pipe(takeUntil(this.destroy$List[index]))
       .subscribe();
   }
 
-  protected getSourcesLoad(index: number, sources: PropertiesSourceGateway[]): Observable<Properties>[] {
+  protected getSources$List(index: number, sources: PropertiesSourceGateway[]): Observable<Properties>[] {
     return sources.map((source: PropertiesSourceGateway) =>
       defer(() => source.load()).pipe(
         catchError((error: Error) => this.checkLoadError(index, error, source)),
@@ -107,7 +107,7 @@ export abstract class EnvironmentLoaderGateway {
             this.saveSourceValueToStore(index, value, source);
             this.checkLoadImmediately(index, value, source);
             this.checkDismissOtherSources(index, value, source);
-            this.checkLoadBeforeApp(index, value, source);
+            this.checkRequiredToLoad(index, value, source);
           },
         }),
       ),
@@ -118,9 +118,9 @@ export abstract class EnvironmentLoaderGateway {
     const originalMessage: string = error.message ? `: ${error.message}` : '';
     const errorMessage = `Required Environment PropertiesSource "${source.name}" failed to load${originalMessage}`;
 
-    if (source.isRequired && source.loadBeforeApp && !this.loadApp$[index].isStopped) {
-      this.loadApp$[index].error(new Error(errorMessage));
-      this.onSourceDestroy(index);
+    if (source.requiredToLoad && !source.ignoreError && !this.load$List[index].isStopped) {
+      this.load$List[index].error(new Error(errorMessage));
+      this.onDestroySources(index);
     } else {
       console.error(errorMessage);
     }
@@ -146,41 +146,41 @@ export abstract class EnvironmentLoaderGateway {
 
   protected checkLoadImmediately(index: number, value: Properties, source: PropertiesSourceGateway): void {
     if (source.loadImmediately) {
-      this.onSourceLoad(index);
+      this.onLoadSources(index);
     }
   }
 
   protected checkDismissOtherSources(index: number, value: Properties, source: PropertiesSourceGateway): void {
     if (source.dismissOtherSources) {
-      this.onSourceDestroy(index);
+      this.onDestroySources(index);
     }
   }
 
-  protected checkLoadBeforeApp(index: number, value: Properties, source: PropertiesSourceGateway): void {
-    if (source.loadBeforeApp) {
-      this.loadBeforeApp$[index].next(this.loadBeforeApp$[index].getValue().add(source.name));
+  protected checkRequiredToLoad(index: number, value: Properties, source: PropertiesSourceGateway): void {
+    if (source.requiredToLoad) {
+      this.requiredToLoad$List[index].next(this.requiredToLoad$List[index].getValue().add(source.name));
     }
   }
 
-  protected onSourceLoad(index: number): void {
-    this.loadApp$[index].next();
-    this.loadApp$[index].complete();
+  protected onLoadSources(index: number): void {
+    this.load$List[index].next();
+    this.load$List[index].complete();
   }
 
-  protected onSourceDestroy(index: number): void {
-    this.destroy$[index].next();
-    this.destroy$[index].complete();
+  protected onDestroySources(index: number): void {
+    this.destroy$List[index].next();
+    this.destroy$List[index].complete();
   }
 
   /**
    * Stops sources loading and releases ongoing asynchronous calls.
    */
   onDestroy(): void {
-    this.destroy$.forEach((subject: ReplaySubject<void>) => {
+    this.destroy$List.forEach((subject: ReplaySubject<void>) => {
       subject.next();
       subject.complete();
     });
-    this.loadApp$.forEach((subject: ReplaySubject<void>) => subject.complete());
-    this.loadBeforeApp$.forEach((subject: BehaviorSubject<Set<string>>) => subject.complete());
+    this.load$List.forEach((subject: ReplaySubject<void>) => subject.complete());
+    this.requiredToLoad$List.forEach((subject: BehaviorSubject<Set<string>>) => subject.complete());
   }
 }

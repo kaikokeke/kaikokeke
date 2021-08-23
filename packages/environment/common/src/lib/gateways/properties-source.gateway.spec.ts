@@ -21,8 +21,8 @@ describe('PropertiesSource', () => {
     expect(source.name).toEqual('TestPropertiesSource');
   });
 
-  it(`.loadBeforeApp is false by default`, () => {
-    expect(source.loadBeforeApp).toEqual(false);
+  it(`.requiredToLoad is false by default`, () => {
+    expect(source.requiredToLoad).toEqual(false);
   });
 
   it(`.loadInOrder is false by default`, () => {
@@ -45,7 +45,7 @@ describe('PropertiesSource', () => {
     expect(source.resetEnvironment).toEqual(false);
   });
 
-  it(`.isRequired is true by default`, () => {
-    expect(source.isRequired).toEqual(true);
+  it(`.ignoreError is false by default`, () => {
+    expect(source.ignoreError).toEqual(false);
   });
 });

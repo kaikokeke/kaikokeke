@@ -10,60 +10,58 @@ export abstract class PropertiesSourceGateway {
    * The properties source name.
    * Defaults to the class name.
    */
-  readonly name: string = this.constructor.name;
+  name: string = this.constructor.name;
 
   /**
-   * Determines if the source should be loaded before the application initializes.
+   * Loads the source values before the application or submodule load.
    * Defaults to `false`.
    */
-  readonly loadBeforeApp: boolean = false;
+  requiredToLoad = false;
 
   /**
-   * Determines if the source should be loaded in the order defined in the array.
+   * Loads the source in the order defined in the array.
    * The ordered sources will wait until the previous ordered source completes to start.
    * Defaults to `false`.
    */
-  readonly loadInOrder: boolean = false;
+  loadInOrder = false;
 
   /**
-   * The application will load immediately after loading the source.
+   * The application or submodule will load immediately after loading the source.
    * Defaults to `false`.
    */
-  readonly loadImmediately: boolean = false;
+  loadImmediately = false;
 
   /**
-   * Dismiss the loading of all other sources after this source load and loads the application.
+   * Dismiss the loading of all other sources after this source load and loads the application or submodule.
    * Defaults to `false`.
    */
-  readonly dismissOtherSources: boolean = false;
+  dismissOtherSources = false;
 
   /**
-   * Recursively merge own and inherited enumerable values into the properties.
+   * The source recursively merge own and inherited enumerable values into the properties.
    * Defaults to `false`.
    */
-  readonly deepMergeValues: boolean = false;
+  deepMergeValues = false;
 
   /**
    * The optional path where the loaded properties are going to be setted in the environment.
    * If a path is not specified, the loaded properties will be set to the root of the environment properties.
    * @see Path
    */
-  readonly path?: Path;
+  path?: Path;
 
   /**
-   * Sets whether the environment should be reset before inserting the properties for this source.
+   * Resets the environment before inserting the properties from this source.
    * Defaults to `false`.
    */
-  readonly resetEnvironment: boolean = false;
+  resetEnvironment = false;
 
   /**
-   * Sets if the source is required.
-   *
-   * If the source is required, loads during initialization and the application has not loaded yet the
-   * application will not load if the source load fails. Set it to `false` to ignore the errors.
-   * Defaults to `true`.
+   * Ignores the errors from the source load.
+   * The application or submodule load will not occur if the source load throws an error.
+   * Defaults to `false`.
    */
-  readonly isRequired: boolean = true;
+  ignoreError = false;
 
   /**
    * Asynchronously loads environment properties from source.

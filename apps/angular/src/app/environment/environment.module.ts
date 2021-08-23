@@ -27,12 +27,16 @@ export class AkitaEnvironmentQuery extends Query<Properties> {
 
 @Injectable()
 export class EnvironmentStore extends EnvironmentStoreGateway {
-  constructor(protected readonly store: AkitaEnvironmentStore) {
+  constructor(protected readonly store: AkitaEnvironmentStore, protected readonly query: AkitaEnvironmentQuery) {
     super();
   }
 
   getAll(): Properties {
-    return this.store.getValue();
+    return this.query.getValue();
+  }
+
+  getAll$(): Observable<Properties> {
+    return this.query.select();
   }
 
   update(newProperties: Properties): void {
@@ -47,7 +51,7 @@ export class EnvironmentStore extends EnvironmentStoreGateway {
 @Injectable({ providedIn: 'root' })
 export class TestSources extends PropertiesSourceGateway {
   readonly loadInOrder = true;
-  readonly loadBeforeApp = false;
+  readonly requiredToLoad = false;
   readonly loadImmediately = true;
 
   load(): Observable<Properties> {
@@ -58,7 +62,7 @@ export class TestSources extends PropertiesSourceGateway {
 @Injectable({ providedIn: 'root' })
 export class TestSources2 extends PropertiesSourceGateway {
   readonly loadInOrder = true;
-  readonly loadBeforeApp = false;
+  readonly requiredToLoad = false;
 
   load(): Observable<Properties> {
     return of({ b: 0 }).pipe(delay(3000));
@@ -68,7 +72,7 @@ export class TestSources2 extends PropertiesSourceGateway {
 @Injectable({ providedIn: 'root' })
 export class TestSources3 extends PropertiesSourceGateway {
   readonly loadInOrder = true;
-  readonly loadBeforeApp = true;
+  readonly requiredToLoad = true;
 
   load(): Observable<Properties> {
     return of({ c: 0 }).pipe(delay(3000));
@@ -78,7 +82,7 @@ export class TestSources3 extends PropertiesSourceGateway {
 @Injectable({ providedIn: 'root' })
 export class TestSources4 extends PropertiesSourceGateway {
   readonly loadInOrder = false;
-  readonly loadBeforeApp = false;
+  readonly requiredToLoad = false;
 
   load(): Observable<Properties> {
     return of({ d: 0 }).pipe(delay(5000));

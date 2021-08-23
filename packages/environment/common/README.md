@@ -4,11 +4,11 @@
 
 ### Max load time
 
-If it is necessary to set a maximum wait time before loading the application, regardless of whether the required source values ​​are loaded, we can create a `PropertiesSourceGateway` with `loadImmediately` set to `true` and `loadBeforeApp` and `loadInOrder` setted to `false`. This is required to do not always wait for max load source to load the application.
+If it is necessary to set a maximum wait time before loading the application, regardless of whether the required source values ​​are loaded, we can create a `PropertiesSourceGateway` with `loadImmediately` set to `true` and `requiredToLoad` and `loadInOrder` setted to `false`. This is because we do want to wait for max load source to load the application.
 
 ```ts
 export class MaxLoadTimeSource extends PropertiesSourceGateway {
-  readonly loadBeforeApp = false;
+  readonly requiredToLoad = false;
   readonly loadInOrder = false;
   readonly loadImmediately = true;
 
@@ -40,6 +40,8 @@ If the application needs to load the properties from sources that emit multiple 
 
 ```ts
 export class ServerSideEventSource extends PropertiesSourceGateway {
+  readonly loadInOrder = false;
+
   constructor(protected readonly sse: ServerSideEventClient) {
     super();
   }

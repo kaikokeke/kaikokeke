@@ -1,3 +1,5 @@
+import { Observable, of } from 'rxjs';
+
 import { Properties } from '../types';
 import { EnvironmentServiceGateway } from './environment-service.gateway';
 import { EnvironmentStoreGateway } from './environment-store.gateway';
@@ -7,6 +9,9 @@ import { EnvironmentStoreGateway } from './environment-store.gateway';
 class TestStore extends EnvironmentStoreGateway {
   getAll(): Properties {
     return {};
+  }
+  getAll$(): Observable<Properties> {
+    return of({});
   }
   update(properties: Properties): void {}
   reset(): void {}

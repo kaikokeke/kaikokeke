@@ -14,6 +14,9 @@ class TestStore extends EnvironmentStoreGateway {
   getAll(): Properties {
     return {};
   }
+  getAll$(): Observable<Properties> {
+    return of({});
+  }
   update(properties: Properties): void {}
   reset(): void {}
 }
@@ -30,72 +33,72 @@ class TestLoaderService extends EnvironmentLoaderGateway {
   }
 }
 
-class InitOrderedSource extends PropertiesSourceGateway {
-  loadBeforeApp = true;
+class RequiredOrderedSource extends PropertiesSourceGateway {
+  requiredToLoad = true;
   loadInOrder = true;
   load(): Observable<Properties> {
     return of({ io: 0 }).pipe(delay(10));
   }
 }
 
-class InitOrderedSource2 extends PropertiesSourceGateway {
-  loadBeforeApp = true;
+class RequiredOrderedSource2 extends PropertiesSourceGateway {
+  requiredToLoad = true;
   loadInOrder = true;
   load(): Observable<Properties> {
     return of({ io2: 0 }).pipe(delay(10));
   }
 }
 
-class NoInitOrderedSource extends PropertiesSourceGateway {
-  loadBeforeApp = false;
+class NoRequiredOrderedSource extends PropertiesSourceGateway {
+  requiredToLoad = false;
   loadInOrder = true;
   load(): Observable<Properties> {
     return of({ nio: 0 }).pipe(delay(10));
   }
 }
 
-class NoInitOrderedSource2 extends PropertiesSourceGateway {
-  loadBeforeApp = false;
+class NoRequiredOrderedSource2 extends PropertiesSourceGateway {
+  requiredToLoad = false;
   loadInOrder = true;
   load(): Observable<Properties> {
     return of({ nio2: 0 }).pipe(delay(10));
   }
 }
 
-class InitUnorderedSource extends PropertiesSourceGateway {
-  loadBeforeApp = true;
+class RequiredUnorderedSource extends PropertiesSourceGateway {
+  requiredToLoad = true;
   loadInOrder = false;
   load(): Observable<Properties> {
     return of({ iu: 0 }).pipe(delay(10));
   }
 }
 
-class InitUnorderedSource2 extends PropertiesSourceGateway {
-  loadBeforeApp = true;
+class RequiredUnorderedSource2 extends PropertiesSourceGateway {
+  requiredToLoad = true;
   loadInOrder = false;
   load(): Observable<Properties> {
     return of({ iu: 0 }).pipe(delay(10));
   }
 }
 
-class NoInitUnorderedSource extends PropertiesSourceGateway {
-  loadBeforeApp = false;
+class NoRequiredUnorderedSource extends PropertiesSourceGateway {
+  requiredToLoad = false;
   loadInOrder = false;
   load(): Observable<Properties> {
     return of({ niu: 0 }).pipe(delay(10));
   }
 }
 
-class NoInitUnorderedSource2 extends PropertiesSourceGateway {
-  loadBeforeApp = false;
+class NoRequiredUnorderedSource2 extends PropertiesSourceGateway {
+  requiredToLoad = false;
   loadInOrder = false;
   load(): Observable<Properties> {
     return of({ niu: 0 }).pipe(delay(10));
   }
 }
 
-class InitOrderedMultipleCompletesSource extends PropertiesSourceGateway {
-  loadBeforeApp = true;
+class RequiredOrderedMultipleCompletesSource extends PropertiesSourceGateway {
+  requiredToLoad = true;
   loadInOrder = true;
   load(): Observable<Properties> {
     return interval(10).pipe(
@@ -106,7 +109,7 @@ class InitOrderedMultipleCompletesSource extends PropertiesSourceGateway {
 }
 
 class LoadImmediatelySource extends PropertiesSourceGateway {
-  loadBeforeApp = true;
+  requiredToLoad = true;
   loadInOrder = true;
   loadImmediately = true;
   load(): Observable<Properties> {
@@ -115,7 +118,7 @@ class LoadImmediatelySource extends PropertiesSourceGateway {
 }
 
 class DismissOtherSourcesSource extends PropertiesSourceGateway {
-  loadBeforeApp = true;
+  requiredToLoad = true;
   loadInOrder = true;
   dismissOtherSources = true;
   load(): Observable<Properties> {
@@ -161,35 +164,35 @@ class ResetEnvironmentSource extends PropertiesSourceGateway {
 }
 
 class ErrorNoMessageSource extends PropertiesSourceGateway {
-  loadBeforeApp = true;
-  isRequired = false;
+  requiredToLoad = true;
+  ignoreError = true;
   loadInOrder = true;
   load(): Observable<Properties> {
     return throwError(new Error()).pipe(delay(10));
   }
 }
 
-class RequiredInitErrorSource extends PropertiesSourceGateway {
-  loadBeforeApp = true;
-  isRequired = true;
+class NoIgnoreRequiredErrorSource extends PropertiesSourceGateway {
+  requiredToLoad = true;
+  ignoreError = false;
   loadInOrder = true;
   load(): Observable<Properties> {
     return throwError(new Error('error')).pipe(delay(10));
   }
 }
 
-class NoRequiredInitErrorSource extends PropertiesSourceGateway {
-  loadBeforeApp = true;
-  isRequired = false;
+class IgnoreRequiredErrorSource extends PropertiesSourceGateway {
+  requiredToLoad = true;
+  ignoreError = true;
   loadInOrder = true;
   load(): Observable<Properties> {
     return throwError(new Error('error')).pipe(delay(10));
   }
 }
 
-class RequiredNoInitErrorSource extends PropertiesSourceGateway {
-  loadBeforeApp = false;
-  isRequired = true;
+class NoIgnoreNoRequiredErrorSource extends PropertiesSourceGateway {
+  requiredToLoad = false;
+  ignoreError = false;
   loadInOrder = true;
   load(): Observable<Properties> {
     return throwError(new Error('error')).pipe(delay(10));
@@ -197,51 +200,67 @@ class RequiredNoInitErrorSource extends PropertiesSourceGateway {
 }
 
 class PromiseSource extends PropertiesSourceGateway {
-  loadBeforeApp = true;
+  requiredToLoad = true;
   async load(): Promise<Properties> {
     return Promise.resolve({ p: 0 });
   }
 }
 
 const orderedSources = [
-  new InitOrderedSource(),
-  new NoInitOrderedSource(),
-  new InitOrderedSource2(),
-  new NoInitOrderedSource2(),
+  new RequiredOrderedSource(),
+  new NoRequiredOrderedSource(),
+  new RequiredOrderedSource2(),
+  new NoRequiredOrderedSource2(),
 ];
 
 const unorderedSources = [
-  new InitUnorderedSource(),
-  new NoInitUnorderedSource(),
-  new InitUnorderedSource2(),
-  new NoInitUnorderedSource2(),
+  new RequiredUnorderedSource(),
+  new NoRequiredUnorderedSource(),
+  new RequiredUnorderedSource2(),
+  new NoRequiredUnorderedSource2(),
 ];
 
-const noInitSources = [new NoInitOrderedSource(), new NoInitOrderedSource2()];
+const noRequiredSources = [new NoRequiredOrderedSource(), new NoRequiredOrderedSource2()];
 
 const mixedOrderSources = [
-  new InitOrderedSource(),
-  new NoInitOrderedSource(),
-  new InitUnorderedSource2(),
-  new NoInitUnorderedSource2(),
+  new RequiredOrderedSource(),
+  new NoRequiredOrderedSource(),
+  new RequiredUnorderedSource2(),
+  new NoRequiredUnorderedSource2(),
 ];
 
-const multipleSources = [new InitOrderedMultipleCompletesSource(), new InitOrderedSource()];
+const multipleSources = [new RequiredOrderedMultipleCompletesSource(), new RequiredOrderedSource()];
 
-const loadImmediatellySources = [new InitOrderedSource(), new LoadImmediatelySource(), new InitOrderedSource2()];
+const loadImmediatellySources = [
+  new RequiredOrderedSource(),
+  new LoadImmediatelySource(),
+  new RequiredOrderedSource2(),
+];
 
 const dismissOtherSourcesSources = [
   new DismissOtherSourcesSource(),
-  new InitOrderedSource(),
-  new NoInitUnorderedSource(),
-  new InitOrderedSource2(),
+  new RequiredOrderedSource(),
+  new NoRequiredUnorderedSource(),
+  new RequiredOrderedSource2(),
 ];
 
-const errorRequiredInit = [new InitOrderedSource(), new RequiredInitErrorSource(), new InitOrderedSource2()];
+const errorNoIgnoreRequired = [
+  new RequiredOrderedSource(),
+  new NoIgnoreRequiredErrorSource(),
+  new RequiredOrderedSource2(),
+];
 
-const errorNoRequiredInit = [new InitOrderedSource(), new NoRequiredInitErrorSource(), new InitOrderedSource2()];
+const errorIgnoreRequired = [
+  new RequiredOrderedSource(),
+  new IgnoreRequiredErrorSource(),
+  new RequiredOrderedSource2(),
+];
 
-const errorRequiredNoInit = [new InitOrderedSource(), new RequiredNoInitErrorSource(), new InitOrderedSource2()];
+const errorNoIgnoreNoRequired = [
+  new RequiredOrderedSource(),
+  new NoIgnoreNoRequiredErrorSource(),
+  new RequiredOrderedSource2(),
+];
 
 describe('EnvironmentLoaderGateway', () => {
   let service: EnvironmentServiceGateway;
@@ -278,9 +297,9 @@ describe('EnvironmentLoaderGateway', () => {
       expect(service.merge).not.toHaveBeenCalled();
     });
 
-    // PropertiesSourceGateway.loadBeforeApp
+    // PropertiesSourceGateway.requiredToLoad
 
-    it(`returns resolved Promise when all sources with loadBeforeApp loads`, () => {
+    it(`returns resolved Promise when all sources with requiredToLoad loads`, () => {
       (loader as unknown)['sources'] = orderedSources;
       return loader.load().then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
@@ -290,14 +309,14 @@ describe('EnvironmentLoaderGateway', () => {
       });
     });
 
-    it(`returns resolved Promise immedialely if no sources with loadBeforeApp`, () => {
-      (loader as unknown)['sources'] = noInitSources;
+    it(`returns resolved Promise immedialely if no sources with requiredToLoad`, () => {
+      (loader as unknown)['sources'] = noRequiredSources;
       return loader.load().then(() => {
         expect(service.merge).not.toHaveBeenCalled();
       });
     });
 
-    it(`loads all sources ignoring loadBeforeApp`, () => {
+    it(`loads all sources ignoring requiredToLoad`, () => {
       (loader as unknown)['sources'] = mixedOrderSources;
       jest.useFakeTimers();
       loader.load();
@@ -488,7 +507,7 @@ describe('EnvironmentLoaderGateway', () => {
 
     it(`loads sources without resetting the environment if no resetEnvironment`, () => {
       jest.spyOn(service, 'reset');
-      (loader as unknown)['sources'] = [new InitOrderedSource()];
+      (loader as unknown)['sources'] = [new RequiredOrderedSource()];
       jest.useFakeTimers();
       loader.load();
       jest.runAllTimers();
@@ -497,19 +516,19 @@ describe('EnvironmentLoaderGateway', () => {
 
     // On error
 
-    it(`returns rejected Promise if source error, loadBeforeApp, isRequired and app not loaded`, () => {
-      (loader as unknown)['sources'] = errorRequiredInit;
+    it(`returns rejected Promise if source error, requiredToLoad, no ignoreError and app not loaded`, () => {
+      (loader as unknown)['sources'] = errorNoIgnoreRequired;
       return loader.load().catch((error) => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
         expect(service.merge).toHaveBeenCalledTimes(1);
         expect(error.message).toEqual(
-          `Required Environment PropertiesSource "RequiredInitErrorSource" failed to load: error`,
+          `Required Environment PropertiesSource "NoIgnoreRequiredErrorSource" failed to load: error`,
         );
       });
     });
 
-    it(`returns resolved Promise if source error, no loadBeforeApp, isRequired and app not loaded`, () => {
-      (loader as unknown)['sources'] = errorRequiredNoInit;
+    it(`returns resolved Promise if source error, no requiredToLoad, no ignoreError and app not loaded`, () => {
+      (loader as unknown)['sources'] = errorNoIgnoreNoRequired;
       return loader.load().then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
         expect(service.merge).toHaveBeenNthCalledWith(2, { io2: 0 }, undefined);
@@ -517,8 +536,8 @@ describe('EnvironmentLoaderGateway', () => {
       });
     });
 
-    it(`returns resolved Promise if source error, loadBeforeApp, no isRequired and app not loaded`, () => {
-      (loader as unknown)['sources'] = errorNoRequiredInit;
+    it(`returns resolved Promise if source error, requiredToLoad, ignoreError and app not loaded`, () => {
+      (loader as unknown)['sources'] = errorIgnoreRequired;
       return loader.load().then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
         expect(service.merge).toHaveBeenNthCalledWith(2, { io2: 0 }, undefined);
@@ -526,38 +545,38 @@ describe('EnvironmentLoaderGateway', () => {
       });
     });
 
-    it(`returns resolved Promise if source error, loadBeforeApp, isRequired and app loaded`, () => {
-      (loader as unknown)['sources'] = [new LoadImmediatelySource(), ...errorRequiredInit];
+    it(`returns resolved Promise if source error, requiredToLoad, no ignoreError and app loaded`, () => {
+      (loader as unknown)['sources'] = [new LoadImmediatelySource(), ...errorNoIgnoreRequired];
       return loader.load().then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { li: 0 }, undefined);
         expect(service.merge).toHaveBeenCalledTimes(1);
       });
     });
 
-    it(`loads sources until source error if loadBeforeApp, isRequired and app not loaded`, async () => {
-      (loader as unknown)['sources'] = errorRequiredInit;
+    it(`loads sources until source error if requiredToLoad, no ignoreError and app not loaded`, async () => {
+      (loader as unknown)['sources'] = errorNoIgnoreRequired;
       await expect(loader.load()).toReject();
       expect(service.merge).toHaveBeenCalledTimes(1);
     });
 
-    it(`loads all sources if source error, no loadBeforeApp, isRequired and app not loaded`, () => {
-      (loader as unknown)['sources'] = errorRequiredNoInit;
+    it(`loads all sources if source error, no requiredToLoad, no ignoreError and app not loaded`, () => {
+      (loader as unknown)['sources'] = errorNoIgnoreNoRequired;
       jest.useFakeTimers();
       loader.load();
       jest.runAllTimers();
       expect(service.merge).toHaveBeenCalledTimes(2);
     });
 
-    it(`loads all sources if source error, loadBeforeApp, no isRequired and app not loaded`, () => {
-      (loader as unknown)['sources'] = errorNoRequiredInit;
+    it(`loads all sources if source error, requiredToLoad, ignoreError and app not loaded`, () => {
+      (loader as unknown)['sources'] = errorIgnoreRequired;
       jest.useFakeTimers();
       loader.load();
       jest.runAllTimers();
       expect(service.merge).toHaveBeenCalledTimes(2);
     });
 
-    it(`loads all sources if source error, loadBeforeApp, isRequired and app loaded`, () => {
-      (loader as unknown)['sources'] = [new LoadImmediatelySource(), ...errorRequiredInit];
+    it(`loads all sources if source error, requiredToLoad, no ignoreError and app loaded`, () => {
+      (loader as unknown)['sources'] = [new LoadImmediatelySource(), ...errorNoIgnoreRequired];
       jest.useFakeTimers();
       loader.load();
       jest.runAllTimers();
@@ -566,42 +585,42 @@ describe('EnvironmentLoaderGateway', () => {
 
     // console.error
 
-    it(`doesn't display console error if source error, loadBeforeApp, isRequired and app not loaded`, async () => {
-      (loader as unknown)['sources'] = errorRequiredInit;
+    it(`doesn't display console error if source error, requiredToLoad, no ignoreError and app not loaded`, async () => {
+      (loader as unknown)['sources'] = errorNoIgnoreRequired;
       await expect(loader.load()).toReject();
       expect(console.error).not.toHaveBeenCalled();
     });
 
-    it(`displays console.error if source error, no loadBeforeApp, isRequired and app not loaded`, () => {
-      (loader as unknown)['sources'] = errorRequiredNoInit;
+    it(`displays console.error if source error, no requiredToLoad, no ignoreError and app not loaded`, () => {
+      (loader as unknown)['sources'] = errorNoIgnoreNoRequired;
       jest.useFakeTimers();
       loader.load();
       jest.runAllTimers();
       expect(console.error).toHaveBeenNthCalledWith(
         1,
-        `Required Environment PropertiesSource "RequiredNoInitErrorSource" failed to load: error`,
+        `Required Environment PropertiesSource "NoIgnoreNoRequiredErrorSource" failed to load: error`,
       );
     });
 
-    it(`displays console.error if source error, loadBeforeApp, no isRequired and app not loaded`, () => {
-      (loader as unknown)['sources'] = errorNoRequiredInit;
+    it(`displays console.error if source error, requiredToLoad, ignoreError and app not loaded`, () => {
+      (loader as unknown)['sources'] = errorIgnoreRequired;
       jest.useFakeTimers();
       loader.load();
       jest.runAllTimers();
       expect(console.error).toHaveBeenNthCalledWith(
         1,
-        `Required Environment PropertiesSource "NoRequiredInitErrorSource" failed to load: error`,
+        `Required Environment PropertiesSource "IgnoreRequiredErrorSource" failed to load: error`,
       );
     });
 
-    it(`displays console.error if source error, loadBeforeApp, isRequired and app loaded`, () => {
-      (loader as unknown)['sources'] = [new LoadImmediatelySource(), ...errorRequiredInit];
+    it(`displays console.error if source error, requiredToLoad, no ignoreError and app loaded`, () => {
+      (loader as unknown)['sources'] = [new LoadImmediatelySource(), ...errorNoIgnoreRequired];
       jest.useFakeTimers();
       loader.load();
       jest.runAllTimers();
       expect(console.error).toHaveBeenNthCalledWith(
         1,
-        `Required Environment PropertiesSource "RequiredInitErrorSource" failed to load: error`,
+        `Required Environment PropertiesSource "NoIgnoreRequiredErrorSource" failed to load: error`,
       );
     });
 
@@ -643,9 +662,9 @@ describe('EnvironmentLoaderGateway', () => {
       expect(service.merge).not.toHaveBeenCalled();
     });
 
-    // PropertiesSourceGateway.loadBeforeApp
+    // PropertiesSourceGateway.requiredToLoad
 
-    it(`returns resolved Promise when all sources with loadBeforeApp loads`, () => {
+    it(`returns resolved Promise when all sources with requiredToLoad loads`, () => {
       return loader.loadSubmodule(orderedSources).then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
         expect(service.merge).toHaveBeenNthCalledWith(2, { nio: 0 }, undefined);
@@ -654,13 +673,13 @@ describe('EnvironmentLoaderGateway', () => {
       });
     });
 
-    it(`returns resolved Promise immedialely if no sources with loadBeforeApp`, () => {
-      return loader.loadSubmodule(noInitSources).then(() => {
+    it(`returns resolved Promise immedialely if no sources with requiredToLoad`, () => {
+      return loader.loadSubmodule(noRequiredSources).then(() => {
         expect(service.merge).not.toHaveBeenCalled();
       });
     });
 
-    it(`loads all sources ignoring loadBeforeApp`, () => {
+    it(`loads all sources ignoring requiredToLoad`, () => {
       jest.useFakeTimers();
       loader.loadSubmodule(mixedOrderSources);
       jest.runAllTimers();
@@ -838,106 +857,106 @@ describe('EnvironmentLoaderGateway', () => {
     it(`loads sources without resetting the environment if no resetEnvironment`, () => {
       jest.spyOn(service, 'reset');
       jest.useFakeTimers();
-      loader.loadSubmodule([new InitOrderedSource()]);
+      loader.loadSubmodule([new RequiredOrderedSource()]);
       jest.runAllTimers();
       expect(service.reset).not.toHaveBeenCalled();
     });
 
     // On error
 
-    it(`returns rejected Promise if source error, loadBeforeApp, isRequired and app not loaded`, () => {
-      return loader.loadSubmodule(errorRequiredInit).catch((error) => {
+    it(`returns rejected Promise if source error, requiredToLoad, no ignoreError and app not loaded`, () => {
+      return loader.loadSubmodule(errorNoIgnoreRequired).catch((error) => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
         expect(service.merge).toHaveBeenCalledTimes(1);
         expect(error.message).toEqual(
-          `Required Environment PropertiesSource "RequiredInitErrorSource" failed to load: error`,
+          `Required Environment PropertiesSource "NoIgnoreRequiredErrorSource" failed to load: error`,
         );
       });
     });
 
-    it(`returns resolved Promise if source error, no loadBeforeApp, isRequired and app not loaded`, () => {
-      return loader.loadSubmodule(errorRequiredNoInit).then(() => {
+    it(`returns resolved Promise if source error, no requiredToLoad, no ignoreError and app not loaded`, () => {
+      return loader.loadSubmodule(errorNoIgnoreNoRequired).then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
         expect(service.merge).toHaveBeenNthCalledWith(2, { io2: 0 }, undefined);
         expect(service.merge).toHaveBeenCalledTimes(2);
       });
     });
 
-    it(`returns resolved Promise if source error, loadBeforeApp, no isRequired and app not loaded`, () => {
-      return loader.loadSubmodule(errorNoRequiredInit).then(() => {
+    it(`returns resolved Promise if source error, requiredToLoad, ignoreError and app not loaded`, () => {
+      return loader.loadSubmodule(errorIgnoreRequired).then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
         expect(service.merge).toHaveBeenNthCalledWith(2, { io2: 0 }, undefined);
         expect(service.merge).toHaveBeenCalledTimes(2);
       });
     });
 
-    it(`returns resolved Promise if source error, loadBeforeApp, isRequired and app loaded`, () => {
-      return loader.loadSubmodule([new LoadImmediatelySource(), ...errorRequiredInit]).then(() => {
+    it(`returns resolved Promise if source error, requiredToLoad, no ignoreError and app loaded`, () => {
+      return loader.loadSubmodule([new LoadImmediatelySource(), ...errorNoIgnoreRequired]).then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { li: 0 }, undefined);
         expect(service.merge).toHaveBeenCalledTimes(1);
       });
     });
 
-    it(`loads sources until source error if loadBeforeApp, isRequired and app not loaded`, async () => {
-      await expect(loader.loadSubmodule(errorRequiredInit)).toReject();
+    it(`loads sources until source error if requiredToLoad, no ignoreError and app not loaded`, async () => {
+      await expect(loader.loadSubmodule(errorNoIgnoreRequired)).toReject();
       expect(service.merge).toHaveBeenCalledTimes(1);
     });
 
-    it(`loads all sources if source error, no loadBeforeApp, isRequired and app not loaded`, () => {
+    it(`loads all sources if source error, no requiredToLoad, no ignoreError and app not loaded`, () => {
       jest.useFakeTimers();
-      loader.loadSubmodule(errorRequiredNoInit);
+      loader.loadSubmodule(errorNoIgnoreNoRequired);
       jest.runAllTimers();
       expect(service.merge).toHaveBeenCalledTimes(2);
     });
 
-    it(`loads all sources if source error, loadBeforeApp, no isRequired and app not loaded`, () => {
+    it(`loads all sources if source error, requiredToLoad, ignoreError and app not loaded`, () => {
       jest.useFakeTimers();
-      loader.loadSubmodule(errorNoRequiredInit);
+      loader.loadSubmodule(errorIgnoreRequired);
       jest.runAllTimers();
       expect(service.merge).toHaveBeenCalledTimes(2);
     });
 
-    it(`loads all sources if source error, loadBeforeApp, isRequired and app loaded`, () => {
+    it(`loads all sources if source error, requiredToLoad, no ignoreError and app loaded`, () => {
       jest.useFakeTimers();
-      loader.loadSubmodule([new LoadImmediatelySource(), ...errorRequiredInit]);
+      loader.loadSubmodule([new LoadImmediatelySource(), ...errorNoIgnoreRequired]);
       jest.runAllTimers();
       expect(service.merge).toHaveBeenCalledTimes(3);
     });
 
     // console.error
 
-    it(`doesn't display console error if source error, loadBeforeApp, isRequired and app not loaded`, async () => {
-      await expect(loader.loadSubmodule(errorRequiredInit)).toReject();
+    it(`doesn't display console error if source error, requiredToLoad, no ignoreError and app not loaded`, async () => {
+      await expect(loader.loadSubmodule(errorNoIgnoreRequired)).toReject();
       expect(console.error).not.toHaveBeenCalled();
     });
 
-    it(`displays console.error if source error, no loadBeforeApp, isRequired and app not loaded`, () => {
+    it(`displays console.error if source error, no requiredToLoad, no ignoreError and app not loaded`, () => {
       jest.useFakeTimers();
-      loader.loadSubmodule(errorRequiredNoInit);
+      loader.loadSubmodule(errorNoIgnoreNoRequired);
       jest.runAllTimers();
       expect(console.error).toHaveBeenNthCalledWith(
         1,
-        `Required Environment PropertiesSource "RequiredNoInitErrorSource" failed to load: error`,
+        `Required Environment PropertiesSource "NoIgnoreNoRequiredErrorSource" failed to load: error`,
       );
     });
 
-    it(`displays console.error if source error, loadBeforeApp, no isRequired and app not loaded`, () => {
+    it(`displays console.error if source error, requiredToLoad, ignoreError and app not loaded`, () => {
       jest.useFakeTimers();
-      loader.loadSubmodule(errorNoRequiredInit);
+      loader.loadSubmodule(errorIgnoreRequired);
       jest.runAllTimers();
       expect(console.error).toHaveBeenNthCalledWith(
         1,
-        `Required Environment PropertiesSource "NoRequiredInitErrorSource" failed to load: error`,
+        `Required Environment PropertiesSource "IgnoreRequiredErrorSource" failed to load: error`,
       );
     });
 
-    it(`displays console.error if source error, loadBeforeApp, isRequired and app loaded`, () => {
+    it(`displays console.error if source error, requiredToLoad, no ignoreError and app loaded`, () => {
       jest.useFakeTimers();
-      loader.loadSubmodule([new LoadImmediatelySource(), ...errorRequiredInit]).catch();
+      loader.loadSubmodule([new LoadImmediatelySource(), ...errorNoIgnoreRequired]).catch();
       jest.runAllTimers();
       expect(console.error).toHaveBeenNthCalledWith(
         1,
-        `Required Environment PropertiesSource "RequiredInitErrorSource" failed to load: error`,
+        `Required Environment PropertiesSource "NoIgnoreRequiredErrorSource" failed to load: error`,
       );
     });
 
@@ -968,10 +987,10 @@ describe('EnvironmentLoaderGateway', () => {
       loader.load();
       jest.advanceTimersByTime(10);
       expect(service.merge).toHaveBeenCalledTimes(1);
-      expect(loader['destroy$'][0].isStopped).toEqual(false);
+      expect(loader['destroy$List'][0].isStopped).toEqual(false);
       loader.onDestroy();
       jest.runAllTimers();
-      expect(loader['destroy$'][0].isStopped).toEqual(true);
+      expect(loader['destroy$List'][0].isStopped).toEqual(true);
       expect(service.merge).toHaveBeenCalledTimes(1);
     });
 
@@ -980,21 +999,21 @@ describe('EnvironmentLoaderGateway', () => {
       jest.useFakeTimers();
       loader.load();
       jest.advanceTimersByTime(10);
-      expect(loader['loadApp$'][0].isStopped).toEqual(false);
+      expect(loader['load$List'][0].isStopped).toEqual(false);
       loader.onDestroy();
       jest.runAllTimers();
-      expect(loader['loadApp$'][0].isStopped).toEqual(true);
+      expect(loader['load$List'][0].isStopped).toEqual(true);
     });
 
-    it(`completes the beforeApp sources`, () => {
+    it(`completes the required to load sources`, () => {
       (loader as unknown)['sources'] = orderedSources;
       jest.useFakeTimers();
       loader.load();
       jest.advanceTimersByTime(10);
-      expect(loader['loadBeforeApp$'][0].isStopped).toEqual(false);
+      expect(loader['requiredToLoad$List'][0].isStopped).toEqual(false);
       loader.onDestroy();
       jest.runAllTimers();
-      expect(loader['loadBeforeApp$'][0].isStopped).toEqual(true);
+      expect(loader['requiredToLoad$List'][0].isStopped).toEqual(true);
     });
   });
 });
