@@ -7,4 +7,10 @@ export interface EnvironmentConfig {
    * Defaults to `['{{', '}}']`.
    */
   interpolation: [string, string];
+
+  /**
+   * Use the environment properties to transpile the interpolation.
+   * Defaults to `false`.
+   */
+  useEnvironmentToTranspile: boolean;
 }

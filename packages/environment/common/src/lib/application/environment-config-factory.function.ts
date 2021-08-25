@@ -8,5 +8,6 @@ import { EnvironmentConfig } from '../types';
 export function environmentConfigFactory(config?: Partial<EnvironmentConfig>): EnvironmentConfig {
   return {
     interpolation: config?.interpolation ?? ['{{', '}}'],
+    useEnvironmentToTranspile: config?.useEnvironmentToTranspile ?? false,
   };
 }

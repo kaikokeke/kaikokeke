@@ -21,7 +21,7 @@ class TestStore extends EnvironmentStoreGateway {
 
 class TestQuery extends EnvironmentQueryGateway {
   constructor(protected readonly store: TestStore) {
-    super(store);
+    super(store, {});
   }
 }
 
