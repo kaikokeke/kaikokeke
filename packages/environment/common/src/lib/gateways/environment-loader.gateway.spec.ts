@@ -7,9 +7,6 @@ import { EnvironmentServiceGateway } from './environment-service.gateway';
 import { EnvironmentStoreGateway } from './environment-store.gateway';
 import { PropertiesSourceGateway } from './properties-source.gateway';
 
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 class TestStore extends EnvironmentStoreGateway {
   getAll(): Properties {
     return {};

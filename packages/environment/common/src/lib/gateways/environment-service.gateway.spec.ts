@@ -4,8 +4,6 @@ import { Properties } from '../types';
 import { EnvironmentServiceGateway } from './environment-service.gateway';
 import { EnvironmentStoreGateway } from './environment-store.gateway';
 
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 class TestStore extends EnvironmentStoreGateway {
   getAll(): Properties {
     return {};

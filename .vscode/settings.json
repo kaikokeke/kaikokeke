@@ -16,5 +16,8 @@
   "typescriptHero.imports.multiLineWrapThreshold": 120,
   "typescriptHero.imports.organizeOnSave": true,
   "typescriptHero.imports.multiLineTrailingComma": true,
-  "typescriptHero.imports.grouping": ["Plains", "Modules", "Workspace"]
+  "typescriptHero.imports.grouping": ["Plains", "Modules", "Workspace"],
+  "sonarlint.analyzerProperties": {
+    "sonar.typescript.exclusions": "**/*.spec.ts"
+  }
 }
