@@ -8,15 +8,15 @@ import { Properties } from '../types';
 export abstract class EnvironmentStoreGateway {
   /**
    * Gets all properties from the environment store.
-   * @returns The environment properties.
-   */
-  abstract getAll(): Properties;
-
-  /**
-   * Gets all properties from the environment store.
    * @returns The environment properties as Observable.
    */
   abstract getAll$(): Observable<Properties>;
+
+  /**
+   * Gets all properties from the environment store.
+   * @returns The environment properties.
+   */
+  abstract getAll(): Properties;
 
   /**
    * Update the properties in the environment store.
