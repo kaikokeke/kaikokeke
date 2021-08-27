@@ -2,7 +2,7 @@ import { mergeDeep } from '@kaikokeke/common';
 import { get, set } from 'lodash-es';
 
 import { EnvironmentStoreGateway } from '../gateways';
-import { isPath, Path, Properties } from '../types';
+import { isPath, Path, Properties, Property } from '../types';
 
 /**
  * Sets properties in the environment store.
@@ -26,15 +26,12 @@ export abstract class EnvironmentServiceGateway {
    * @param path The path where the property will be created.
    * @param value The value of the property.
    */
-  create<V>(path: Path, value: V): void {
-    if (isPath(path)) {
-      const state: Properties = this.store.getAll();
+  create(path: Path, value: Property): void {
+    const environment: Properties = this.store.getAll();
+    const environmentValue: Property | undefined = get(environment, path);
 
-      if (get(state, path) === undefined) {
-        const newState: Properties = set(state, path, value);
-
-        this.store.update(newState);
-      }
+    if (environmentValue === undefined) {
+      this.upsert(path, value);
     }
   }
 
@@ -43,15 +40,12 @@ export abstract class EnvironmentServiceGateway {
    * @param path The path of the property to update.
    * @param value The value of the property.
    */
-  update<V>(path: Path, value: V): void {
-    if (isPath(path)) {
-      const state: Properties = this.store.getAll();
+  update(path: Path, value: Property): void {
+    const environment: Properties = this.store.getAll();
+    const environmentValue: Property | undefined = get(environment, path);
 
-      if (get(state, path) !== undefined) {
-        const newState: Properties = set(state, path, value);
-
-        this.store.update(newState);
-      }
+    if (environmentValue !== undefined) {
+      this.upsert(path, value);
     }
   }
 
@@ -60,11 +54,12 @@ export abstract class EnvironmentServiceGateway {
    * @param path The path where the properties will be set.
    * @param value The value of the property.
    */
-  upsert<V>(path: Path, value: V): void {
+  upsert(path: Path, value: Property): void {
     if (isPath(path)) {
-      const newState: Properties = set(this.store.getAll(), path, value);
+      const environment: Properties = this.store.getAll();
+      const newEnvironment: Properties = set(environment, path, value);
 
-      this.store.update(newState);
+      this.store.update(newEnvironment);
     }
   }
 
@@ -74,9 +69,11 @@ export abstract class EnvironmentServiceGateway {
    * @param path The path where the properties will be set. If it is undefined, the environment root will be used.
    */
   merge(properties: Properties, path?: Path): void {
-    const newState: Properties = { ...this.store.getAll(), ...this.propertiesAtPath(properties, path) };
+    const environment: Properties = this.store.getAll();
+    const newProperties: Properties = this.propertiesAtPath(properties, path);
+    const newEnvironment: Properties = { ...environment, ...newProperties };
 
-    this.store.update(newState);
+    this.store.update(newEnvironment);
   }
 
   /**
@@ -85,16 +82,14 @@ export abstract class EnvironmentServiceGateway {
    * @param path The path where the properties will be set. If it is undefined, the environment root will be used.
    */
   deepMerge(properties: Properties, path?: Path): void {
-    const newState: Properties = mergeDeep(this.store.getAll(), this.propertiesAtPath(properties, path)) as Properties;
+    const environment: Properties = this.store.getAll();
+    const newProperties: Properties = this.propertiesAtPath(properties, path);
+    const newEnvironment: Properties = mergeDeep(environment, newProperties) as Properties;
 
-    this.store.update(newState);
+    this.store.update(newEnvironment);
   }
 
   protected propertiesAtPath(properties: Properties, path?: Path): Properties {
-    return path == null ? properties : this.valueAtPath(path, properties);
-  }
-
-  protected valueAtPath<V>(path: Path, value: V): Properties {
-    return isPath(path) ? set({}, path, value) : value;
+    return isPath(path) ? set({}, path, properties) : properties;
   }
 }

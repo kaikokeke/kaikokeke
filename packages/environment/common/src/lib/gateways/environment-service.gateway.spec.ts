@@ -5,18 +5,18 @@ import { EnvironmentServiceGateway } from './environment-service.gateway';
 import { EnvironmentStoreGateway } from './environment-store.gateway';
 
 class TestStore extends EnvironmentStoreGateway {
-  getAll(): Properties {
-    return {};
-  }
   getAll$(): Observable<Properties> {
     return of({});
+  }
+  getAll(): Properties {
+    return {};
   }
   update(properties: Properties): void {}
   reset(): void {}
 }
 
 class TestEnvironmentService extends EnvironmentServiceGateway {
-  constructor(protected readonly store: EnvironmentStoreGateway) {
+  constructor(protected store: EnvironmentStoreGateway) {
     super(store);
   }
 }
@@ -51,6 +51,7 @@ describe('EnvironmentServiceGateway', () => {
     expect(store.update).not.toHaveBeenCalled();
     service.create('a.a', 1);
     expect(store.update).toHaveBeenNthCalledWith(1, { a: { a: 1, b: 0 }, b: 0 });
+    expect(store.update).toHaveBeenCalledTimes(1);
   });
 
   it(`create(path, value) does nothing if the environment path value is not undefined`, () => {
@@ -75,6 +76,7 @@ describe('EnvironmentServiceGateway', () => {
     expect(store.update).not.toHaveBeenCalled();
     service.update('a.b', 1);
     expect(store.update).toHaveBeenNthCalledWith(1, { a: { b: 1 }, b: 0 });
+    expect(store.update).toHaveBeenCalledTimes(1);
   });
 
   it(`update(path, value) does nothing if the environment path value is undefined`, () => {
@@ -99,6 +101,7 @@ describe('EnvironmentServiceGateway', () => {
     expect(store.update).not.toHaveBeenCalled();
     service.upsert('a.a', 1);
     expect(store.update).toHaveBeenNthCalledWith(1, { a: { a: 1, b: 0 }, b: 0 });
+    expect(store.update).toHaveBeenCalledTimes(1);
   });
 
   it(`upsert(path, value) sets the path value if the environment path is not undefined`, () => {
@@ -107,6 +110,7 @@ describe('EnvironmentServiceGateway', () => {
     expect(store.update).not.toHaveBeenCalled();
     service.upsert('a.b', 1);
     expect(store.update).toHaveBeenNthCalledWith(1, { a: { b: 1 }, b: 0 });
+    expect(store.update).toHaveBeenCalledTimes(1);
   });
 
   it(`upsert(path, value) does nothing if the path is invalid`, () => {
@@ -123,6 +127,7 @@ describe('EnvironmentServiceGateway', () => {
     expect(store.update).not.toHaveBeenCalled();
     service.merge({ a: [1], b: { a: 0 } });
     expect(store.update).toHaveBeenNthCalledWith(1, { a: [1], b: { a: 0 } });
+    expect(store.update).toHaveBeenCalledTimes(1);
   });
 
   it(`merge(properties, path) sets the new properties at path using the merge strategy`, () => {
@@ -131,6 +136,7 @@ describe('EnvironmentServiceGateway', () => {
     expect(store.update).not.toHaveBeenCalled();
     service.merge({ a: 0 }, 'b');
     expect(store.update).toHaveBeenNthCalledWith(1, { b: { a: 0 } });
+    expect(store.update).toHaveBeenCalledTimes(1);
   });
 
   it(`merge(properties, path) sets the new properties using the merge strategy if path is invalid`, () => {
@@ -139,6 +145,7 @@ describe('EnvironmentServiceGateway', () => {
     expect(store.update).not.toHaveBeenCalled();
     service.merge({ a: { a: 0 } }, '');
     expect(store.update).toHaveBeenNthCalledWith(1, { a: { a: 0 } });
+    expect(store.update).toHaveBeenCalledTimes(1);
   });
 
   it(`deepMerge(properties) sets the new properties using the deep merge strategy`, () => {
@@ -147,6 +154,7 @@ describe('EnvironmentServiceGateway', () => {
     expect(store.update).not.toHaveBeenCalled();
     service.deepMerge({ a: [1], b: { a: 0 } });
     expect(store.update).toHaveBeenNthCalledWith(1, { a: [0, 1], b: { a: 0, b: 0 } });
+    expect(store.update).toHaveBeenCalledTimes(1);
   });
 
   it(`deepMerge(properties, path) sets the new properties at path using the deep merge strategy`, () => {
@@ -155,6 +163,7 @@ describe('EnvironmentServiceGateway', () => {
     expect(store.update).not.toHaveBeenCalled();
     service.deepMerge({ a: 0 }, 'b');
     expect(store.update).toHaveBeenNthCalledWith(1, { b: { a: 0, b: 0 } });
+    expect(store.update).toHaveBeenCalledTimes(1);
   });
 
   it(`deepMerge(properties, path) sets the new properties using the deep merge strategy if path is invalid`, () => {
@@ -163,5 +172,6 @@ describe('EnvironmentServiceGateway', () => {
     expect(store.update).not.toHaveBeenCalled();
     service.deepMerge({ a: { a: 0 } }, '');
     expect(store.update).toHaveBeenNthCalledWith(1, { a: { a: 0, b: 0 } });
+    expect(store.update).toHaveBeenCalledTimes(1);
   });
 });
