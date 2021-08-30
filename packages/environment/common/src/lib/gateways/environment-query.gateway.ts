@@ -1,4 +1,4 @@
-import { mergeDeep } from '@kaikokeke/common';
+import { mergeDeep, unfreeze, unfreezeAll } from '@kaikokeke/common';
 import { get, isEqual, isString } from 'lodash-es';
 import { Observable } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
@@ -7,97 +7,84 @@ import { environmentConfigFactory } from '../application';
 import { EnvironmentConfig, Path, Properties, Property } from '../types';
 import { EnvironmentStoreGateway } from './environment-store.gateway';
 
+/**
+ * Gets the properties from the environment store.
+ */
 export abstract class EnvironmentQueryGateway {
   protected readonly config: EnvironmentConfig = environmentConfigFactory(this.partialConfig);
 
+  /**
+   * Gets the properties from the environment store.
+   * @param store Manages the environment store.
+   * @param partialConfig Partial configuration parameters for the Environment module.
+   */
   constructor(
     protected readonly store: EnvironmentStoreGateway,
     protected readonly partialConfig: Partial<EnvironmentConfig>,
   ) {}
 
   /**
-   * Checks whether the given environment property path is available for resolution.
+   * Gets all the distinct environment properties.
+   * @returns All the distinct environment properties as Observable.
+   */
+  getProperties$(): Observable<Properties> {
+    return this.store.getAll$().pipe(distinctUntilChanged(isEqual), unfreezeAll());
+  }
+
+  /**
+   * Gets all the environment properties.
+   * @returns All the environment properties.
+   */
+  getProperties(): Properties {
+    const environment: Properties = this.store.getAll();
+
+    return unfreeze(environment);
+  }
+
+  /**
+   * Gets the distinct environment property at path as Observable.
    * @param path The property path to resolve.
-   * @returns `true` as Observable if the value for the given path exists, otherwise `false`.
+   * @returns The distinct environment property at path as Observable or `undefined` if the path cannot be resolved.
+   */
+  getProperty$(path: Path): Observable<Property | undefined> {
+    return this.getProperties$().pipe(
+      map((environment: Properties) => get(environment, path)),
+      distinctUntilChanged(isEqual),
+    );
+  }
+
+  /**
+   * Gets the environment property at path.
+   * @param path The property path to resolve.
+   * @returns The environment property at path or `undefined` if the path cannot be resolved.
+   */
+  getProperty(path: Path): Property | undefined {
+    const environment: Properties = this.getProperties();
+
+    return get(environment, path);
+  }
+
+  /**
+   * Checks if the distinct environment property at path is available for resolution.
+   * @param path The property path to resolve.
+   * @returns Distinct `true` as Observable if the environment property at path exists, otherwise `false`.
    */
   containsProperty$(path: Path): Observable<boolean> {
-    return this.store.getAll$().pipe(
-      map((props: Properties) => get(props, path) !== undefined),
+    return this.getProperty$(path).pipe(
+      map((property?: Property) => property !== undefined),
       distinctUntilChanged(),
     );
   }
 
   /**
-   * Checks whether the given environment property path is available for resolution.
+   * Checks if the environment property at path is available for resolution.
    * @param path The property path to resolve.
-   * @returns `true` if the value for the given path exists, otherwise `false`.
+   * @returns `true` if the environment property at path exists, otherwise `false`.
    */
   containsProperty(path: Path): boolean {
-    return get(this.store.getAll(), path) !== undefined;
-  }
+    const property: Property | undefined = this.getProperty(path);
 
-  /**
-   * Gets all the environment properties.
-   * @returns The environment properties values as Observable.
-   */
-  getProperties$(): Observable<Properties> {
-    return this.store.getAll$().pipe(distinctUntilChanged(isEqual));
-  }
-
-  /**
-   * Gets all the environment properties.
-   * @returns The environment properties values.
-   */
-  getProperties(): Properties {
-    return this.store.getAll();
-  }
-
-  /**
-   * Gets the property value associated with the given path.
-   * @param path The property path to resolve.
-   * @returns The property value as Observable or `undefined` if the path cannot be resolved.
-   */
-  getProperty$<V>(path: Path): Observable<V | undefined> {
-    return this.store.getAll$().pipe(
-      map((props: Properties) => get(props, path)),
-      distinctUntilChanged(isEqual),
-    );
-  }
-
-  /**
-   * Gets the property value associated with the given path.
-   * @param path The property path to resolve.
-   * @returns The property value or `undefined` if the path cannot be resolved.
-   */
-  getProperty<V>(path: Path): V | undefined {
-    return get(this.store.getAll(), path);
-  }
-
-  /**
-   * Gets the typed property value associated with the given path.
-   * @param path The property path to resolve.
-   * @param targetType The expected type converter function.
-   * @returns The property value converted to the `targetType` as Observable
-   * or `undefined` if the path cannot be resolved.
-   */
-  getTypedProperty$<T, V>(path: Path, targetType: (value: T) => V): Observable<V | undefined> {
-    return this.store.getAll$().pipe(
-      map((props: Properties) => get(props, path)),
-      map((value?: T) => (value === undefined ? undefined : targetType(value))),
-      distinctUntilChanged(isEqual),
-    );
-  }
-
-  /**
-   * Gets the typed property value associated with the given path.
-   * @param path The property path to resolve.
-   * @param targetType The expected type converter function.
-   * @returns The property value converted to the `targetType` or `undefined` if the path cannot be resolved.
-   */
-  getTypedProperty<T, V>(path: Path, targetType: (value: T) => V): V | undefined {
-    const value: T = get(this.store.getAll(), path);
-
-    return value === undefined ? undefined : targetType(value);
+    return property !== undefined;
   }
 
   /**
@@ -106,9 +93,9 @@ export abstract class EnvironmentQueryGateway {
    * @param defaultValue The default value to return if no value is found.
    * @returns The property value as Observable or `defaultValue` if the path cannot be resolved.
    */
-  getRequiredProperty$<V>(path: Path, defaultValue: V): Observable<V> {
-    return this.store.getAll$().pipe(
-      map((props: Properties) => get(props, path, defaultValue)),
+  getRequiredProperty$(path: Path, defaultValue: Property): Observable<Property> {
+    return this.getProperties$().pipe(
+      map((environment: Properties) => get(environment, path, defaultValue)),
       distinctUntilChanged(isEqual),
     );
   }
@@ -119,8 +106,46 @@ export abstract class EnvironmentQueryGateway {
    * @param defaultValue The default value to return if no value is found.
    * @returns The property value or `defaultValue` if the path cannot be resolved.
    */
-  getRequiredProperty<V>(path: Path, defaultValue: V): V {
-    return get(this.store.getAll(), path, defaultValue);
+  getRequiredProperty(path: Path, defaultValue: Property): Property {
+    const environment: Properties = this.getProperties();
+
+    return get(environment, path, defaultValue);
+  }
+
+  /**
+   * Gets the typed property value associated with the given path.
+   * @param path The property path to resolve.
+   * @param targetType The expected type converter function.
+   * @returns The property value converted to the `targetType` as Observable
+   * or `undefined` if the path cannot be resolved.
+   */
+  getTypedProperty$<V>(path: Path, targetType: (value: Property) => V): Observable<V | undefined> {
+    return this.getProperty$(path).pipe(
+      map((property?: Property) => {
+        if (property === undefined) {
+          return;
+        }
+
+        return targetType(property);
+      }),
+      distinctUntilChanged(isEqual),
+    );
+  }
+
+  /**
+   * Gets the typed property value associated with the given path.
+   * @param path The property path to resolve.
+   * @param targetType The expected type converter function.
+   * @returns The property value converted to the `targetType` or `undefined` if the path cannot be resolved.
+   */
+  getTypedProperty<V>(path: Path, targetType: (value: Property) => V): V | undefined {
+    const property: Property = this.getProperty(path);
+
+    if (property === undefined) {
+      return;
+    }
+
+    return targetType(property);
   }
 
   /**
@@ -131,10 +156,9 @@ export abstract class EnvironmentQueryGateway {
    * @returns The property value converted to the `targetType` as Observable
    * or the converted `defaultValue` if the path cannot be resolved.
    */
-  getRequiredTypedProperty$<T, V>(path: Path, defaultValue: T, targetType: (value: T) => V): Observable<V> {
-    return this.store.getAll$().pipe(
-      map((props: Properties) => get(props, path, defaultValue)),
-      map((value: T) => targetType(value)),
+  getRequiredTypedProperty$<V>(path: Path, defaultValue: Property, targetType: (value: Property) => V): Observable<V> {
+    return this.getRequiredProperty$(path, defaultValue).pipe(
+      map((property: Property) => targetType(property)),
       distinctUntilChanged(isEqual),
     );
   }
@@ -147,8 +171,10 @@ export abstract class EnvironmentQueryGateway {
    * @returns The property value converted to the `targetType`
    * or the converted `defaultValue` if the path cannot be resolved.
    */
-  getRequiredTypedProperty<T, V>(path: Path, defaultValue: T, targetType: (value: T) => V): V {
-    return targetType(get(this.store.getAll(), path, defaultValue));
+  getRequiredTypedProperty<V>(path: Path, defaultValue: Property, targetType: (value: Property) => V): V {
+    const property: Property = this.getRequiredProperty(path, defaultValue);
+
+    return targetType(property);
   }
 
   /**
@@ -158,14 +184,19 @@ export abstract class EnvironmentQueryGateway {
    * @param config The custom environment config for this transpile.
    * @returns The transpiled value as Observable or `undefined` if the path cannot be resolved.
    */
-  getTranspiledProperty$<V>(
+  getTranspiledProperty$(
     path: Path,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
-  ): Observable<V | string | undefined> {
-    return this.store.getAll$().pipe(
-      map((props: Properties) => get(props, path)),
-      map((value?: V) => (value === undefined ? undefined : this.transpile(value, properties, config))),
+  ): Observable<Property | undefined> {
+    return this.getProperty$(path).pipe(
+      map((property?: Property) => {
+        if (property === undefined) {
+          return;
+        }
+
+        return this.transpile(property, properties, config);
+      }),
       distinctUntilChanged(isEqual),
     );
   }
@@ -177,14 +208,18 @@ export abstract class EnvironmentQueryGateway {
    * @param config The custom environment config for this transpile.
    * @returns The transpiled value or `undefined` if the path cannot be resolved.
    */
-  getTranspiledProperty<V>(
+  getTranspiledProperty(
     path: Path,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
-  ): V | string | undefined {
-    const value: V | undefined = get(this.store.getAll(), path);
+  ): Property | undefined {
+    const property: Property | undefined = this.getProperty(path);
 
-    return value === undefined ? undefined : this.transpile(value, properties, config);
+    if (property === undefined) {
+      return;
+    }
+
+    return this.transpile(property, properties, config);
   }
 
   /**
@@ -195,15 +230,14 @@ export abstract class EnvironmentQueryGateway {
    * @param config The custom environment config for this transpile.
    * @returns The transpiled value as Observable or `defaultValue` if the path cannot be resolved.
    */
-  getRequiredTranspiledProperty$<V>(
+  getRequiredTranspiledProperty$(
     path: Path,
-    defaultValue: V,
+    defaultValue: Property,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
-  ): Observable<V | string> {
-    return this.store.getAll$().pipe(
-      map((props: Properties) => get(props, path, defaultValue)),
-      map((value: V) => this.transpile(value, properties, config)),
+  ): Observable<Property> {
+    return this.getRequiredProperty$(path, defaultValue).pipe(
+      map((property: Property) => this.transpile(property, properties, config)),
       distinctUntilChanged(isEqual),
     );
   }
@@ -216,22 +250,28 @@ export abstract class EnvironmentQueryGateway {
    * @param config The custom environment config for this transpile.
    * @returns The transpiled value or `defaultValue` if the path cannot be resolved.
    */
-  getRequiredTranspiledProperty<V>(
+  getRequiredTranspiledProperty(
     path: Path,
-    defaultValue: V,
+    defaultValue: Property,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
-  ): V | string {
-    return this.transpile(get(this.store.getAll(), path, defaultValue), properties, config);
+  ): Property {
+    const property: Property = this.getRequiredProperty(path, defaultValue);
+
+    return this.transpile(property, properties, config);
   }
 
-  protected transpile<V>(value: V, properties: Properties = {}, config?: Partial<EnvironmentConfig>): V | string {
+  protected transpile(value: Property, properties: Properties = {}, config?: Partial<EnvironmentConfig>): Property {
     const transpileConfig: EnvironmentConfig = this.getTranspileConfig(config);
 
     if (isString(value)) {
-      return value.replace(this.getMatcher(transpileConfig), (substring: string, match: string) =>
-        this.replacer(substring, match, this.getTranspileProperties(properties, transpileConfig)),
-      );
+      const matcher: RegExp = this.getMatcher(transpileConfig);
+
+      return value.replace(matcher, (substring: string, match: string) => {
+        const transpiledProperties: Properties = this.getTranspileProperties(properties, transpileConfig);
+
+        return this.replacer(substring, match, transpiledProperties);
+      });
     }
 
     return value;
