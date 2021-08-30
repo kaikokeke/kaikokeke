@@ -8,24 +8,24 @@ import { EnvironmentStoreGateway } from './environment-store.gateway';
 import { PropertiesSourceGateway } from './properties-source.gateway';
 
 class TestStore extends EnvironmentStoreGateway {
-  getAll(): Properties {
-    return {};
-  }
   getAll$(): Observable<Properties> {
     return of({});
+  }
+  getAll(): Properties {
+    return {};
   }
   update(properties: Properties): void {}
   reset(): void {}
 }
 
 class TestEnvironmentService extends EnvironmentServiceGateway {
-  constructor(protected readonly store: EnvironmentStoreGateway) {
+  constructor(protected store: EnvironmentStoreGateway) {
     super(store);
   }
 }
 
 class TestLoaderService extends EnvironmentLoaderGateway {
-  constructor(protected readonly service: EnvironmentServiceGateway) {
+  constructor(protected service: EnvironmentServiceGateway) {
     super(service, []);
   }
 }
