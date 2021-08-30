@@ -28,9 +28,9 @@ export abstract class EnvironmentServiceGateway {
    */
   create(path: Path, value: Property): void {
     const environment: Properties = this.store.getAll();
-    const environmentValue: Property | undefined = get(environment, path);
+    const property: Property | undefined = get(environment, path);
 
-    if (environmentValue === undefined) {
+    if (property === undefined) {
       this.upsert(path, value);
     }
   }
@@ -42,9 +42,9 @@ export abstract class EnvironmentServiceGateway {
    */
   update(path: Path, value: Property): void {
     const environment: Properties = this.store.getAll();
-    const environmentValue: Property | undefined = get(environment, path);
+    const property: Property | undefined = get(environment, path);
 
-    if (environmentValue !== undefined) {
+    if (property !== undefined) {
       this.upsert(path, value);
     }
   }
