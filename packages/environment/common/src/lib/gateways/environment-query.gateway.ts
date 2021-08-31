@@ -47,9 +47,9 @@ export abstract class EnvironmentQueryGateway {
    * @returns The environment property at path as Observable or `undefined` if the path cannot be resolved.
    * @see Path
    */
-  getProperty$(path: Path): Observable<Property | undefined> {
+  getProperty$<P extends Property>(path: Path): Observable<P | undefined> {
     return this.getProperties$().pipe(
-      map((environment: Properties) => get(environment, path)),
+      map((environment: Properties): P | undefined => get(environment, path)),
       this.getterOperator(),
     );
   }
@@ -60,7 +60,7 @@ export abstract class EnvironmentQueryGateway {
    * @returns The environment property at path or `undefined` if the path cannot be resolved.
    * @see Path
    */
-  getProperty(path: Path): Property | undefined {
+  getProperty<P extends Property>(path: Path): P | undefined {
     const environment: Properties = this.getProperties();
 
     return get(environment, path);
@@ -98,9 +98,9 @@ export abstract class EnvironmentQueryGateway {
    * @returns The environment property at path as Observable or the `defaultValue` if the path cannot be resolved.
    * @see Path
    */
-  getRequiredProperty$(path: Path, defaultValue: Property): Observable<Property> {
+  getRequiredProperty$<P extends Property, D extends Property>(path: Path, defaultValue: D): Observable<P | D> {
     return this.getProperties$().pipe(
-      map((environment: Properties) => get(environment, path, defaultValue)),
+      map((environment: Properties): P | D => get(environment, path, defaultValue)),
       this.getterOperator(),
     );
   }
@@ -112,7 +112,7 @@ export abstract class EnvironmentQueryGateway {
    * @returns The environment property at path or the `defaultValue` if the path cannot be resolved.
    * @see Path
    */
-  getRequiredProperty(path: Path, defaultValue: Property): Property {
+  getRequiredProperty<P extends Property, D extends Property>(path: Path, defaultValue: D): P | D {
     const environment: Properties = this.getProperties();
 
     return get(environment, path, defaultValue);
@@ -126,9 +126,9 @@ export abstract class EnvironmentQueryGateway {
    * or `undefined` if the path cannot be resolved.
    * @see Path
    */
-  getTypedProperty$<V>(path: Path, targetType: (value: Property) => V): Observable<V | undefined> {
-    return this.getProperty$(path).pipe(
-      map((property?: Property) => {
+  getTypedProperty$<P extends Property, T>(path: Path, targetType: (value: P) => T): Observable<T | undefined> {
+    return this.getProperty$<P>(path).pipe(
+      map((property?: P) => {
         if (property === undefined) {
           return;
         }
@@ -147,8 +147,8 @@ export abstract class EnvironmentQueryGateway {
    * or `undefined` if the path cannot be resolved.
    * @see Path
    */
-  getTypedProperty<V>(path: Path, targetType: (value: Property) => V): V | undefined {
-    const property: Property | undefined = this.getProperty(path);
+  getTypedProperty<P extends Property, T>(path: Path, targetType: (value: P) => T): T | undefined {
+    const property: P | undefined = this.getProperty<P>(path);
 
     if (property === undefined) {
       return;
@@ -166,9 +166,13 @@ export abstract class EnvironmentQueryGateway {
    * or the converted `defaultValue` if the path cannot be resolved.
    * @see Path
    */
-  getRequiredTypedProperty$<V>(path: Path, defaultValue: Property, targetType: (value: Property) => V): Observable<V> {
-    return this.getRequiredProperty$(path, defaultValue).pipe(
-      map((property: Property) => targetType(property)),
+  getRequiredTypedProperty$<P extends Property, D extends Property, T>(
+    path: Path,
+    defaultValue: D,
+    targetType: (value: P | D) => T,
+  ): Observable<T> {
+    return this.getRequiredProperty$<P, D>(path, defaultValue).pipe(
+      map((property: P | D) => targetType(property)),
       this.getterOperator(),
     );
   }
@@ -182,8 +186,12 @@ export abstract class EnvironmentQueryGateway {
    * or the converted `defaultValue` if the path cannot be resolved.
    * @see Path
    */
-  getRequiredTypedProperty<V>(path: Path, defaultValue: Property, targetType: (value: Property) => V): V {
-    const property: Property = this.getRequiredProperty(path, defaultValue);
+  getRequiredTypedProperty<P extends Property, D extends Property, T>(
+    path: Path,
+    defaultValue: D,
+    targetType: (value: P | D) => T,
+  ): T {
+    const property: P | D = this.getRequiredProperty<P, D>(path, defaultValue);
 
     return targetType(property);
   }
@@ -197,13 +205,13 @@ export abstract class EnvironmentQueryGateway {
    * or `undefined` if the path cannot be resolved.
    * @see Path
    */
-  getTranspiledProperty$(
+  getTranspiledProperty$<P extends Property>(
     path: Path,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
-  ): Observable<Property | undefined> {
-    return this.getProperty$(path).pipe(
-      map((property?: Property) => {
+  ): Observable<P | string | undefined> {
+    return this.getProperty$<P>(path).pipe(
+      map((property?: P) => {
         if (property === undefined) {
           return;
         }
@@ -222,12 +230,12 @@ export abstract class EnvironmentQueryGateway {
    * @returns The transpiled environment property at path or `undefined` if the path cannot be resolved.
    * @see Path
    */
-  getTranspiledProperty(
+  getTranspiledProperty<P extends Property>(
     path: Path,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
-  ): Property | undefined {
-    const property: Property | undefined = this.getProperty(path);
+  ): P | string | undefined {
+    const property: P | undefined = this.getProperty<P>(path);
 
     if (property === undefined) {
       return;
@@ -246,14 +254,14 @@ export abstract class EnvironmentQueryGateway {
    * or the transpiled `defaultValue` if the path cannot be resolved.
    * @see Path
    */
-  getRequiredTranspiledProperty$(
+  getRequiredTranspiledProperty$<P extends Property, D extends Property>(
     path: Path,
-    defaultValue: Property,
+    defaultValue: D,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
-  ): Observable<Property> {
-    return this.getRequiredProperty$(path, defaultValue).pipe(
-      map((property: Property) => this.transpile(property, properties, config)),
+  ): Observable<P | D | string> {
+    return this.getRequiredProperty$<P, D>(path, defaultValue).pipe(
+      map((property: P | D) => this.transpile(property, properties, config)),
       this.getterOperator(),
     );
   }
@@ -268,18 +276,22 @@ export abstract class EnvironmentQueryGateway {
    * or the transpiled `defaultValue` if the path cannot be resolved.
    * @see Path
    */
-  getRequiredTranspiledProperty(
+  getRequiredTranspiledProperty<P extends Property, D extends Property>(
     path: Path,
-    defaultValue: Property,
+    defaultValue: D,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
-  ): Property {
-    const property: Property = this.getRequiredProperty(path, defaultValue);
+  ): P | D | string {
+    const property: P | D = this.getRequiredProperty<P, D>(path, defaultValue);
 
     return this.transpile(property, properties, config);
   }
 
-  protected transpile(value: Property, properties: Properties = {}, config: Partial<EnvironmentConfig> = {}): Property {
+  protected transpile<T extends Property>(
+    value: T,
+    properties: Properties = {},
+    config: Partial<EnvironmentConfig> = {},
+  ): T | string {
     const transpileConfig: EnvironmentConfig = { ...this.config, ...config };
 
     if (isString(value)) {
