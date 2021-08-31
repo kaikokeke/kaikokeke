@@ -32,7 +32,9 @@ export abstract class EnvironmentLoaderGateway {
    * @returns A promise to load the application once the required properties are loaded.
    */
   async load(): Promise<void> {
-    return this.loadSources(coerceArray(this.sources));
+    const sources: PropertiesSourceGateway[] = coerceArray(this.sources);
+
+    return this.loadSources(sources);
   }
 
   /**
@@ -76,23 +78,23 @@ export abstract class EnvironmentLoaderGateway {
   }
 
   protected loadUnorderedSources(index: number, sources: PropertiesSourceGateway[]): void {
-    merge(
-      ...this.getSources$List(
-        index,
-        sources.filter((source: PropertiesSourceGateway) => !source.loadInOrder),
-      ),
-    )
+    const unorderedSources: PropertiesSourceGateway[] = sources.filter(
+      (source: PropertiesSourceGateway) => !source.loadInOrder,
+    );
+    const sources$List: Observable<Properties>[] = this.getSources$List(index, unorderedSources);
+
+    merge(...sources$List)
       .pipe(takeUntil(this.destroy$List[index]))
       .subscribe();
   }
 
   protected loadOrderedSources(index: number, sources: PropertiesSourceGateway[]): void {
-    concat(
-      ...this.getSources$List(
-        index,
-        sources.filter((source: PropertiesSourceGateway) => source.loadInOrder),
-      ),
-    )
+    const orderedSources: PropertiesSourceGateway[] = sources.filter(
+      (source: PropertiesSourceGateway) => source.loadInOrder,
+    );
+    const sources$List: Observable<Properties>[] = this.getSources$List(index, orderedSources);
+
+    concat(...sources$List)
       .pipe(takeUntil(this.destroy$List[index]))
       .subscribe();
   }
@@ -118,14 +120,20 @@ export abstract class EnvironmentLoaderGateway {
     const originalMessage: string = error.message ? `: ${error.message}` : '';
     const errorMessage = `Required Environment PropertiesSource "${source.name}" failed to load${originalMessage}`;
 
-    if (source.requiredToLoad && !source.ignoreError && !this.load$List[index].isStopped) {
-      this.load$List[index].error(new Error(errorMessage));
+    if (this.isRequiredToLoadAndNotLoaded(index, source)) {
+      const loadError: Error = new Error(errorMessage);
+
+      this.load$List[index].error(loadError);
       this.onDestroySources(index);
     } else {
       console.error(errorMessage);
     }
 
     return of({});
+  }
+
+  protected isRequiredToLoadAndNotLoaded(index: number, source: PropertiesSourceGateway): boolean {
+    return source.requiredToLoad && !source.ignoreError && !this.load$List[index].isStopped;
   }
 
   protected checkResetEnvironment(index: number, value: Properties, source: PropertiesSourceGateway): void {
@@ -158,7 +166,9 @@ export abstract class EnvironmentLoaderGateway {
 
   protected checkRequiredToLoad(index: number, value: Properties, source: PropertiesSourceGateway): void {
     if (source.requiredToLoad) {
-      this.requiredToLoad$List[index].next(this.requiredToLoad$List[index].getValue().add(source.name));
+      const requiredToLoadLoaded: Set<string> = this.requiredToLoad$List[index].getValue().add(source.name);
+
+      this.requiredToLoad$List[index].next(requiredToLoadLoaded);
     }
   }
 
