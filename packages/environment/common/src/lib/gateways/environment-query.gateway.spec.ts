@@ -1,4 +1,4 @@
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 import { marbles } from 'rxjs-marbles/jest';
 
 import { Properties } from '../types';
@@ -64,6 +64,19 @@ describe('EnvironmentQueryGateway', () => {
     });
   });
 
+  it(`getProperties$() returns always the last value`, () => {
+    const sub = new Subject<Properties>();
+    const value = { a: 0 };
+    jest.spyOn(console, 'log').mockImplementation(() => null);
+    jest.spyOn(store, 'getAll$').mockReturnValue(sub);
+    const prop = query.getProperties$();
+    prop.subscribe({ next: (v) => console.log(v) });
+    sub.next(value);
+    expect(console.log).toHaveBeenNthCalledWith(1, value);
+    prop.subscribe({ next: (v) => console.log(v) });
+    expect(console.log).toHaveBeenNthCalledWith(2, value);
+  });
+
   it(`getProperties() returns all the environment properties as mutable`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue(envA1);
     const value = query.getProperties();
@@ -96,6 +109,19 @@ describe('EnvironmentQueryGateway', () => {
     });
   });
 
+  it(`getProperty$(path) returns always the last value`, () => {
+    const sub = new Subject<Properties>();
+    const value = { a: 0 };
+    jest.spyOn(console, 'log').mockImplementation(() => null);
+    jest.spyOn(store, 'getAll$').mockReturnValue(sub);
+    const prop = query.getProperty$('a');
+    prop.subscribe({ next: (v) => console.log(v) });
+    sub.next(value);
+    expect(console.log).toHaveBeenNthCalledWith(1, value.a);
+    prop.subscribe({ next: (v) => console.log(v) });
+    expect(console.log).toHaveBeenNthCalledWith(2, value.a);
+  });
+
   it(`getProperty(path) returns the environment property at path as mutable`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue(envA1);
     const value = query.getProperty('a');
@@ -118,6 +144,19 @@ describe('EnvironmentQueryGateway', () => {
       m.expect(query.containsProperty$('a.a')).toBeObservable(expected);
     }),
   );
+
+  it(`containsProperty$(path) returns always the last value`, () => {
+    const sub = new Subject<Properties>();
+    const value = { a: 0 };
+    jest.spyOn(console, 'log').mockImplementation(() => null);
+    jest.spyOn(store, 'getAll$').mockReturnValue(sub);
+    const prop = query.containsProperty$('a');
+    prop.subscribe({ next: (v) => console.log(v) });
+    sub.next(value);
+    expect(console.log).toHaveBeenNthCalledWith(1, true);
+    prop.subscribe({ next: (v) => console.log(v) });
+    expect(console.log).toHaveBeenNthCalledWith(2, true);
+  });
 
   it(`containsProperty(path) returns true if the environment property at path exists`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue(envA1);
@@ -149,6 +188,19 @@ describe('EnvironmentQueryGateway', () => {
         done();
       },
     });
+  });
+
+  it(`getRequiredProperty$(path, defaultValue) returns always the last value`, () => {
+    const sub = new Subject<Properties>();
+    const value = { a: 0 };
+    jest.spyOn(console, 'log').mockImplementation(() => null);
+    jest.spyOn(store, 'getAll$').mockReturnValue(sub);
+    const prop = query.getRequiredProperty$('a', 1);
+    prop.subscribe({ next: (v) => console.log(v) });
+    sub.next(value);
+    expect(console.log).toHaveBeenNthCalledWith(1, value.a);
+    prop.subscribe({ next: (v) => console.log(v) });
+    expect(console.log).toHaveBeenNthCalledWith(2, value.a);
   });
 
   it(`getRequiredProperty(path, defaultValue) returns the environment property at path as mutable`, () => {
@@ -189,6 +241,19 @@ describe('EnvironmentQueryGateway', () => {
       });
   });
 
+  it(`getTypedProperty$(path, targetType) returns always the last value`, () => {
+    const sub = new Subject<Properties>();
+    const value = { a: 0 };
+    jest.spyOn(console, 'log').mockImplementation(() => null);
+    jest.spyOn(store, 'getAll$').mockReturnValue(sub);
+    const prop = query.getTypedProperty$('a', (v) => v);
+    prop.subscribe({ next: (v) => console.log(v) });
+    sub.next(value);
+    expect(console.log).toHaveBeenNthCalledWith(1, value.a);
+    prop.subscribe({ next: (v) => console.log(v) });
+    expect(console.log).toHaveBeenNthCalledWith(2, value.a);
+  });
+
   it(`getTypedProperty(path, targetType) returns the environment property at path converted to the targetType as mutable`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue(envA1);
     expect(query.getTypedProperty('a.a', String)).toEqual('0');
@@ -225,6 +290,19 @@ describe('EnvironmentQueryGateway', () => {
           done();
         },
       });
+  });
+
+  it(`getRequiredTypedProperty$(path, defaultValue, targetType) returns always the last value`, () => {
+    const sub = new Subject<Properties>();
+    const value = { a: 0 };
+    jest.spyOn(console, 'log').mockImplementation(() => null);
+    jest.spyOn(store, 'getAll$').mockReturnValue(sub);
+    const prop = query.getRequiredTypedProperty$('a', 1, (v) => v);
+    prop.subscribe({ next: (v) => console.log(v) });
+    sub.next(value);
+    expect(console.log).toHaveBeenNthCalledWith(1, value.a);
+    prop.subscribe({ next: (v) => console.log(v) });
+    expect(console.log).toHaveBeenNthCalledWith(2, value.a);
   });
 
   it(`getRequiredTypedProperty(path, defaultValue, targetType) returns the environment property at path converted to the targetType as mutable`, () => {
