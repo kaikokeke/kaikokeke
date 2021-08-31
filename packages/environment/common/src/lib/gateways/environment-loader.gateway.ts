@@ -134,7 +134,7 @@ export abstract class EnvironmentLoaderGateway {
   }
 
   protected customSourceOperator<T, K = T>(index: number, source: PropertiesSourceGateway): OperatorFunction<T, T | K> {
-    return (observable: Observable<T>): Observable<T | K> => observable;
+    return (observable: Observable<T>) => observable;
   }
 
   protected isRequiredToLoadAndNotLoaded(index: number, source: PropertiesSourceGateway): boolean {

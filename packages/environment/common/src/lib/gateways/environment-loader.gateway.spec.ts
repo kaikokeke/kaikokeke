@@ -992,8 +992,8 @@ describe('EnvironmentLoaderGateway', () => {
     // use customSourceOperator
 
     it(`customSourceOperator is used`, () => {
-      loader['customSourceOperator'] = <T, K = T>(index, source) => {
-        return (observable: Observable<T>): Observable<T | K> => observable.pipe(map((v) => ({ ...v, custom: 0 })));
+      loader['customSourceOperator'] = (index, source) => {
+        return (observable) => observable.pipe(map((v) => ({ ...v, custom: 0 })));
       };
       return loader.loadSubmodule([new PromiseSource()]).then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { p: 0, custom: 0 }, undefined);
