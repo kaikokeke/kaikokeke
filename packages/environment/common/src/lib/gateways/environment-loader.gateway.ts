@@ -81,9 +81,9 @@ export abstract class EnvironmentLoaderGateway {
     const unorderedSources: PropertiesSourceGateway[] = sources.filter(
       (source: PropertiesSourceGateway) => !source.loadInOrder,
     );
-    const sources$List: Observable<Properties>[] = this.getSources$List(index, unorderedSources);
+    const unorderedSources$List: Observable<Properties>[] = this.getSources$List(index, unorderedSources);
 
-    merge(...sources$List)
+    merge(...unorderedSources$List)
       .pipe(takeUntil(this.destroy$List[index]))
       .subscribe();
   }
@@ -92,9 +92,9 @@ export abstract class EnvironmentLoaderGateway {
     const orderedSources: PropertiesSourceGateway[] = sources.filter(
       (source: PropertiesSourceGateway) => source.loadInOrder,
     );
-    const sources$List: Observable<Properties>[] = this.getSources$List(index, orderedSources);
+    const orderedSources$List: Observable<Properties>[] = this.getSources$List(index, orderedSources);
 
-    concat(...sources$List)
+    concat(...orderedSources$List)
       .pipe(takeUntil(this.destroy$List[index]))
       .subscribe();
   }
@@ -133,12 +133,12 @@ export abstract class EnvironmentLoaderGateway {
     return of({});
   }
 
-  protected customSourceOperator<T, K = T>(index: number, source: PropertiesSourceGateway): OperatorFunction<T, T | K> {
-    return (observable: Observable<T>) => observable;
-  }
-
   protected isRequiredToLoadAndNotLoaded(index: number, source: PropertiesSourceGateway): boolean {
     return source.requiredToLoad && !source.ignoreError && !this.load$List[index].isStopped;
+  }
+
+  protected customSourceOperator<T, K = T>(index: number, source: PropertiesSourceGateway): OperatorFunction<T, T | K> {
+    return (observable: Observable<T>) => observable;
   }
 
   protected checkResetEnvironment(index: number, value: Properties, source: PropertiesSourceGateway): void {
