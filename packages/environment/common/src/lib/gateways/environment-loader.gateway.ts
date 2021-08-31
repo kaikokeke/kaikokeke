@@ -1,6 +1,6 @@
 import { coerceArray } from '@kaikokeke/common';
 import { isEqual } from 'lodash-es';
-import { BehaviorSubject, concat, defer, merge, Observable, of, ReplaySubject } from 'rxjs';
+import { BehaviorSubject, concat, defer, merge, Observable, of, OperatorFunction, ReplaySubject } from 'rxjs';
 import { catchError, filter, take, takeUntil, tap } from 'rxjs/operators';
 
 import { Properties } from '../types';
@@ -103,6 +103,7 @@ export abstract class EnvironmentLoaderGateway {
     return sources.map((source: PropertiesSourceGateway) =>
       defer(() => source.load()).pipe(
         catchError((error: Error) => this.checkLoadError(index, error, source)),
+        this.customSourceOperator(index, source),
         tap({
           next: (value: Properties) => {
             this.checkResetEnvironment(index, value, source);
@@ -130,6 +131,10 @@ export abstract class EnvironmentLoaderGateway {
     }
 
     return of({});
+  }
+
+  protected customSourceOperator<T, K = T>(index: number, source: PropertiesSourceGateway): OperatorFunction<T, T | K> {
+    return (observable: Observable<T>): Observable<T | K> => observable;
   }
 
   protected isRequiredToLoadAndNotLoaded(index: number, source: PropertiesSourceGateway): boolean {

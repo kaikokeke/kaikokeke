@@ -641,6 +641,19 @@ describe('EnvironmentLoaderGateway', () => {
         expect(service.merge).toHaveBeenCalledTimes(1);
       });
     });
+
+    // use customSourceOperator
+
+    it(`customSourceOperator is used`, () => {
+      (loader as unknown)['sources'] = [new PromiseSource()];
+      loader['customSourceOperator'] = <T, K = T>(index, source) => {
+        return (observable: Observable<T>): Observable<T | K> => observable.pipe(map((v) => ({ ...v, custom: 0 })));
+      };
+      return loader.load().then(() => {
+        expect(service.merge).toHaveBeenNthCalledWith(1, { p: 0, custom: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(1);
+      });
+    });
   });
 
   describe('loadSubmodule(sources)', () => {
@@ -972,6 +985,18 @@ describe('EnvironmentLoaderGateway', () => {
     it(`works if source load returns a Promise`, () => {
       return loader.loadSubmodule([new PromiseSource()]).then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { p: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    // use customSourceOperator
+
+    it(`customSourceOperator is used`, () => {
+      loader['customSourceOperator'] = <T, K = T>(index, source) => {
+        return (observable: Observable<T>): Observable<T | K> => observable.pipe(map((v) => ({ ...v, custom: 0 })));
+      };
+      return loader.loadSubmodule([new PromiseSource()]).then(() => {
+        expect(service.merge).toHaveBeenNthCalledWith(1, { p: 0, custom: 0 }, undefined);
         expect(service.merge).toHaveBeenCalledTimes(1);
       });
     });
