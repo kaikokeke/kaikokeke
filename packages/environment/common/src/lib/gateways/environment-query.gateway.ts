@@ -48,10 +48,7 @@ export abstract class EnvironmentQueryGateway {
    * @see Path
    */
   getProperty$<P extends Property>(path: Path): Observable<P | undefined> {
-    return this.getProperties$().pipe(
-      map((environment: Properties): P | undefined => get(environment, path)),
-      distinctUntilChanged(isEqual),
-    );
+    return this.getProperties$().pipe(map((environment: Properties): P | undefined => get(environment, path)));
   }
 
   /**
@@ -73,10 +70,7 @@ export abstract class EnvironmentQueryGateway {
    * @see Path
    */
   containsProperty$(path: Path): Observable<boolean> {
-    return this.getProperty$(path).pipe(
-      map((property?: Property) => property !== undefined),
-      distinctUntilChanged(),
-    );
+    return this.getProperty$(path).pipe(map((property?: Property) => property !== undefined));
   }
 
   /**
@@ -99,10 +93,7 @@ export abstract class EnvironmentQueryGateway {
    * @see Path
    */
   getRequiredProperty$<P extends Property, D extends Property>(path: Path, defaultValue: D): Observable<P | D> {
-    return this.getProperties$().pipe(
-      map((environment: Properties): P | D => get(environment, path, defaultValue)),
-      distinctUntilChanged(isEqual),
-    );
+    return this.getProperties$().pipe(map((environment: Properties): P | D => get(environment, path, defaultValue)));
   }
 
   /**
@@ -218,7 +209,6 @@ export abstract class EnvironmentQueryGateway {
 
         return this.transpile(property, properties, config);
       }),
-      distinctUntilChanged(isEqual),
     );
   }
 
@@ -262,7 +252,6 @@ export abstract class EnvironmentQueryGateway {
   ): Observable<P | D | string> {
     return this.getRequiredProperty$<P, D>(path, defaultValue).pipe(
       map((property: P | D) => this.transpile(property, properties, config)),
-      distinctUntilChanged(isEqual),
     );
   }
 
