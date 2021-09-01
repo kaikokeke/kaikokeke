@@ -1,6 +1,6 @@
 import { mergeDeep, unfreeze, unfreezeAll } from '@kaikokeke/common';
 import { get, isEqual, isString } from 'lodash-es';
-import { MonoTypeOperatorFunction, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { distinctUntilChanged, map, shareReplay } from 'rxjs/operators';
 
 import { environmentConfigFactory } from '../application';
@@ -28,7 +28,7 @@ export abstract class EnvironmentQueryGateway {
    * @returns All the environment properties as Observable.
    */
   getProperties$(): Observable<Properties> {
-    return this.store.getAll$().pipe(this.getterOperator(), unfreezeAll());
+    return this.store.getAll$().pipe(distinctUntilChanged(isEqual), shareReplay(1), unfreezeAll());
   }
 
   /**
@@ -50,7 +50,7 @@ export abstract class EnvironmentQueryGateway {
   getProperty$<P extends Property>(path: Path): Observable<P | undefined> {
     return this.getProperties$().pipe(
       map((environment: Properties): P | undefined => get(environment, path)),
-      this.getterOperator(),
+      distinctUntilChanged(isEqual),
     );
   }
 
@@ -75,7 +75,7 @@ export abstract class EnvironmentQueryGateway {
   containsProperty$(path: Path): Observable<boolean> {
     return this.getProperty$(path).pipe(
       map((property?: Property) => property !== undefined),
-      this.getterOperator(),
+      distinctUntilChanged(),
     );
   }
 
@@ -101,7 +101,7 @@ export abstract class EnvironmentQueryGateway {
   getRequiredProperty$<P extends Property, D extends Property>(path: Path, defaultValue: D): Observable<P | D> {
     return this.getProperties$().pipe(
       map((environment: Properties): P | D => get(environment, path, defaultValue)),
-      this.getterOperator(),
+      distinctUntilChanged(isEqual),
     );
   }
 
@@ -135,7 +135,7 @@ export abstract class EnvironmentQueryGateway {
 
         return targetType(property);
       }),
-      this.getterOperator(),
+      distinctUntilChanged(isEqual),
     );
   }
 
@@ -173,7 +173,7 @@ export abstract class EnvironmentQueryGateway {
   ): Observable<T> {
     return this.getRequiredProperty$<P, D>(path, defaultValue).pipe(
       map((property: P | D) => targetType(property)),
-      this.getterOperator(),
+      distinctUntilChanged(isEqual),
     );
   }
 
@@ -218,7 +218,7 @@ export abstract class EnvironmentQueryGateway {
 
         return this.transpile(property, properties, config);
       }),
-      this.getterOperator(),
+      distinctUntilChanged(isEqual),
     );
   }
 
@@ -262,7 +262,7 @@ export abstract class EnvironmentQueryGateway {
   ): Observable<P | D | string> {
     return this.getRequiredProperty$<P, D>(path, defaultValue).pipe(
       map((property: P | D) => this.transpile(property, properties, config)),
-      this.getterOperator(),
+      distinctUntilChanged(isEqual),
     );
   }
 
@@ -325,9 +325,5 @@ export abstract class EnvironmentQueryGateway {
     const [start, end]: [string, string] = config.interpolation;
 
     return new RegExp(`${start} *(.*?) *${end}`, 'g');
-  }
-
-  protected getterOperator<T>(): MonoTypeOperatorFunction<T> {
-    return (observable: Observable<T>) => observable.pipe(distinctUntilChanged<T>(isEqual), shareReplay<T>(1));
   }
 }
