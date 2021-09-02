@@ -7,25 +7,29 @@ import { EnvironmentStoreGateway } from './environment-store.gateway';
 
 class TestStore extends EnvironmentStoreGateway {
   getAll$(): Observable<Properties> {
-    return of({});
+    throw new Error('Method not implemented.');
   }
   getAll(): Properties {
-    return {};
+    throw new Error('Method not implemented.');
   }
-  update(properties: Properties): void {}
-  reset(): void {}
+  update(properties: Properties): void {
+    throw new Error('Method not implemented.');
+  }
+  reset(): void {
+    throw new Error('Method not implemented.');
+  }
 }
 
 class TestQuery extends EnvironmentQueryGateway {
   constructor(protected store: TestStore) {
-    super(store, {});
+    super(store);
   }
 }
 
-const envA1 = Object.freeze({ a: Object.freeze({ a: 0 }) });
-const envA2 = { a: { a: 0 } };
-const envB1 = Object.freeze({ a: Object.freeze({ b: 0 }) });
-const envB2 = { a: { b: 0 } };
+const envA1 = Object.freeze({ a: Object.freeze({ a: 0 }), b: '{{ a.a }}' });
+const envA2 = { a: { a: 0 }, b: '{{ a.a }}' };
+const envB1 = Object.freeze({ a: Object.freeze({ b: 0 }), b: '{{ a.b }}' });
+const envB2 = { a: { b: 0 }, b: '{{ a.b }}' };
 
 describe('EnvironmentQueryGateway', () => {
   let store: EnvironmentStoreGateway;
@@ -39,6 +43,8 @@ describe('EnvironmentQueryGateway', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
+
+  // getProperties
 
   it(
     `getProperties$() returns all the distinct environment properties as Observable`,
@@ -86,6 +92,8 @@ describe('EnvironmentQueryGateway', () => {
     expect(Object.isFrozen(value)).toBeFalse();
     expect(Object.isFrozen(value.a)).toBeFalse();
   });
+
+  // getProperty
 
   it(
     `getProperty$(path) returns the distinct environment property at path as Observable`,
@@ -135,6 +143,8 @@ describe('EnvironmentQueryGateway', () => {
     expect(query.getProperty('a.b')).toBeUndefined();
   });
 
+  // containsProperty
+
   it(
     `containsProperty$(path) returns if the distinct environment property at path is available for resolution as Observable`,
     marbles((m) => {
@@ -167,6 +177,8 @@ describe('EnvironmentQueryGateway', () => {
     jest.spyOn(store, 'getAll').mockReturnValue(envA1);
     expect(query.containsProperty('a.b')).toBeFalse();
   });
+
+  // getRequiredProperty
 
   it(
     `getRequiredProperty$(path, defaultValue) returns the distinct required environment property at path as Observable`,
@@ -216,6 +228,8 @@ describe('EnvironmentQueryGateway', () => {
     jest.spyOn(store, 'getAll').mockReturnValue(envA1);
     expect(query.getRequiredProperty('a.b', 'def')).toEqual('def');
   });
+
+  // getTypedProperty
 
   it(
     `getTypedProperty$(path, targetType) returns the distinct typed environment property at path as Observable`,
@@ -268,6 +282,8 @@ describe('EnvironmentQueryGateway', () => {
     expect(query.getTypedProperty('a.b', (value) => value)).toBeUndefined();
   });
 
+  // getRequiredTypedProperty
+
   it(
     `getRequiredTypedProperty$(path, defaultValue, targetType) returns the distinct required typed environment property at path as Observable`,
     marbles((m) => {
@@ -317,5 +333,236 @@ describe('EnvironmentQueryGateway', () => {
   it(`getRequiredTypedProperty(path, defaultValue, targetType) returns the defaultValue converted to the targetType if the path cannot be resolved`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue(envA1);
     expect(query.getRequiredTypedProperty('a.b', 1, String)).toEqual('1');
+  });
+
+  // getTranspiledProperty
+
+  it(
+    `getTranspiledProperty$(path) returns the distinct environment property at path as Observable`,
+    marbles((m) => {
+      const source = m.cold('-a-b-c-d-a-|', { a: envA1, b: envA2, c: envB1, d: envB2 });
+      const expected = m.cold('-a---b---a-|', { a: 0, b: undefined });
+      jest.spyOn(store, 'getAll$').mockReturnValue(source);
+      m.expect(query.getTranspiledProperty$('a.a')).toBeObservable(expected);
+    }),
+  );
+
+  it(`getTranspiledProperty$(path) returns the environment property at path as mutable`, (done) => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
+    query.getTranspiledProperty$('a').subscribe({
+      next: (value) => {
+        expect(value).toEqual(envA1.a);
+        expect(Object.isFrozen(envA1.a)).toBeTrue();
+        expect(Object.isFrozen(value)).toBeFalse();
+        done();
+      },
+    });
+  });
+
+  it(`getTranspiledProperty$(path) returns always the last value`, () => {
+    const sub = new Subject<Properties>();
+    const value = { a: 0 };
+    jest.spyOn(console, 'log').mockImplementation(() => null);
+    jest.spyOn(store, 'getAll$').mockReturnValue(sub);
+    const prop = query.getTranspiledProperty$('a');
+    prop.subscribe({ next: (v) => console.log(v) });
+    sub.next(value);
+    expect(console.log).toHaveBeenNthCalledWith(1, value.a);
+    prop.subscribe({ next: (v) => console.log(v) });
+    expect(console.log).toHaveBeenNthCalledWith(2, value.a);
+  });
+
+  it(`getTranspiledProperty$(path) returns untranspiled string if no useEnvironmentToTranspile`, (done) => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
+    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+    (query as any)['config'].useEnvironmentToTranspile = false;
+    query.getTranspiledProperty$('b').subscribe({
+      next: (value) => {
+        expect(value).toEqual(envA1.b);
+        done();
+      },
+    });
+  });
+
+  it(`getTranspiledProperty$(path) returns transpiled if useEnvironmentToTranspile`, (done) => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
+    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+    (query as any)['config'].useEnvironmentToTranspile = true;
+    query.getTranspiledProperty$('b').subscribe({
+      next: (value) => {
+        expect(value).toEqual('0');
+        done();
+      },
+    });
+  });
+
+  it(`getTranspiledProperty$(path, properties) returns transpiled if no useEnvironmentToTranspile`, (done) => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
+    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+    (query as any)['config'].useEnvironmentToTranspile = false;
+    query.getTranspiledProperty$('b', { a: { a: 1 } }).subscribe({
+      next: (value) => {
+        expect(value).toEqual('1');
+        done();
+      },
+    });
+  });
+
+  it(`getTranspiledProperty$(path, properties) returns transpiled if useEnvironmentToTranspile`, (done) => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
+    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+    (query as any)['config'].useEnvironmentToTranspile = true;
+    query.getTranspiledProperty$('b', { a: { a: 1 } }).subscribe({
+      next: (value) => {
+        expect(value).toEqual('1');
+        done();
+      },
+    });
+  });
+
+  it(`getTranspiledProperty$(path, properties, config) returns transpiled using custom config`, (done) => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
+    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+    (query as any)['config'].useEnvironmentToTranspile = false;
+    query.getTranspiledProperty$('b', {}, { useEnvironmentToTranspile: true }).subscribe({
+      next: (value) => {
+        expect(value).toEqual('0');
+        done();
+      },
+    });
+  });
+
+  it(`getTranspiledProperty$(path) returns transpiled object`, (done) => {
+    const env = { a: { a: 0 }, b: '{{ a }}' };
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(env));
+    jest.spyOn(store, 'getAll').mockReturnValue(env);
+    (query as any)['config'].useEnvironmentToTranspile = true;
+    query.getTranspiledProperty$('b').subscribe({
+      next: (value) => {
+        expect(value).toEqual('{"a":0}');
+        done();
+      },
+    });
+  });
+
+  it(`getTranspiledProperty$(path) returns transpiled with custom interpolation`, (done) => {
+    const env = { a: { a: 0 }, b: '[< a.a >]' };
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(env));
+    jest.spyOn(store, 'getAll').mockReturnValue(env);
+    (query as any)['config'].useEnvironmentToTranspile = true;
+    (query as any)['config'].interpolation = ['[<', '>]'];
+    query.getTranspiledProperty$('b').subscribe({
+      next: (value) => {
+        expect(value).toEqual('0');
+        done();
+      },
+    });
+  });
+
+  it(`getTranspiledProperty$(path, properties, config) returns transpiled with custom interpolation`, (done) => {
+    const env = { a: { a: 0 }, b: '[< a.a >]' };
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(env));
+    jest.spyOn(store, 'getAll').mockReturnValue(env);
+    (query as any)['config'].useEnvironmentToTranspile = true;
+    query.getTranspiledProperty$('b', {}, { interpolation: ['[<', '>]'] }).subscribe({
+      next: (value) => {
+        expect(value).toEqual('0');
+        done();
+      },
+    });
+  });
+
+  it(`getTranspiledProperty$(path) returns transpiled with weird space interpolation`, (done) => {
+    const env = { a: { a: 0 }, b: '{{    a.a}}' };
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(env));
+    jest.spyOn(store, 'getAll').mockReturnValue(env);
+    (query as any)['config'].useEnvironmentToTranspile = true;
+    query.getTranspiledProperty$('b').subscribe({
+      next: (value) => {
+        expect(value).toEqual('0');
+        done();
+      },
+    });
+  });
+
+  it(`getTranspiledProperty(path) returns the environment property at path as mutable`, () => {
+    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+    const value = query.getTranspiledProperty('a');
+    expect(value).toEqual(envA1.a);
+    expect(Object.isFrozen(envA1.a)).toBeTrue();
+    expect(Object.isFrozen(value)).toBeFalse();
+  });
+
+  it(`getTranspiledProperty(path) returns undefined if the path cannot be resolved`, () => {
+    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+    expect(query.getTranspiledProperty('a.b')).toBeUndefined();
+  });
+
+  it(`getTranspiledProperty(path) returns untranspiled string if no useEnvironmentToTranspile`, () => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
+    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+    (query as any)['config'].useEnvironmentToTranspile = false;
+    expect(query.getTranspiledProperty('b')).toEqual(envA1.b);
+  });
+
+  it(`getTranspiledProperty(path) returns transpiled if useEnvironmentToTranspile`, () => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
+    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+    (query as any)['config'].useEnvironmentToTranspile = true;
+    expect(query.getTranspiledProperty('b')).toEqual('0');
+  });
+
+  it(`getTranspiledProperty(path, properties) returns transpiled if no useEnvironmentToTranspile`, () => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
+    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+    (query as any)['config'].useEnvironmentToTranspile = false;
+    expect(query.getTranspiledProperty('b', { a: { a: 1 } })).toEqual('1');
+  });
+
+  it(`getTranspiledProperty(path, properties) returns transpiled if useEnvironmentToTranspile`, () => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
+    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+    (query as any)['config'].useEnvironmentToTranspile = true;
+    expect(query.getTranspiledProperty('b', { a: { a: 1 } })).toEqual('1');
+  });
+
+  it(`getTranspiledProperty(path, properties, config) returns transpiled using custom config`, () => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
+    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+    (query as any)['config'].useEnvironmentToTranspile = false;
+    expect(query.getTranspiledProperty('b', {}, { useEnvironmentToTranspile: true })).toEqual('0');
+  });
+
+  it(`getTranspiledProperty(path) returns transpiled object`, () => {
+    const env = { a: { a: 0 }, b: '{{ a }}' };
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(env));
+    jest.spyOn(store, 'getAll').mockReturnValue(env);
+    (query as any)['config'].useEnvironmentToTranspile = true;
+    expect(query.getTranspiledProperty('b')).toEqual('{"a":0}');
+  });
+
+  it(`getTranspiledProperty(path) returns transpiled with custom interpolation`, () => {
+    const env = { a: { a: 0 }, b: '[< a.a >]' };
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(env));
+    jest.spyOn(store, 'getAll').mockReturnValue(env);
+    (query as any)['config'].useEnvironmentToTranspile = true;
+    (query as any)['config'].interpolation = ['[<', '>]'];
+    expect(query.getTranspiledProperty('b')).toEqual('0');
+  });
+
+  it(`getTranspiledProperty(path, properties, config) returns transpiled with custom interpolation`, () => {
+    const env = { a: { a: 0 }, b: '[< a.a >]' };
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(env));
+    jest.spyOn(store, 'getAll').mockReturnValue(env);
+    (query as any)['config'].useEnvironmentToTranspile = true;
+    expect(query.getTranspiledProperty('b', {}, { interpolation: ['[<', '>]'] })).toEqual('0');
+  });
+
+  it(`getTranspiledProperty(path) returns transpiled with weird space interpolation`, () => {
+    const env = { a: { a: 0 }, b: '{{   a.a}}' };
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(env));
+    jest.spyOn(store, 'getAll').mockReturnValue(env);
+    (query as any)['config'].useEnvironmentToTranspile = true;
+    expect(query.getTranspiledProperty('b')).toEqual('0');
   });
 });

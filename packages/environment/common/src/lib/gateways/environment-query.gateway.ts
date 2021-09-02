@@ -20,7 +20,7 @@ export abstract class EnvironmentQueryGateway {
    */
   constructor(
     protected readonly store: EnvironmentStoreGateway,
-    protected readonly partialConfig: Partial<EnvironmentConfig>,
+    protected readonly partialConfig: Partial<EnvironmentConfig> = {},
   ) {}
 
   /**
@@ -296,6 +296,16 @@ export abstract class EnvironmentQueryGateway {
     return value;
   }
 
+  protected getMatcher(config: EnvironmentConfig): RegExp {
+    const [start, end]: [string, string] = config.interpolation;
+
+    return new RegExp(`${this.escapeChars(start)}\\s*(.*?)\\s*${this.escapeChars(end)}`, 'g');
+  }
+
+  protected escapeChars(chars: string): string {
+    return [...chars].map((char: string) => `\\${char}`).join('');
+  }
+
   protected getTranspileProperties(properties: Properties, config: EnvironmentConfig): Properties {
     return config.useEnvironmentToTranspile ? (mergeDeep(this.store.getAll(), properties) as Properties) : properties;
   }
@@ -308,11 +318,5 @@ export abstract class EnvironmentQueryGateway {
     }
 
     return typeof value === 'object' ? JSON.stringify(value) : String(value);
-  }
-
-  protected getMatcher(config: EnvironmentConfig): RegExp {
-    const [start, end]: [string, string] = config.interpolation;
-
-    return new RegExp(`${start} *(.*?) *${end}`, 'g');
   }
 }
