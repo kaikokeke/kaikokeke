@@ -25,9 +25,11 @@
       "outputs": ["coverage/packages/environment/common"],
       "options": {
         "jestConfig": "packages/environment/common/jest.config.js",
-        "passWithNoTests": true
+        "passWithNoTests": true,
+        "codeCoverage": true
       }
     }
   },
-  "tags": []
+  "tags": ["scope:dependencies", "scope:environment", "type:library"],
+  "configFilePath": "packages\\environment\\common/project.json"
 }

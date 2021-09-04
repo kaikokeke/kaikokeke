@@ -1,87 +1,41 @@
 {
   "projectType": "library",
-  "root": "packages/shared/common-angular",
-  "sourceRoot": "packages/shared/common-angular/src",
+  "root": "packages/shared/angular",
+  "sourceRoot": "packages/shared/angular/src",
   "prefix": "k",
   "targets": {
     "build": {
       "executor": "@nrwl/angular:package",
-      "outputs": ["dist/packages/shared/common-angular"],
+      "outputs": ["dist/packages/shared/angular"],
       "options": {
-        "project": "packages/shared/common-angular/ng-package.json"
+        "project": "packages/shared/angular/ng-package.json"
       },
       "configurations": {
         "production": {
-          "tsConfig": "packages/shared/common-angular/tsconfig.lib.prod.json"
+          "tsConfig": "packages/shared/angular/tsconfig.lib.prod.json"
         },
         "development": {
-          "tsConfig": "packages/shared/common-angular/tsconfig.lib.json"
+          "tsConfig": "packages/shared/angular/tsconfig.lib.json"
         }
       },
       "defaultConfiguration": "production"
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/packages/shared/common-angular"],
+      "outputs": ["coverage/packages/shared/angular"],
       "options": {
-        "jestConfig": "packages/shared/common-angular/jest.config.js",
-        "passWithNoTests": true
+        "jestConfig": "packages/shared/angular/jest.config.js",
+        "passWithNoTests": true,
+        "codeCoverage": true
       }
     },
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "options": {
-        "lintFilePatterns": [
-          "packages/shared/common-angular/src/**/*.ts",
-          "packages/shared/common-angular/src/**/*.html"
-        ]
-      }
-    },
-    "ciTest": {
-      "executor": "@nrwl/workspace:run-commands",
-      "options": {
-        "color": true,
-        "commands": [
-          {
-            "command": "nx test shared-common-angular --code-coverage"
-          },
-          {
-            "command": "nx lint shared-common-angular --format=json --outputFile=lint/shared-common-angular.json"
-          }
-        ]
-      }
-    },
-    "ciSonar": {
-      "executor": "@nrwl/workspace:run-commands",
-      "options": {
-        "color": true,
-        "commands": [
-          {
-            "command": "node scripts/sonar-shared-common-angular.js"
-          }
-        ]
-      }
-    },
-    "ciBuild": {
-      "executor": "@nrwl/workspace:run-commands",
-      "options": {
-        "commands": [
-          {
-            "command": "nx build shared-common-angular --prod"
-          }
-        ]
-      }
-    },
-    "ciDeploy": {
-      "executor": "@nrwl/workspace:run-commands",
-      "options": {
-        "commands": [
-          {
-            "command": "npm publish dist/packages/shared/common-angular"
-          }
-        ]
+        "lintFilePatterns": ["packages/shared/angular/src/**/*.ts", "packages/shared/angular/src/**/*.html"]
       }
     }
   },
-  "tags": []
+  "configFilePath": "packages\\shared\\common-angular/project.json",
+  "tags": ["scope:dependencies", "scope:shared", "scope:angular", "type:library"]
 }

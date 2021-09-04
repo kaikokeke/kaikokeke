@@ -25,14 +25,7 @@
     "appsDir": "apps",
     "libsDir": "packages"
   },
-  "projects": {
-    "angular": {
-      "tags": []
-    },
-    "shared-angular": {
-      "tags": []
-    }
-  },
+  "projects": {},
   "targetDependencies": {
     "build": [
       {
