@@ -1,8 +1,8 @@
 import { mergeDeep } from '@kaikokeke/common';
 import { get, set } from 'lodash-es';
 
-import { EnvironmentStoreGateway } from '../gateways';
 import { isPath, Path, Properties, Property } from '../types';
+import { EnvironmentStoreGateway } from './environment-store.gateway';
 
 /**
  * Sets properties in the environment store.

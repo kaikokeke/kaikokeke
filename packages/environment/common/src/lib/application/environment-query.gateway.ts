@@ -3,8 +3,8 @@ import { get, isEqual, isString } from 'lodash-es';
 import { Observable } from 'rxjs';
 import { distinctUntilChanged, map, shareReplay } from 'rxjs/operators';
 
-import { environmentConfigFactory } from '../application';
 import { EnvironmentConfig, Path, Properties, Property } from '../types';
+import { environmentConfigFactory } from './environment-config-factory.function';
 import { EnvironmentStoreGateway } from './environment-store.gateway';
 
 /**
