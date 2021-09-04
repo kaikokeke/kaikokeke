@@ -108,14 +108,14 @@ export const ENVIRONMENT_CONFIG: InjectionToken<Partial<EnvironmentConfig>> = ne
 >('ENVIRONMENT_CONFIG');
 
 @Injectable()
-export class AngularAkitaEnvironmentService extends EnvironmentService {
+export class AngularEnvironmentService extends EnvironmentService {
   constructor(protected readonly store: EnvironmentStore) {
     super(store);
   }
 }
 
 @Injectable()
-export class AngularAkitaEnvironmentQuery extends EnvironmentQuery {
+export class AngularEnvironmentQuery extends EnvironmentQuery {
   constructor(
     protected readonly store: EnvironmentStore,
     @Optional() @Inject(ENVIRONMENT_CONFIG) protected readonly partialConfig: Partial<EnvironmentConfig>,
@@ -125,7 +125,7 @@ export class AngularAkitaEnvironmentQuery extends EnvironmentQuery {
 }
 
 @Injectable()
-export class AngularAkitaEnvironmentLoader extends EnvironmentLoader {
+export class AngularEnvironmentLoader extends EnvironmentLoader {
   constructor(
     protected readonly service: EnvironmentService,
     @Inject(ENVIRONMENT_SOURCES) protected readonly sources: PropertiesSource[],
@@ -141,9 +141,9 @@ export function environmentForRoot(loader: EnvironmentLoader): () => Promise<voi
 @NgModule({
   providers: [
     { provide: EnvironmentStore, useClass: AngularAkitaEnvironmentStore },
-    { provide: EnvironmentService, useClass: AngularAkitaEnvironmentService },
-    { provide: EnvironmentLoader, useClass: AngularAkitaEnvironmentLoader },
-    { provide: EnvironmentQuery, useClass: AngularAkitaEnvironmentQuery },
+    { provide: EnvironmentService, useClass: AngularEnvironmentService },
+    { provide: EnvironmentLoader, useClass: AngularEnvironmentLoader },
+    { provide: EnvironmentQuery, useClass: AngularEnvironmentQuery },
     { provide: ENVIRONMENT_SOURCES, useClass: TestSources, multi: true },
     { provide: ENVIRONMENT_SOURCES, useClass: TestSources2, multi: true },
     { provide: ENVIRONMENT_SOURCES, useClass: TestSources3, multi: true },
