@@ -76,6 +76,7 @@
     "@nrwl/linter": "12.8.0",
     "@nrwl/node": "12.8.0",
     "@nrwl/nx-cloud": "12.3.10",
+    "@nrwl/schematics": "8.12.11",
     "@nrwl/tao": "12.8.0",
     "@nrwl/workspace": "12.8.0",
     "@types/jest": "26.0.8",
