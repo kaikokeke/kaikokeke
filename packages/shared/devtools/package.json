@@ -2,7 +2,7 @@
   "name": "@kaikokeke/devtools",
   "version": "0.1.0",
   "license": "MIT",
-  "description": "The Devtools library provides helpers for developing and testing the Kaikokeke framework",
+  "description": "Provides helpers for developing and testing the Kaikokeke framework",
   "keywords": [
     "kaikokeke",
     "typescript",
