@@ -1,0 +1,19 @@
+{
+  "name": "@kaikokeke/environment-angular",
+  "version": "0.1.0",
+  "license": "MIT",
+  "description": "Provides Angular environment functionality",
+  "keywords": [
+    "kaikokeke",
+    "typescript",
+    "environment",
+    "angular"
+  ],
+  "homepage": "https://github.com/kaikokeke/kaikokeke",
+  "bugs": "https://github.com/kaikokeke/kaikokeke/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kaikokeke/kaikokeke.git"
+  },
+  "private": false
+}

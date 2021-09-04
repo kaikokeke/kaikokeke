@@ -18,7 +18,8 @@
       "@kaikokeke/angular": ["packages/shared/angular/src/index.ts"],
       "@kaikokeke/common": ["packages/shared/common/src/index.ts"],
       "@kaikokeke/devtools": ["packages/shared/devtools/src/index.ts"],
-      "@kaikokeke/environment": ["packages/environment/common/src/index.ts"]
+      "@kaikokeke/environment": ["packages/environment/common/src/index.ts"],
+      "@kaikokeke/environment-angular": ["packages/environment/angular/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

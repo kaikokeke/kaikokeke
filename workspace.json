@@ -12,8 +12,8 @@
       "standaloneConfig": true
     },
     "@nrwl/angular:library": {
-      "buildable": true,
       "linter": "eslint",
+      "buildable": true,
       "publishable": true,
       "simpleModuleName": true,
       "standaloneConfig": true,
@@ -35,10 +35,11 @@
     }
   },
   "projects": {
-    "angular": "apps\\angular",
-    "environment-common": "packages\\environment\\common",
-    "shared-angular": "packages\\shared\\angular",
-    "shared-common": "packages\\shared\\common",
-    "shared-devtools": "packages\\shared\\devtools"
+    "angular": "apps/angular",
+    "environment-angular": "packages/environment\\angular",
+    "environment-common": "packages/environment/common",
+    "shared-angular": "packages/shared/angular",
+    "shared-common": "packages/shared/common",
+    "shared-devtools": "packages/shared/devtools"
   }
 }

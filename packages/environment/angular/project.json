@@ -1,0 +1,40 @@
+{
+  "projectType": "library",
+  "root": "packages/environment/angular",
+  "sourceRoot": "packages/environment/angular/src",
+  "prefix": "k",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/angular:package",
+      "outputs": ["dist/packages/environment/angular"],
+      "options": {
+        "project": "packages/environment/angular/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "packages/environment/angular/tsconfig.lib.prod.json"
+        },
+        "development": {
+          "tsConfig": "packages/environment/angular/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/packages/environment/angular"],
+      "options": {
+        "jestConfig": "packages/environment/angular/jest.config.js",
+        "passWithNoTests": true,
+        "codeCoverage": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["packages/environment/angular/src/**/*.ts", "packages/environment/angular/src/**/*.html"]
+      }
+    }
+  },
+  "tags": ["scope:dependencies", "domain:environment", "framework:angular", "type:library"]
+}
