@@ -2,6 +2,8 @@
   <h1>Welcome to {{ title }}!</h1>
 </header>
 <main>
-  <h2>Store</h2>
-  <p id="#store">{{ env.getProperties$() | async | json }}</p>
+  <dl>
+    <dt>Store</dt>
+    <dd id="#store">{{ env.getProperties$() | async | json }}</dd>
+  </dl>
 </main>
