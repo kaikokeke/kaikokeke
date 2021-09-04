@@ -176,51 +176,6 @@
           "options": {
             "lintFilePatterns": ["packages/shared/angular/src/**/*.ts", "packages/shared/angular/src/**/*.html"]
           }
-        },
-        "ciTest": {
-          "executor": "@nrwl/workspace:run-commands",
-          "options": {
-            "color": true,
-            "commands": [
-              {
-                "command": "nx test shared-common-angular --code-coverage"
-              },
-              {
-                "command": "nx lint shared-common-angular --format=json --outputFile=lint/shared-common-angular.json"
-              }
-            ]
-          }
-        },
-        "ciSonar": {
-          "executor": "@nrwl/workspace:run-commands",
-          "options": {
-            "color": true,
-            "commands": [
-              {
-                "command": "node scripts/sonar-shared-common-angular.js"
-              }
-            ]
-          }
-        },
-        "ciBuild": {
-          "executor": "@nrwl/workspace:run-commands",
-          "options": {
-            "commands": [
-              {
-                "command": "nx build shared-common-angular --prod"
-              }
-            ]
-          }
-        },
-        "ciDeploy": {
-          "executor": "@nrwl/workspace:run-commands",
-          "options": {
-            "commands": [
-              {
-                "command": "npm publish dist/packages/shared/angular"
-              }
-            ]
-          }
         }
       },
       "configFilePath": "packages\\shared\\common-angular/project.json"
@@ -253,51 +208,6 @@
           "options": {
             "jestConfig": "packages/shared/common/jest.config.js",
             "passWithNoTests": true
-          }
-        },
-        "ciTest": {
-          "executor": "@nrwl/workspace:run-commands",
-          "options": {
-            "color": true,
-            "commands": [
-              {
-                "command": "nx test shared-common --code-coverage"
-              },
-              {
-                "command": "nx lint shared-common --format=json --outputFile=lint/shared-common.json"
-              }
-            ]
-          }
-        },
-        "ciSonar": {
-          "executor": "@nrwl/workspace:run-commands",
-          "options": {
-            "color": true,
-            "commands": [
-              {
-                "command": "node scripts/sonar-shared-common.js"
-              }
-            ]
-          }
-        },
-        "ciBuild": {
-          "executor": "@nrwl/workspace:run-commands",
-          "options": {
-            "commands": [
-              {
-                "command": "nx build shared-common"
-              }
-            ]
-          }
-        },
-        "ciDeploy": {
-          "executor": "@nrwl/workspace:run-commands",
-          "options": {
-            "commands": [
-              {
-                "command": "npm publish dist/packages/shared/common"
-              }
-            ]
           }
         }
       },
@@ -332,51 +242,6 @@
           "options": {
             "jestConfig": "packages/shared/devtools/jest.config.js",
             "passWithNoTests": true
-          }
-        },
-        "ciTest": {
-          "executor": "@nrwl/workspace:run-commands",
-          "options": {
-            "color": true,
-            "commands": [
-              {
-                "command": "nx test shared-devtools --code-coverage"
-              },
-              {
-                "command": "nx lint shared-devtools --format=json --outputFile=lint/shared-devtools.json"
-              }
-            ]
-          }
-        },
-        "ciSonar": {
-          "executor": "@nrwl/workspace:run-commands",
-          "options": {
-            "color": true,
-            "commands": [
-              {
-                "command": "node scripts/sonar-shared-devtools.js"
-              }
-            ]
-          }
-        },
-        "ciBuild": {
-          "executor": "@nrwl/workspace:run-commands",
-          "options": {
-            "commands": [
-              {
-                "command": "nx build shared-devtools"
-              }
-            ]
-          }
-        },
-        "ciDeploy": {
-          "executor": "@nrwl/workspace:run-commands",
-          "options": {
-            "commands": [
-              {
-                "command": "npm publish dist/packages/shared/devtools"
-              }
-            ]
           }
         }
       },
