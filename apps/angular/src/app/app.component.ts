@@ -3,7 +3,7 @@ import { serviceInjector } from '@kaikokeke/angular';
 import { EnvironmentQuery } from '@kaikokeke/environment';
 
 @Component({
-  selector: 'kaikokeke-root',
+  selector: 'k-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })

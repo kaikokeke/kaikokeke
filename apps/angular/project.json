@@ -2,7 +2,7 @@
   "projectType": "application",
   "root": "apps/angular",
   "sourceRoot": "apps/angular/src",
-  "prefix": "kaikokeke",
+  "prefix": "k",
   "targets": {
     "build": {
       "executor": "@angular-devkit/build-angular:browser",
@@ -78,5 +78,5 @@
       }
     }
   },
-  "tags": ["scope:angular", "type:app"]
+  "tags": ["framework:angular", "type:app"]
 }
