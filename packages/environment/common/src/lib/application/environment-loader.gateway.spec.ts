@@ -2,12 +2,12 @@ import { interval, Observable, of, throwError } from 'rxjs';
 import { delay, map, take } from 'rxjs/operators';
 
 import { Properties } from '../types';
-import { EnvironmentLoaderGateway } from './environment-loader.gateway';
-import { EnvironmentServiceGateway } from './environment-service.gateway';
-import { EnvironmentStoreGateway } from './environment-store.gateway';
-import { PropertiesSourceGateway } from './properties-source.gateway';
+import { EnvironmentLoader } from './environment-loader.gateway';
+import { EnvironmentService } from './environment-service.gateway';
+import { EnvironmentStore } from './environment-store.gateway';
+import { PropertiesSource } from './properties-source.gateway';
 
-class TestStore extends EnvironmentStoreGateway {
+class TestStore extends EnvironmentStore {
   getAll$(): Observable<Properties> {
     return of({});
   }
@@ -18,19 +18,19 @@ class TestStore extends EnvironmentStoreGateway {
   reset(): void {}
 }
 
-class TestEnvironmentService extends EnvironmentServiceGateway {
-  constructor(protected store: EnvironmentStoreGateway) {
+class TestEnvironmentService extends EnvironmentService {
+  constructor(protected store: EnvironmentStore) {
     super(store);
   }
 }
 
-class TestLoaderService extends EnvironmentLoaderGateway {
-  constructor(protected service: EnvironmentServiceGateway) {
+class TestLoaderService extends EnvironmentLoader {
+  constructor(protected service: EnvironmentService) {
     super(service, []);
   }
 }
 
-class RequiredOrderedSource extends PropertiesSourceGateway {
+class RequiredOrderedSource extends PropertiesSource {
   requiredToLoad = true;
   loadInOrder = true;
   load(): Observable<Properties> {
@@ -38,7 +38,7 @@ class RequiredOrderedSource extends PropertiesSourceGateway {
   }
 }
 
-class RequiredOrderedSource2 extends PropertiesSourceGateway {
+class RequiredOrderedSource2 extends PropertiesSource {
   requiredToLoad = true;
   loadInOrder = true;
   load(): Observable<Properties> {
@@ -46,7 +46,7 @@ class RequiredOrderedSource2 extends PropertiesSourceGateway {
   }
 }
 
-class NoRequiredOrderedSource extends PropertiesSourceGateway {
+class NoRequiredOrderedSource extends PropertiesSource {
   requiredToLoad = false;
   loadInOrder = true;
   load(): Observable<Properties> {
@@ -54,7 +54,7 @@ class NoRequiredOrderedSource extends PropertiesSourceGateway {
   }
 }
 
-class NoRequiredOrderedSource2 extends PropertiesSourceGateway {
+class NoRequiredOrderedSource2 extends PropertiesSource {
   requiredToLoad = false;
   loadInOrder = true;
   load(): Observable<Properties> {
@@ -62,7 +62,7 @@ class NoRequiredOrderedSource2 extends PropertiesSourceGateway {
   }
 }
 
-class RequiredUnorderedSource extends PropertiesSourceGateway {
+class RequiredUnorderedSource extends PropertiesSource {
   requiredToLoad = true;
   loadInOrder = false;
   load(): Observable<Properties> {
@@ -70,7 +70,7 @@ class RequiredUnorderedSource extends PropertiesSourceGateway {
   }
 }
 
-class RequiredUnorderedSource2 extends PropertiesSourceGateway {
+class RequiredUnorderedSource2 extends PropertiesSource {
   requiredToLoad = true;
   loadInOrder = false;
   load(): Observable<Properties> {
@@ -78,7 +78,7 @@ class RequiredUnorderedSource2 extends PropertiesSourceGateway {
   }
 }
 
-class NoRequiredUnorderedSource extends PropertiesSourceGateway {
+class NoRequiredUnorderedSource extends PropertiesSource {
   requiredToLoad = false;
   loadInOrder = false;
   load(): Observable<Properties> {
@@ -86,7 +86,7 @@ class NoRequiredUnorderedSource extends PropertiesSourceGateway {
   }
 }
 
-class NoRequiredUnorderedSource2 extends PropertiesSourceGateway {
+class NoRequiredUnorderedSource2 extends PropertiesSource {
   requiredToLoad = false;
   loadInOrder = false;
   load(): Observable<Properties> {
@@ -94,7 +94,7 @@ class NoRequiredUnorderedSource2 extends PropertiesSourceGateway {
   }
 }
 
-class RequiredOrderedMultipleCompletesSource extends PropertiesSourceGateway {
+class RequiredOrderedMultipleCompletesSource extends PropertiesSource {
   requiredToLoad = true;
   loadInOrder = true;
   load(): Observable<Properties> {
@@ -105,7 +105,7 @@ class RequiredOrderedMultipleCompletesSource extends PropertiesSourceGateway {
   }
 }
 
-class LoadImmediatelySource extends PropertiesSourceGateway {
+class LoadImmediatelySource extends PropertiesSource {
   requiredToLoad = true;
   loadInOrder = true;
   loadImmediately = true;
@@ -114,7 +114,7 @@ class LoadImmediatelySource extends PropertiesSourceGateway {
   }
 }
 
-class DismissOtherSourcesSource extends PropertiesSourceGateway {
+class DismissOtherSourcesSource extends PropertiesSource {
   requiredToLoad = true;
   loadInOrder = true;
   dismissOtherSources = true;
@@ -123,21 +123,21 @@ class DismissOtherSourcesSource extends PropertiesSourceGateway {
   }
 }
 
-class MergeSource extends PropertiesSourceGateway {
+class MergeSource extends PropertiesSource {
   deepMergeValues = false;
   load(): Observable<Properties> {
     return of({ mv: 0 }).pipe(delay(10));
   }
 }
 
-class DeepMergeSource extends PropertiesSourceGateway {
+class DeepMergeSource extends PropertiesSource {
   deepMergeValues = true;
   load(): Observable<Properties> {
     return of({ dmv: 0 }).pipe(delay(10));
   }
 }
 
-class PathMergeSource extends PropertiesSourceGateway {
+class PathMergeSource extends PropertiesSource {
   deepMergeValues = false;
   path = 'a';
   load(): Observable<Properties> {
@@ -145,7 +145,7 @@ class PathMergeSource extends PropertiesSourceGateway {
   }
 }
 
-class PathDeepMergeSource extends PropertiesSourceGateway {
+class PathDeepMergeSource extends PropertiesSource {
   deepMergeValues = true;
   path = 'a';
   load(): Observable<Properties> {
@@ -153,14 +153,14 @@ class PathDeepMergeSource extends PropertiesSourceGateway {
   }
 }
 
-class ResetEnvironmentSource extends PropertiesSourceGateway {
+class ResetEnvironmentSource extends PropertiesSource {
   resetEnvironment = true;
   load(): Observable<Properties> {
     return of({ pdmv: 0 }).pipe(delay(10));
   }
 }
 
-class ErrorNoMessageSource extends PropertiesSourceGateway {
+class ErrorNoMessageSource extends PropertiesSource {
   requiredToLoad = true;
   ignoreError = true;
   loadInOrder = true;
@@ -169,7 +169,7 @@ class ErrorNoMessageSource extends PropertiesSourceGateway {
   }
 }
 
-class NoIgnoreRequiredErrorSource extends PropertiesSourceGateway {
+class NoIgnoreRequiredErrorSource extends PropertiesSource {
   requiredToLoad = true;
   ignoreError = false;
   loadInOrder = true;
@@ -178,7 +178,7 @@ class NoIgnoreRequiredErrorSource extends PropertiesSourceGateway {
   }
 }
 
-class IgnoreRequiredErrorSource extends PropertiesSourceGateway {
+class IgnoreRequiredErrorSource extends PropertiesSource {
   requiredToLoad = true;
   ignoreError = true;
   loadInOrder = true;
@@ -187,7 +187,7 @@ class IgnoreRequiredErrorSource extends PropertiesSourceGateway {
   }
 }
 
-class NoIgnoreNoRequiredErrorSource extends PropertiesSourceGateway {
+class NoIgnoreNoRequiredErrorSource extends PropertiesSource {
   requiredToLoad = false;
   ignoreError = false;
   loadInOrder = true;
@@ -196,7 +196,7 @@ class NoIgnoreNoRequiredErrorSource extends PropertiesSourceGateway {
   }
 }
 
-class PromiseSource extends PropertiesSourceGateway {
+class PromiseSource extends PropertiesSource {
   requiredToLoad = true;
   async load(): Promise<Properties> {
     return Promise.resolve({ p: 0 });
@@ -259,9 +259,9 @@ const errorNoIgnoreNoRequired = [
   new RequiredOrderedSource2(),
 ];
 
-describe('EnvironmentLoaderGateway', () => {
-  let service: EnvironmentServiceGateway;
-  let loader: EnvironmentLoaderGateway;
+describe('EnvironmentLoader', () => {
+  let service: EnvironmentService;
+  let loader: EnvironmentLoader;
 
   beforeEach(() => {
     service = new TestEnvironmentService(new TestStore());
@@ -294,7 +294,7 @@ describe('EnvironmentLoaderGateway', () => {
       expect(service.merge).not.toHaveBeenCalled();
     });
 
-    // PropertiesSourceGateway.requiredToLoad
+    // PropertiesSource.requiredToLoad
 
     it(`returns resolved Promise when all sources with requiredToLoad loads`, () => {
       (loader as unknown)['sources'] = orderedSources;
@@ -321,7 +321,7 @@ describe('EnvironmentLoaderGateway', () => {
       expect(service.merge).toHaveBeenCalledTimes(4);
     });
 
-    // PropertiesSourceGateway.loadInOrder
+    // PropertiesSource.loadInOrder
 
     it(`loads all sources in order if loadInOrder`, () => {
       (loader as unknown)['sources'] = orderedSources;
@@ -404,7 +404,7 @@ describe('EnvironmentLoaderGateway', () => {
       expect(service.merge).toHaveBeenCalledTimes(4);
     });
 
-    // PropertiesSourceGateway.loadImmediately
+    // PropertiesSource.loadImmediately
 
     it(`returns resolved Promise just after loadImmediately source load `, () => {
       (loader as unknown)['sources'] = loadImmediatellySources;
@@ -423,7 +423,7 @@ describe('EnvironmentLoaderGateway', () => {
       expect(service.merge).toHaveBeenCalledTimes(3);
     });
 
-    // PropertiesSourceGateway.dismissOtherSources
+    // PropertiesSource.dismissOtherSources
 
     it(`returns resolved Promise just after dismissOtherSources source load `, () => {
       (loader as unknown)['sources'] = dismissOtherSourcesSources;
@@ -443,7 +443,7 @@ describe('EnvironmentLoaderGateway', () => {
       expect(service.merge).toHaveBeenCalledTimes(1);
     });
 
-    // PropertiesSourceGateway.deepMergeValues
+    // PropertiesSource.deepMergeValues
 
     it(`loads sources using merge strategy if no deepMergeValues`, () => {
       (loader as unknown)['sources'] = [new MergeSource()];
@@ -466,7 +466,7 @@ describe('EnvironmentLoaderGateway', () => {
       expect(service.deepMerge).toHaveBeenCalledTimes(1);
     });
 
-    // PropertiesSourceGateway.path
+    // PropertiesSource.path
 
     it(`loads sources using merge strategy and path`, () => {
       (loader as unknown)['sources'] = [new PathMergeSource()];
@@ -489,7 +489,7 @@ describe('EnvironmentLoaderGateway', () => {
       expect(service.deepMerge).toHaveBeenCalledTimes(1);
     });
 
-    // PropertiesSourceGateway.resetEnvironment
+    // PropertiesSource.resetEnvironment
 
     it(`loads sources resetting the environment if resetEnvironment`, () => {
       jest.spyOn(service, 'reset');
@@ -672,7 +672,7 @@ describe('EnvironmentLoaderGateway', () => {
       expect(service.merge).not.toHaveBeenCalled();
     });
 
-    // PropertiesSourceGateway.requiredToLoad
+    // PropertiesSource.requiredToLoad
 
     it(`returns resolved Promise when all sources with requiredToLoad loads`, () => {
       return loader.loadSubmodule(orderedSources).then(() => {
@@ -696,7 +696,7 @@ describe('EnvironmentLoaderGateway', () => {
       expect(service.merge).toHaveBeenCalledTimes(4);
     });
 
-    // PropertiesSourceGateway.loadInOrder
+    // PropertiesSource.loadInOrder
 
     it(`loads all sources in order if loadInOrder`, () => {
       jest.useFakeTimers();
@@ -775,7 +775,7 @@ describe('EnvironmentLoaderGateway', () => {
       expect(service.merge).toHaveBeenCalledTimes(4);
     });
 
-    // PropertiesSourceGateway.loadImmediately
+    // PropertiesSource.loadImmediately
 
     it(`returns resolved Promise just after loadImmediately source load `, () => {
       return loader.loadSubmodule(loadImmediatellySources).then(() => {
@@ -792,7 +792,7 @@ describe('EnvironmentLoaderGateway', () => {
       expect(service.merge).toHaveBeenCalledTimes(3);
     });
 
-    // PropertiesSourceGateway.dismissOtherSources
+    // PropertiesSource.dismissOtherSources
 
     it(`returns resolved Promise just after dismissOtherSources source load `, () => {
       return loader.loadSubmodule(dismissOtherSourcesSources).then(() => {
@@ -810,7 +810,7 @@ describe('EnvironmentLoaderGateway', () => {
       expect(service.merge).toHaveBeenCalledTimes(1);
     });
 
-    // PropertiesSourceGateway.deepMergeValues
+    // PropertiesSource.deepMergeValues
 
     it(`loads sources using merge strategy if no deepMergeValues`, () => {
       jest.useFakeTimers();
@@ -831,7 +831,7 @@ describe('EnvironmentLoaderGateway', () => {
       expect(service.deepMerge).toHaveBeenCalledTimes(1);
     });
 
-    // PropertiesSourceGateway.path
+    // PropertiesSource.path
 
     it(`loads sources using merge strategy and path`, () => {
       jest.useFakeTimers();
@@ -852,7 +852,7 @@ describe('EnvironmentLoaderGateway', () => {
       expect(service.deepMerge).toHaveBeenCalledTimes(1);
     });
 
-    // PropertiesSourceGateway.resetEnvironment
+    // PropertiesSource.resetEnvironment
 
     it(`loads sources resetting the environment if resetEnvironment`, () => {
       jest.spyOn(service, 'reset');

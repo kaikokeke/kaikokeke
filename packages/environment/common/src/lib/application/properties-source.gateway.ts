@@ -5,7 +5,7 @@ import { Path, Properties } from '../types';
 /**
  * An environment properties source definition to get the application properties asynchronously.
  */
-export abstract class PropertiesSourceGateway {
+export abstract class PropertiesSource {
   /**
    * The properties source name.
    * Defaults to the class name.

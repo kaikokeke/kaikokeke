@@ -1,9 +1,9 @@
 import { Observable } from 'rxjs';
 
 import { Properties } from '../types';
-import { PropertiesSourceGateway } from './properties-source.gateway';
+import { PropertiesSource } from './properties-source.gateway';
 
-class TestPropertiesSource extends PropertiesSourceGateway {
+class TestPropertiesSource extends PropertiesSource {
   name = 'TestPropertiesSource';
   load(): Observable<Properties> | Promise<Properties> {
     throw new Error('Method not implemented.');
@@ -11,7 +11,7 @@ class TestPropertiesSource extends PropertiesSourceGateway {
 }
 
 describe('PropertiesSource', () => {
-  let source: PropertiesSourceGateway;
+  let source: PropertiesSource;
 
   beforeEach(() => {
     source = new TestPropertiesSource();

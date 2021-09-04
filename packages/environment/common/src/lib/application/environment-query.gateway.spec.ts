@@ -2,10 +2,10 @@ import { Observable, of, Subject } from 'rxjs';
 import { marbles } from 'rxjs-marbles/jest';
 
 import { Properties } from '../types';
-import { EnvironmentQueryGateway } from './environment-query.gateway';
-import { EnvironmentStoreGateway } from './environment-store.gateway';
+import { EnvironmentQuery } from './environment-query.gateway';
+import { EnvironmentStore } from './environment-store.gateway';
 
-class TestStore extends EnvironmentStoreGateway {
+class TestStore extends EnvironmentStore {
   getAll$(): Observable<Properties> {
     throw new Error('Method not implemented.');
   }
@@ -20,7 +20,7 @@ class TestStore extends EnvironmentStoreGateway {
   }
 }
 
-class TestQuery extends EnvironmentQueryGateway {
+class TestQuery extends EnvironmentQuery {
   constructor(protected store: TestStore) {
     super(store);
   }
@@ -31,9 +31,9 @@ const envA2 = { a: { a: 0 }, b: '{{ a.a }}' };
 const envB1 = Object.freeze({ a: Object.freeze({ b: 0 }), b: '{{ a.b }}' });
 const envB2 = { a: { b: 0 }, b: '{{ a.b }}' };
 
-describe('EnvironmentQueryGateway', () => {
-  let store: EnvironmentStoreGateway;
-  let query: EnvironmentQueryGateway;
+describe('EnvironmentQuery', () => {
+  let store: EnvironmentStore;
+  let query: EnvironmentQuery;
 
   beforeEach(() => {
     store = new TestStore();

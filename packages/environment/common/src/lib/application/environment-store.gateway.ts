@@ -5,7 +5,7 @@ import { Properties } from '../types';
 /**
  * Manages the environment store.
  */
-export abstract class EnvironmentStoreGateway {
+export abstract class EnvironmentStore {
   /**
    * Gets all properties from the environment store.
    * @returns The environment properties as Observable.

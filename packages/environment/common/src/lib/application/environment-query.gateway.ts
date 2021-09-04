@@ -5,12 +5,12 @@ import { distinctUntilChanged, map, shareReplay } from 'rxjs/operators';
 
 import { EnvironmentConfig, Path, Properties, Property } from '../types';
 import { environmentConfigFactory } from './environment-config-factory.function';
-import { EnvironmentStoreGateway } from './environment-store.gateway';
+import { EnvironmentStore } from './environment-store.gateway';
 
 /**
  * Gets the properties from the environment store.
  */
-export abstract class EnvironmentQueryGateway {
+export abstract class EnvironmentQuery {
   protected readonly config: EnvironmentConfig = environmentConfigFactory(this.partialConfig);
 
   /**
@@ -19,7 +19,7 @@ export abstract class EnvironmentQueryGateway {
    * @param partialConfig Partial configuration parameters for the Environment module.
    */
   constructor(
-    protected readonly store: EnvironmentStoreGateway,
+    protected readonly store: EnvironmentStore,
     protected readonly partialConfig: Partial<EnvironmentConfig> = {},
   ) {}
 

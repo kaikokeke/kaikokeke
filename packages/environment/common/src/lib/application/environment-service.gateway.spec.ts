@@ -1,10 +1,10 @@
 import { Observable, of } from 'rxjs';
 
 import { Properties } from '../types';
-import { EnvironmentServiceGateway } from './environment-service.gateway';
-import { EnvironmentStoreGateway } from './environment-store.gateway';
+import { EnvironmentService } from './environment-service.gateway';
+import { EnvironmentStore } from './environment-store.gateway';
 
-class TestStore extends EnvironmentStoreGateway {
+class TestStore extends EnvironmentStore {
   getAll$(): Observable<Properties> {
     return of({});
   }
@@ -15,15 +15,15 @@ class TestStore extends EnvironmentStoreGateway {
   reset(): void {}
 }
 
-class TestEnvironmentService extends EnvironmentServiceGateway {
-  constructor(protected store: EnvironmentStoreGateway) {
+class TestEnvironmentService extends EnvironmentService {
+  constructor(protected store: EnvironmentStore) {
     super(store);
   }
 }
 
-describe('EnvironmentServiceGateway', () => {
-  let store: EnvironmentStoreGateway;
-  let service: EnvironmentServiceGateway;
+describe('EnvironmentService', () => {
+  let store: EnvironmentStore;
+  let service: EnvironmentService;
 
   beforeEach(() => {
     store = new TestStore();
@@ -34,8 +34,8 @@ describe('EnvironmentServiceGateway', () => {
     jest.restoreAllMocks();
   });
 
-  it(`.store is an EnvironmentStoreGateway`, () => {
-    expect(service['store']).toBeInstanceOf(EnvironmentStoreGateway);
+  it(`.store is an EnvironmentStore`, () => {
+    expect(service['store']).toBeInstanceOf(EnvironmentStore);
   });
 
   it(`reset() resets the store`, () => {

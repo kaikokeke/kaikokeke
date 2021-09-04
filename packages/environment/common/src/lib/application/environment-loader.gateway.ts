@@ -4,13 +4,13 @@ import { BehaviorSubject, concat, defer, merge, Observable, of, OperatorFunction
 import { catchError, filter, take, takeUntil, tap } from 'rxjs/operators';
 
 import { Properties } from '../types';
-import { EnvironmentServiceGateway } from './environment-service.gateway';
-import { PropertiesSourceGateway } from './properties-source.gateway';
+import { EnvironmentService } from './environment-service.gateway';
+import { PropertiesSource } from './properties-source.gateway';
 
 /**
  * Loads the environment properties from the provided asynchronous sources.
  */
-export abstract class EnvironmentLoaderGateway {
+export abstract class EnvironmentLoader {
   protected readonly load$List: ReplaySubject<void>[] = [];
   protected readonly destroy$List: ReplaySubject<void>[] = [];
   protected readonly requiredToLoad$List: BehaviorSubject<Set<string>>[] = [];
@@ -23,8 +23,8 @@ export abstract class EnvironmentLoaderGateway {
    * @param sources The environment properties sources to get the application properties asynchronously.
    */
   constructor(
-    protected readonly service: EnvironmentServiceGateway,
-    protected readonly sources: PropertiesSourceGateway | PropertiesSourceGateway[],
+    protected readonly service: EnvironmentService,
+    protected readonly sources: PropertiesSource | PropertiesSource[],
   ) {}
 
   /**
@@ -32,7 +32,7 @@ export abstract class EnvironmentLoaderGateway {
    * @returns A promise to load the application once the required properties are loaded.
    */
   async load(): Promise<void> {
-    const sources: PropertiesSourceGateway[] = coerceArray(this.sources);
+    const sources: PropertiesSource[] = coerceArray(this.sources);
 
     return this.loadSources(sources);
   }
@@ -42,11 +42,11 @@ export abstract class EnvironmentLoaderGateway {
    * @param sources The environment properties sources to get the submodule properties asynchronously.
    * @returns A promise to load the submodule once the required properties are loaded.
    */
-  async loadSubmodule(sources: PropertiesSourceGateway[]): Promise<void> {
+  async loadSubmodule(sources: PropertiesSource[]): Promise<void> {
     return this.loadSources(sources);
   }
 
-  protected async loadSources(sources: PropertiesSourceGateway[]): Promise<void> {
+  protected async loadSources(sources: PropertiesSource[]): Promise<void> {
     const index: number = this.loadIndex++;
 
     this.load$List[index] = new ReplaySubject();
@@ -60,11 +60,11 @@ export abstract class EnvironmentLoaderGateway {
     return this.load$List[index].pipe(take(1), takeUntil(this.destroy$List[index])).toPromise();
   }
 
-  protected watchRequiredToLoadSources(index: number, sources: PropertiesSourceGateway[]): void {
+  protected watchRequiredToLoadSources(index: number, sources: PropertiesSource[]): void {
     const requiredToLoadSources: Set<string> = new Set(
       sources
-        .filter((source: PropertiesSourceGateway) => source.requiredToLoad)
-        .map((source: PropertiesSourceGateway) => source.name),
+        .filter((source: PropertiesSource) => source.requiredToLoad)
+        .map((source: PropertiesSource) => source.name),
     );
 
     this.requiredToLoad$List[index]
@@ -77,10 +77,8 @@ export abstract class EnvironmentLoaderGateway {
       .subscribe();
   }
 
-  protected loadUnorderedSources(index: number, sources: PropertiesSourceGateway[]): void {
-    const unorderedSources: PropertiesSourceGateway[] = sources.filter(
-      (source: PropertiesSourceGateway) => !source.loadInOrder,
-    );
+  protected loadUnorderedSources(index: number, sources: PropertiesSource[]): void {
+    const unorderedSources: PropertiesSource[] = sources.filter((source: PropertiesSource) => !source.loadInOrder);
     const unorderedSources$List: Observable<Properties>[] = this.getSources$List(index, unorderedSources);
 
     merge(...unorderedSources$List)
@@ -88,10 +86,8 @@ export abstract class EnvironmentLoaderGateway {
       .subscribe();
   }
 
-  protected loadOrderedSources(index: number, sources: PropertiesSourceGateway[]): void {
-    const orderedSources: PropertiesSourceGateway[] = sources.filter(
-      (source: PropertiesSourceGateway) => source.loadInOrder,
-    );
+  protected loadOrderedSources(index: number, sources: PropertiesSource[]): void {
+    const orderedSources: PropertiesSource[] = sources.filter((source: PropertiesSource) => source.loadInOrder);
     const orderedSources$List: Observable<Properties>[] = this.getSources$List(index, orderedSources);
 
     concat(...orderedSources$List)
@@ -99,8 +95,8 @@ export abstract class EnvironmentLoaderGateway {
       .subscribe();
   }
 
-  protected getSources$List(index: number, sources: PropertiesSourceGateway[]): Observable<Properties>[] {
-    return sources.map((source: PropertiesSourceGateway) =>
+  protected getSources$List(index: number, sources: PropertiesSource[]): Observable<Properties>[] {
+    return sources.map((source: PropertiesSource) =>
       defer(() => source.load()).pipe(
         catchError((error: Error) => this.checkLoadError(index, error, source)),
         this.customSourceOperator(index, source),
@@ -117,7 +113,7 @@ export abstract class EnvironmentLoaderGateway {
     );
   }
 
-  protected checkLoadError(index: number, error: Error, source: PropertiesSourceGateway): Observable<Properties> {
+  protected checkLoadError(index: number, error: Error, source: PropertiesSource): Observable<Properties> {
     const originalMessage: string = error.message ? `: ${error.message}` : '';
     const errorMessage = `Required Environment PropertiesSource "${source.name}" failed to load${originalMessage}`;
 
@@ -133,21 +129,21 @@ export abstract class EnvironmentLoaderGateway {
     return of({});
   }
 
-  protected isRequiredToLoadAndNotLoaded(index: number, source: PropertiesSourceGateway): boolean {
+  protected isRequiredToLoadAndNotLoaded(index: number, source: PropertiesSource): boolean {
     return source.requiredToLoad && !source.ignoreError && !this.load$List[index].isStopped;
   }
 
-  protected customSourceOperator<T, K = T>(index: number, source: PropertiesSourceGateway): OperatorFunction<T, T | K> {
+  protected customSourceOperator<T, K = T>(index: number, source: PropertiesSource): OperatorFunction<T, T | K> {
     return (observable: Observable<T>) => observable;
   }
 
-  protected checkResetEnvironment(index: number, value: Properties, source: PropertiesSourceGateway): void {
+  protected checkResetEnvironment(index: number, value: Properties, source: PropertiesSource): void {
     if (source.resetEnvironment) {
       this.service.reset();
     }
   }
 
-  protected saveSourceValueToStore(index: number, value: Properties, source: PropertiesSourceGateway): void {
+  protected saveSourceValueToStore(index: number, value: Properties, source: PropertiesSource): void {
     if (Object.keys(value).length > 0) {
       if (source.deepMergeValues) {
         this.service.deepMerge(value, source.path);
@@ -157,19 +153,19 @@ export abstract class EnvironmentLoaderGateway {
     }
   }
 
-  protected checkLoadImmediately(index: number, value: Properties, source: PropertiesSourceGateway): void {
+  protected checkLoadImmediately(index: number, value: Properties, source: PropertiesSource): void {
     if (source.loadImmediately) {
       this.onLoadSources(index);
     }
   }
 
-  protected checkDismissOtherSources(index: number, value: Properties, source: PropertiesSourceGateway): void {
+  protected checkDismissOtherSources(index: number, value: Properties, source: PropertiesSource): void {
     if (source.dismissOtherSources) {
       this.onDestroySources(index);
     }
   }
 
-  protected checkRequiredToLoad(index: number, value: Properties, source: PropertiesSourceGateway): void {
+  protected checkRequiredToLoad(index: number, value: Properties, source: PropertiesSource): void {
     if (source.requiredToLoad) {
       const requiredToLoadLoaded: Set<string> = this.requiredToLoad$List[index].getValue().add(source.name);
 

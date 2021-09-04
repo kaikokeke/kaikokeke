@@ -2,17 +2,17 @@ import { mergeDeep } from '@kaikokeke/common';
 import { get, set } from 'lodash-es';
 
 import { isPath, Path, Properties, Property } from '../types';
-import { EnvironmentStoreGateway } from './environment-store.gateway';
+import { EnvironmentStore } from './environment-store.gateway';
 
 /**
  * Sets properties in the environment store.
  */
-export abstract class EnvironmentServiceGateway {
+export abstract class EnvironmentService {
   /**
    * Sets properties in the environment store.
    * @param store The environment store.
    */
-  constructor(protected readonly store: EnvironmentStoreGateway) {}
+  constructor(protected readonly store: EnvironmentStore) {}
 
   /**
    * Resets the environment store to the initial state.
