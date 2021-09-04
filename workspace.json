@@ -128,7 +128,8 @@
           "outputs": ["coverage/packages/environment/common"],
           "options": {
             "jestConfig": "packages/environment/common/jest.config.js",
-            "passWithNoTests": true
+            "passWithNoTests": true,
+            "codeCoverage": true
           }
         }
       },
@@ -162,7 +163,8 @@
           "outputs": ["coverage/packages/shared/angular"],
           "options": {
             "jestConfig": "packages/shared/angular/jest.config.js",
-            "passWithNoTests": true
+            "passWithNoTests": true,
+            "codeCoverage": true
           }
         },
         "lint": {
@@ -201,7 +203,8 @@
           "outputs": ["coverage/packages/shared/common"],
           "options": {
             "jestConfig": "packages/shared/common/jest.config.js",
-            "passWithNoTests": true
+            "passWithNoTests": true,
+            "codeCoverage": true
           }
         }
       },
@@ -235,7 +238,8 @@
           "outputs": ["coverage/packages/shared/devtools"],
           "options": {
             "jestConfig": "packages/shared/devtools/jest.config.js",
-            "passWithNoTests": true
+            "passWithNoTests": true,
+            "codeCoverage": true
           }
         }
       },
