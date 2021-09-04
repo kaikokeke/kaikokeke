@@ -2,11 +2,10 @@
   "name": "@kaikokeke/common",
   "version": "0.1.0",
   "license": "MIT",
-  "description": "The Common library provides fundamental Kaikokeke framework functionality",
+  "description": "Provides common Kaikokeke framework functionality",
   "keywords": [
     "kaikokeke",
-    "typescript",
-    "common"
+    "typescript"
   ],
   "homepage": "https://github.com/kaikokeke/kaikokeke",
   "bugs": "https://github.com/kaikokeke/kaikokeke/issues",
@@ -14,9 +13,5 @@
     "type": "git",
     "url": "https://github.com/kaikokeke/kaikokeke.git"
   },
-  "private": false,
-  "peerDependencies": {
-    "rxjs": "^6.6.0",
-    "lodash-es": "^4.17.21"
-  }
+  "private": false
 }

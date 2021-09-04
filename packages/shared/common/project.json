@@ -30,6 +30,5 @@
       }
     }
   },
-  "tags": ["scope:dependencies", "scope:shared", "type:library"],
-  "configFilePath": "packages\\shared\\common/project.json"
+  "tags": ["scope:dependencies", "domain:shared", "type:library"]
 }
