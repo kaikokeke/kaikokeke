@@ -38,8 +38,8 @@
     "help": "nx help",
     "prepare": "husky install",
     "commit": "cz -s",
-    "commit:lint": "nx affected:lint --fix",
-    "commit:format": "nx format:write",
+    "commit:lint": "nx affected:lint --fix --parallel --uncommitted",
+    "commit:format": "nx format:write --uncommitted",
     "postinstall": "ngcc --properties es2015 browser module main"
   },
   "private": true,
