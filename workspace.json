@@ -8,11 +8,26 @@
       "style": "scss",
       "linter": "eslint",
       "unitTestRunner": "jest",
-      "e2eTestRunner": "none"
+      "e2eTestRunner": "none",
+      "standaloneConfig": true
     },
     "@nrwl/angular:library": {
-      "style": "scss",
+      "buildable": true,
       "linter": "eslint",
+      "publishable": true,
+      "simpleModuleName": true,
+      "standaloneConfig": true,
+      "strict": true,
+      "unitTestRunner": "jest"
+    },
+    "@nrwl/node:library": {
+      "buildable": true,
+      "linter": "eslint",
+      "publishable": true,
+      "simpleModuleName": true,
+      "standaloneConfig": true,
+      "strict": true,
+      "testEnvironment": "jsdom",
       "unitTestRunner": "jest"
     },
     "@nrwl/angular:component": {
