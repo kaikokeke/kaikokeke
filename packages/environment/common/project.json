@@ -30,6 +30,5 @@
       }
     }
   },
-  "tags": ["scope:dependencies", "scope:environment", "type:library"],
-  "configFilePath": "packages\\environment\\common/project.json"
+  "tags": ["scope:dependencies", "domain:environment", "type:library"]
 }
