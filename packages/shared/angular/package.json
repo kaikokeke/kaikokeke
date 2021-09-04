@@ -1,13 +1,12 @@
 {
-  "name": "@kaikokeke/shared/angular",
+  "name": "@kaikokeke/angular",
   "version": "0.1.0",
   "license": "MIT",
-  "description": "The Common Angular library provides fundamental Kaikokeke Angular framework functionality",
+  "description": "Provides common Angular Kaikokeke framework functionality",
   "keywords": [
     "kaikokeke",
     "typescript",
-    "angular",
-    "common"
+    "angular"
   ],
   "homepage": "https://github.com/kaikokeke/kaikokeke",
   "bugs": "https://github.com/kaikokeke/kaikokeke/issues",
@@ -15,12 +14,5 @@
     "type": "git",
     "url": "https://github.com/kaikokeke/kaikokeke.git"
   },
-  "private": false,
-  "peerDependencies": {
-    "@angular/common": "^12.0.0",
-    "@angular/core": "^12.0.0"
-  },
-  "dependencies": {
-    "tslib": "^2.1.0"
-  }
+  "private": false
 }

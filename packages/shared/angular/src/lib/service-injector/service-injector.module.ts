@@ -1,4 +1,4 @@
-import { AbstractType, InjectFlags, InjectionToken, Injector, NgModule, Type } from '@angular/core';
+import { AbstractType, Inject, InjectFlags, InjectionToken, Injector, NgModule, Type } from '@angular/core';
 
 let InternalServiceInjector: Injector;
 
@@ -28,7 +28,7 @@ export function serviceInjector<T>(
  */
 @NgModule()
 export class ServiceInjectorModule {
-  constructor(protected readonly injector: Injector) {
+  constructor(@Inject(Injector) protected readonly injector: Injector) {
     InternalServiceInjector = this.injector;
   }
 }

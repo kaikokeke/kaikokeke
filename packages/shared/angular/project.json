@@ -36,6 +36,5 @@
       }
     }
   },
-  "configFilePath": "packages\\shared\\common-angular/project.json",
-  "tags": ["scope:dependencies", "scope:shared", "scope:angular", "type:library"]
+  "tags": ["scope:dependencies", "domain:shared", "framework:angular", "type:library"]
 }
