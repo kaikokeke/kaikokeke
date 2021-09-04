@@ -5,7 +5,7 @@ import { KaikokekeCommonAngularModule } from '@kaikokeke/angular';
 
 import { environment } from '../environments/environment';
 import { AppComponent } from './app.component';
-import { AkitaEnvironmentModule } from './environment/environment.module';
+import { AkitaEnvironmentModule } from './environment/akita-environment.module';
 
 @NgModule({
   declarations: [AppComponent],
@@ -13,7 +13,7 @@ import { AkitaEnvironmentModule } from './environment/environment.module';
     BrowserModule,
     KaikokekeCommonAngularModule,
     environment.production ? [] : AkitaNgDevtools.forRoot(),
-    AkitaEnvironmentModule.forRoot(),
+    AkitaEnvironmentModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
