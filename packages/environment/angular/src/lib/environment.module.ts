@@ -1,10 +1,8 @@
 import { APP_INITIALIZER, ModuleWithProviders, NgModule } from '@angular/core';
 import { EnvironmentConfig, EnvironmentLoader, EnvironmentQuery, EnvironmentService } from '@kaikokeke/environment';
 
-import { EnvironmentAngularLoader } from './environment-angular.loader';
-import { EnvironmentAngularQuery } from './environment-angular.query';
-import { EnvironmentAngularService } from './environment-angular.service';
-import { ENVIRONMENT_CONFIG } from './environment-config.token';
+import { EnvironmentAngularLoader, EnvironmentAngularQuery, EnvironmentAngularService } from './application';
+import { ENVIRONMENT_CONFIG } from './tokens';
 
 export function environmentModuleForRoot(loader: EnvironmentLoader): () => Promise<void> {
   return () => loader.load();
