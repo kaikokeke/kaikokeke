@@ -12,13 +12,12 @@ yarn add @kaikokeke/common
 
 ## API
 
-- [Merge Deep](./src/lib/merge-deep/README.md): Recursively merges own and inherited enumerable string keyed properties of source objects.
+- [Deep Merge](./src/lib/deep-merge/README.md): Recursively merges own and inherited enumerable string keyed properties of source objects.
 - [SafeRxJS](./src/lib/safe-rxjs/README.md): Manages safe RxJS subscriptions.
 - [SafeSubscription](./src/lib/safe-subscription/README.md): Safely store disposable resources, such as the execution of an Observable.
 - [Unfreeze](./src/lib/unfreeze/README.md): Unfreezes the frozen values creating a recursive shallow clone of each value emitted by the source Observable, and emitting the resulting deep cloned values as an Observable.
 
 ## Types
 
-- [HashMap](./src/lib/types/hash-map.type.ts): A native JavaScript object literal that implements an associative structure that can map keys to values.
 - [JSONValue](./src/lib/types/json-value.type.ts): A valid JavaScript Object Notation (JSON) value type.
-- [DeserializedJSON](./src/lib/types/deserialized-json.type.ts): A native JavaScript object literal resulting from the deserialization of a JavaScript Object Notation (JSON).
+- [ParsedJSON](./src/lib/types/parsed-json.type.ts): A native JavaScript object literal resulting from the parse of a JavaScript Object Notation (JSON).

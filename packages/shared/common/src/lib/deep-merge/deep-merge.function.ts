@@ -6,17 +6,17 @@ import { mergeWith } from 'lodash-es';
  * Source properties that resolve to undefined are skipped if a destination value exists.
  * Other objects and value types are overridden by assignment.
  * Source objects are applied from left to right.
- * Ierable sources, except strings, are merged with previous sources.
- * @param source1 The first required source objects.
- * @param source2 The second required source objects.
+ * Iterable sources, except strings, are merged with previous sources.
+ * @param source1 The first required source object.
+ * @param source2 The second required source object.
  * @param otherSources The optional source objects.
  * @returns An object with merged own and inherited enumerable string keyed properties.
  */
-export function mergeDeep(
-  source1: Record<string, unknown>,
-  source2: Record<string, unknown>,
-  ...otherSources: Record<string, unknown>[]
-): Record<string, unknown> {
+export function deepMerge<T extends Record<PropertyKey, unknown>>(
+  source1: Record<PropertyKey, unknown>,
+  source2: Record<PropertyKey, unknown>,
+  ...otherSources: Record<PropertyKey, unknown>[]
+): T {
   return mergeWith({}, ...[source1, source2, ...otherSources], customizer);
 }
 
