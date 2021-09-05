@@ -1,5 +1,4 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-yarn commit:format
-yarn commit:lint
+yarn commit:staged

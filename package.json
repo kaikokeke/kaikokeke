@@ -38,8 +38,7 @@
     "help": "nx help",
     "prepare": "husky install",
     "commit": "cz -s",
-    "commit:lint": "nx affected:lint --fix --parallel --uncommitted",
-    "commit:format": "nx format:write --uncommitted",
+    "commit:staged": "lint-staged",
     "postinstall": "ngcc --properties es2015 browser module main"
   },
   "private": true,
@@ -96,6 +95,7 @@
     "jest": "27.0.3",
     "jest-extended": "^0.11.5",
     "jest-preset-angular": "9.0.3",
+    "lint-staged": "^11.1.2",
     "lodash": "4.17.21",
     "ng-packagr": "12.1.2",
     "prettier": "2.3.1",
@@ -109,6 +109,12 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "lint-staged": {
+    "*": [
+      "nx affected:lint --fix --parallel --uncommitted",
+      "nx format:write --uncommitted"
+    ]
   },
   "commitlint": {
     "extends": [
