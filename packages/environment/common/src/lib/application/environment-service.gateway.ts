@@ -1,4 +1,4 @@
-import { mergeDeep } from '@kaikokeke/common';
+import { deepMerge } from '@kaikokeke/common';
 import { get, set } from 'lodash-es';
 
 import { isPath, Path, Properties, Property } from '../types';
@@ -84,7 +84,7 @@ export abstract class EnvironmentService {
   deepMerge(properties: Properties, path?: Path): void {
     const environment: Properties = this.store.getAll();
     const newProperties: Properties = this.propertiesAtPath(properties, path);
-    const newEnvironment: Properties = mergeDeep(environment, newProperties) as Properties;
+    const newEnvironment: Properties = deepMerge(environment, newProperties);
 
     this.store.update(newEnvironment);
   }

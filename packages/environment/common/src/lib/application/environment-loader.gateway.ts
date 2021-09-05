@@ -1,4 +1,3 @@
-import { coerceArray } from '@kaikokeke/common';
 import { isEqual } from 'lodash-es';
 import { BehaviorSubject, concat, defer, merge, Observable, of, OperatorFunction, ReplaySubject } from 'rxjs';
 import { catchError, filter, take, takeUntil, tap } from 'rxjs/operators';
@@ -32,9 +31,17 @@ export abstract class EnvironmentLoader {
    * @returns A promise to load the application once the required properties are loaded.
    */
   async load(): Promise<void> {
-    const sources: PropertiesSource[] = coerceArray(this.sources);
+    const sources: PropertiesSource[] = this.coerceSources();
 
     return this.loadSources(sources);
+  }
+
+  protected coerceSources(): PropertiesSource[] {
+    if (this.sources == null) {
+      return [];
+    }
+
+    return Array.isArray(this.sources) ? this.sources : [this.sources];
   }
 
   /**
