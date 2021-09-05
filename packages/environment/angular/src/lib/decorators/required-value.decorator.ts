@@ -2,7 +2,7 @@ import { serviceInjector } from '@kaikokeke/angular';
 import { EnvironmentQuery, Path, Property } from '@kaikokeke/environment';
 
 /**
- * Gets the distinct environment property at path as mutable and sets it in the property.
+ * Gets the distinct required environment property at path as mutable and sets it in the property.
  * @param key The property path to set.
  * @param defaultValue The value to return if the path cannot be resolved.
  * @throws If no `ServiceInjectorModule` imported.
@@ -19,7 +19,7 @@ export function RequiredValue$<D extends Property>(
 }
 
 /**
- * Gets the environment property at path as mutable and sets it in the property.
+ * Gets the distinct required environment property at path as mutable and sets it in the property.
  * @param key The property path to set.
  * @param defaultValue The value to return if the path cannot be resolved.
  * @throws If no `ServiceInjectorModule` imported.
