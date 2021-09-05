@@ -1,4 +1,4 @@
-import { mergeDeep, unfreeze, unfreezeAll } from '@kaikokeke/common';
+import { deepMerge, unfreeze, unfreezeAll } from '@kaikokeke/common';
 import { get, isEqual, isString } from 'lodash-es';
 import { Observable } from 'rxjs';
 import { distinctUntilChanged, map, shareReplay } from 'rxjs/operators';
@@ -307,7 +307,7 @@ export abstract class EnvironmentQuery {
   }
 
   protected getTranspileProperties(properties: Properties, config: EnvironmentConfig): Properties {
-    return config.useEnvironmentToTranspile ? (mergeDeep(this.store.getAll(), properties) as Properties) : properties;
+    return config.useEnvironmentToTranspile ? (deepMerge(this.store.getAll(), properties) as Properties) : properties;
   }
 
   protected replacer(substring: string, match: string, properties: Properties): string {

@@ -280,6 +280,13 @@ describe('EnvironmentLoader', () => {
     // no sources
 
     it(`returns resolved Promise immedialely if no sources`, () => {
+      (loader as unknown)['sources'] = undefined;
+      return loader.load().then(() => {
+        expect(service.merge).not.toHaveBeenCalled();
+      });
+    });
+
+    it(`returns resolved Promise immedialely if empty sources`, () => {
       (loader as unknown)['sources'] = [];
       return loader.load().then(() => {
         expect(service.merge).not.toHaveBeenCalled();
@@ -287,6 +294,14 @@ describe('EnvironmentLoader', () => {
     });
 
     it(`loads nothing if no sources`, () => {
+      (loader as unknown)['sources'] = undefined;
+      jest.useFakeTimers();
+      loader.load();
+      jest.runAllTimers();
+      expect(service.merge).not.toHaveBeenCalled();
+    });
+
+    it(`loads nothing if empty sources`, () => {
       (loader as unknown)['sources'] = [];
       jest.useFakeTimers();
       loader.load();
@@ -642,6 +657,16 @@ describe('EnvironmentLoader', () => {
       });
     });
 
+    // single source
+
+    it(`works with a single source`, () => {
+      (loader as unknown)['sources'] = new PromiseSource();
+      return loader.load().then(() => {
+        expect(service.merge).toHaveBeenNthCalledWith(1, { p: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(1);
+      });
+    });
+
     // use customSourceOperator
 
     it(`customSourceOperator is used`, () => {
@@ -659,13 +684,13 @@ describe('EnvironmentLoader', () => {
   describe('loadSubmodule(sources)', () => {
     // no sources
 
-    it(`returns resolved Promise immedialely if no sources`, () => {
+    it(`returns resolved Promise immedialely if empty sources`, () => {
       return loader.loadSubmodule([]).then(() => {
         expect(service.merge).not.toHaveBeenCalled();
       });
     });
 
-    it(`loads nothing if no sources`, () => {
+    it(`loads nothing if empty sources`, () => {
       jest.useFakeTimers();
       loader.loadSubmodule([]);
       jest.runAllTimers();
