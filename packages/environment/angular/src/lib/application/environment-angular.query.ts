@@ -1,7 +1,7 @@
 import { Inject, Injectable, Optional } from '@angular/core';
 import { EnvironmentConfig, EnvironmentQuery, EnvironmentStore } from '@kaikokeke/environment';
 
-import { ENVIRONMENT_CONFIG } from './environment-config.token';
+import { ENVIRONMENT_CONFIG } from '../tokens';
 
 @Injectable()
 export class EnvironmentAngularQuery extends EnvironmentQuery {
