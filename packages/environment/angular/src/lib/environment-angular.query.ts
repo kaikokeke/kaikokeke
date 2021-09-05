@@ -7,7 +7,7 @@ import { ENVIRONMENT_CONFIG } from './environment-config.token';
 export class EnvironmentAngularQuery extends EnvironmentQuery {
   constructor(
     @Inject(EnvironmentStore) protected readonly store: EnvironmentStore,
-    @Optional() @Inject(ENVIRONMENT_CONFIG) protected readonly partialConfig: Partial<EnvironmentConfig>,
+    @Optional() @Inject(ENVIRONMENT_CONFIG) protected readonly partialConfig?: Partial<EnvironmentConfig>,
   ) {
     super(store, partialConfig);
   }

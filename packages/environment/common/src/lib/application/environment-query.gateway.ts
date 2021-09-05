@@ -20,7 +20,7 @@ export abstract class EnvironmentQuery {
    */
   constructor(
     protected readonly store: EnvironmentStore,
-    protected readonly partialConfig: Partial<EnvironmentConfig> = {},
+    protected readonly partialConfig?: Partial<EnvironmentConfig>,
   ) {}
 
   /**

@@ -24,7 +24,7 @@ export abstract class EnvironmentLoader {
    */
   constructor(
     protected readonly service: EnvironmentService,
-    protected readonly sources: PropertiesSource | PropertiesSource[],
+    protected readonly sources?: PropertiesSource | PropertiesSource[],
   ) {}
 
   /**
