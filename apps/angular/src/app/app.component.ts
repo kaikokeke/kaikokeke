@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { serviceInjector } from '@kaikokeke/angular';
+import { injector } from '@kaikokeke/angular';
 import { EnvironmentQuery } from '@kaikokeke/environment';
 
 @Component({
@@ -9,5 +9,5 @@ import { EnvironmentQuery } from '@kaikokeke/environment';
 })
 export class AppComponent {
   title = 'angular';
-  env: EnvironmentQuery = serviceInjector(EnvironmentQuery);
+  env: EnvironmentQuery = injector(EnvironmentQuery);
 }
