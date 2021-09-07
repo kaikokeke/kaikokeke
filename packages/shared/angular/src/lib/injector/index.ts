@@ -1,2 +1,2 @@
 export * from './injector.module';
-export * from './injector.function';
+export * from './inject.function';
