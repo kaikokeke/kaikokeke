@@ -33,7 +33,8 @@
       "executor": "@nrwl/linter:eslint",
       "options": {
         "lintFilePatterns": ["packages/environment/angular/src/**/*.ts", "packages/environment/angular/src/**/*.html"]
-      }
+      },
+      "outputs": ["{options.outputFile}"]
     }
   },
   "tags": ["scope:dependencies", "domain:environment", "framework:angular", "type:library"]
