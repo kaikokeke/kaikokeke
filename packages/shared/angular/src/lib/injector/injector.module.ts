@@ -15,8 +15,6 @@ export class InjectorModule {
   }
 
   constructor(@Optional() @Inject(Injector) protected readonly injector: Injector) {
-    if (this.injector) {
-      InjectorModule._injector = this.injector;
-    }
+    InjectorModule._injector = this.injector;
   }
 }
