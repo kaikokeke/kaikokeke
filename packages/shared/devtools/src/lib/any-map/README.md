@@ -1,6 +1,6 @@
 # AnyMap
 
-AnyMap is a helper class for testing use cases where the value is of type `any`.
+AnyMap is a helper class for testing use cases where the value is of type `any` or `unknown`.
 
 The AnyMap type object contains all the standard Javascript data types in an array called `ANY_MAP`, allowing filtering them using the keywords exposed at the end of the document as full string search, a regular expressions or a function.
 

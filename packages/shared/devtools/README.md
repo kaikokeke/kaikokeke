@@ -12,4 +12,4 @@ yarn add --dev @kaikokeke/devtools
 
 ## API
 
-- [AnyMap](./src/lib/any-map/README.md): a helper class for testing use cases where the value is of type `any`.
+- [AnyMap](./src/lib/any-map/README.md): a helper class for testing use cases where the value is of type `any` or `unknown`.
