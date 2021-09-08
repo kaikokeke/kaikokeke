@@ -307,7 +307,7 @@ export abstract class EnvironmentQuery {
   }
 
   protected getTranspileProperties(properties: Properties, config: EnvironmentConfig): Properties {
-    return config.useEnvironmentToTranspile ? (deepMerge(this.store.getAll(), properties) as Properties) : properties;
+    return config.useEnvironmentToTranspile ? deepMerge(this.store.getAll(), properties) : properties;
   }
 
   protected replacer(substring: string, match: string, properties: Properties): string {

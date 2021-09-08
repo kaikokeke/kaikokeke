@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs';
+import { ObservableInput } from 'rxjs';
 
 import { Path, Properties } from '../types';
 
@@ -66,5 +66,5 @@ export abstract class PropertiesSource {
   /**
    * Asynchronously loads environment properties from source.
    */
-  abstract load(): Observable<Properties> | Promise<Properties>;
+  abstract load(): ObservableInput<Properties>;
 }
