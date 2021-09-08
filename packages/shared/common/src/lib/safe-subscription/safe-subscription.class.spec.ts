@@ -25,7 +25,7 @@ describe('SafeSubscription', () => {
     expect(map.get(key)).toBeUndefined();
     safeSubscription.add(key, fn);
     expect(map.get(key)).toEqual({ subscription: expect.any(Subscription), args: [] });
-    expect(map.get(key).subscription.closed).toEqual(false);
+    expect(map.get(key).subscription.closed).toBeFalse();
   });
 
   it(`add(key, fn) does nothing if the key exists`, () => {
@@ -43,7 +43,7 @@ describe('SafeSubscription', () => {
     map.get(key).subscription.unsubscribe();
     safeSubscription.add(key, fn2);
     expect(map.set).toHaveBeenNthCalledWith(2, key, { subscription: expect.any(Subscription), args: [] });
-    expect(map.get(key).subscription.closed).toEqual(false);
+    expect(map.get(key).subscription.closed).toBeFalse();
   });
 
   it(`add(key, fn, args) does nothing if the key exists and args are equal`, () => {
@@ -60,7 +60,7 @@ describe('SafeSubscription', () => {
     expect(map.set).toHaveBeenNthCalledWith(1, key, { subscription: expect.any(Subscription), args: [0] });
     safeSubscription.add(key, fn2, 1);
     expect(map.set).toHaveBeenNthCalledWith(2, key, { subscription: expect.any(Subscription), args: [1] });
-    expect(map.get(key).subscription.closed).toEqual(false);
+    expect(map.get(key).subscription.closed).toBeFalse();
   });
 
   it(`add(key, fn, args) unsubscribes before replace the Subscription`, () => {

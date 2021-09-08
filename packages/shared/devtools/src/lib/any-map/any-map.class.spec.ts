@@ -126,7 +126,7 @@ describe('AnyMap', () => {
         .includes('anonymousFunction')
         .values()
         .forEach((value) => {
-          expect(isAnonymousFunction(value)).toEqual(true);
+          expect(isAnonymousFunction(value)).toBeTrue();
         });
     });
 
@@ -135,7 +135,7 @@ describe('AnyMap', () => {
         .excludes('anonymousFunction')
         .values()
         .forEach((value) => {
-          expect(isAnonymousFunction(value)).toEqual(false);
+          expect(isAnonymousFunction(value)).toBeFalse();
         });
     });
 
@@ -144,7 +144,7 @@ describe('AnyMap', () => {
         .includes('Array')
         .values()
         .forEach((value) => {
-          expect(Array.isArray(value)).toEqual(true);
+          expect(Array.isArray(value)).toBeTrue();
         });
     });
 
@@ -153,7 +153,7 @@ describe('AnyMap', () => {
         .excludes('Array')
         .values()
         .forEach((value) => {
-          expect(Array.isArray(value)).toEqual(false);
+          expect(Array.isArray(value)).toBeFalse();
         });
     });
 
@@ -162,7 +162,7 @@ describe('AnyMap', () => {
         .includes('ArrayBuffer')
         .values()
         .forEach((value) => {
-          expect(value instanceof ArrayBuffer).toEqual(true);
+          expect(value instanceof ArrayBuffer).toBeTrue();
         });
     });
 
@@ -171,7 +171,7 @@ describe('AnyMap', () => {
         .excludes('ArrayBuffer')
         .values()
         .forEach((value) => {
-          expect(value instanceof ArrayBuffer).toEqual(false);
+          expect(value instanceof ArrayBuffer).toBeFalse();
         });
     });
 
@@ -198,7 +198,7 @@ describe('AnyMap', () => {
         .includes('bigint')
         .values()
         .forEach((value) => {
-          expect(typeof value === 'bigint').toEqual(true);
+          expect(typeof value === 'bigint').toBeTrue();
         });
     });
 
@@ -207,7 +207,7 @@ describe('AnyMap', () => {
         .excludes('bigint')
         .values()
         .forEach((value) => {
-          expect(typeof value === 'bigint').toEqual(false);
+          expect(typeof value === 'bigint').toBeFalse();
         });
     });
 
@@ -216,7 +216,7 @@ describe('AnyMap', () => {
         .includes('BigInt64Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof BigInt64Array).toEqual(true);
+          expect(value instanceof BigInt64Array).toBeTrue();
         });
     });
 
@@ -225,7 +225,7 @@ describe('AnyMap', () => {
         .excludes('BigInt64Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof BigInt64Array).toEqual(false);
+          expect(value instanceof BigInt64Array).toBeFalse();
         });
     });
 
@@ -234,7 +234,7 @@ describe('AnyMap', () => {
         .includes('BigUint64Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof BigUint64Array).toEqual(true);
+          expect(value instanceof BigUint64Array).toBeTrue();
         });
     });
 
@@ -243,7 +243,7 @@ describe('AnyMap', () => {
         .excludes('BigUint64Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof BigUint64Array).toEqual(false);
+          expect(value instanceof BigUint64Array).toBeFalse();
         });
     });
 
@@ -254,7 +254,7 @@ describe('AnyMap', () => {
         .includes('boolean')
         .values()
         .forEach((value) => {
-          expect(typeof value === 'boolean').toEqual(true);
+          expect(typeof value === 'boolean').toBeTrue();
         });
     });
 
@@ -263,7 +263,7 @@ describe('AnyMap', () => {
         .excludes('boolean')
         .values()
         .forEach((value) => {
-          expect(typeof value === 'boolean').toEqual(false);
+          expect(typeof value === 'boolean').toBeFalse();
         });
     });
 
@@ -272,7 +272,7 @@ describe('AnyMap', () => {
         .includes('Boolean')
         .values()
         .forEach((value) => {
-          expect(value instanceof Boolean).toEqual(true);
+          expect(value instanceof Boolean).toBeTrue();
         });
     });
 
@@ -281,7 +281,7 @@ describe('AnyMap', () => {
         .excludes('Boolean')
         .values()
         .forEach((value) => {
-          expect(value instanceof Boolean).toEqual(false);
+          expect(value instanceof Boolean).toBeFalse();
         });
     });
 
@@ -290,7 +290,7 @@ describe('AnyMap', () => {
         .includes('DataView')
         .values()
         .forEach((value) => {
-          expect(value instanceof DataView).toEqual(true);
+          expect(value instanceof DataView).toBeTrue();
         });
     });
 
@@ -299,7 +299,7 @@ describe('AnyMap', () => {
         .excludes('DataView')
         .values()
         .forEach((value) => {
-          expect(value instanceof DataView).toEqual(false);
+          expect(value instanceof DataView).toBeFalse();
         });
     });
 
@@ -308,7 +308,7 @@ describe('AnyMap', () => {
         .includes('Date')
         .values()
         .forEach((value) => {
-          expect(value instanceof Date).toEqual(true);
+          expect(value instanceof Date).toBeTrue();
         });
     });
 
@@ -317,7 +317,7 @@ describe('AnyMap', () => {
         .excludes('Date')
         .values()
         .forEach((value) => {
-          expect(value instanceof Date).toEqual(false);
+          expect(value instanceof Date).toBeFalse();
         });
     });
 
@@ -328,7 +328,7 @@ describe('AnyMap', () => {
         .includes('Element')
         .values()
         .forEach((value) => {
-          expect(isElement(value)).toEqual(true);
+          expect(isElement(value)).toBeTrue();
         });
     });
 
@@ -337,7 +337,7 @@ describe('AnyMap', () => {
         .excludes('Element')
         .values()
         .forEach((value) => {
-          expect(isElement(value)).toEqual(false);
+          expect(isElement(value)).toBeFalse();
         });
     });
 
@@ -346,7 +346,7 @@ describe('AnyMap', () => {
         .includes('Error')
         .values()
         .forEach((value) => {
-          expect(value instanceof Error).toEqual(true);
+          expect(value instanceof Error).toBeTrue();
         });
     });
 
@@ -355,7 +355,7 @@ describe('AnyMap', () => {
         .excludes('Error')
         .values()
         .forEach((value) => {
-          expect(value instanceof Error).toEqual(false);
+          expect(value instanceof Error).toBeFalse();
         });
     });
 
@@ -364,7 +364,7 @@ describe('AnyMap', () => {
         .includes('EvalError')
         .values()
         .forEach((value) => {
-          expect(value instanceof EvalError).toEqual(true);
+          expect(value instanceof EvalError).toBeTrue();
         });
     });
 
@@ -373,7 +373,7 @@ describe('AnyMap', () => {
         .excludes('EvalError')
         .values()
         .forEach((value) => {
-          expect(value instanceof EvalError).toEqual(false);
+          expect(value instanceof EvalError).toBeFalse();
         });
     });
 
@@ -384,7 +384,7 @@ describe('AnyMap', () => {
         .includes('falsy')
         .values()
         .forEach((value) => {
-          expect(Boolean(value)).toEqual(false);
+          expect(Boolean(value)).toBeFalse();
         });
     });
 
@@ -393,7 +393,7 @@ describe('AnyMap', () => {
         .excludes('falsy')
         .values()
         .forEach((value) => {
-          expect(Boolean(value)).toEqual(true);
+          expect(Boolean(value)).toBeTrue();
         });
     });
 
@@ -402,7 +402,7 @@ describe('AnyMap', () => {
         .includes('Float32Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof Float32Array).toEqual(true);
+          expect(value instanceof Float32Array).toBeTrue();
         });
     });
 
@@ -411,7 +411,7 @@ describe('AnyMap', () => {
         .excludes('Float32Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof Float32Array).toEqual(false);
+          expect(value instanceof Float32Array).toBeFalse();
         });
     });
 
@@ -420,7 +420,7 @@ describe('AnyMap', () => {
         .includes('Float64Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof Float64Array).toEqual(true);
+          expect(value instanceof Float64Array).toBeTrue();
         });
     });
 
@@ -429,7 +429,7 @@ describe('AnyMap', () => {
         .excludes('Float64Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof Float64Array).toEqual(false);
+          expect(value instanceof Float64Array).toBeFalse();
         });
     });
 
@@ -438,7 +438,7 @@ describe('AnyMap', () => {
         .includes('function')
         .values()
         .forEach((value) => {
-          expect(typeof value === 'function').toEqual(true);
+          expect(typeof value === 'function').toBeTrue();
         });
     });
 
@@ -447,7 +447,7 @@ describe('AnyMap', () => {
         .excludes('function')
         .values()
         .forEach((value) => {
-          expect(typeof value === 'function').toEqual(false);
+          expect(typeof value === 'function').toBeFalse();
         });
     });
 
@@ -465,7 +465,7 @@ describe('AnyMap', () => {
         .includes('infinity')
         .values()
         .forEach((value) => {
-          expect(isInfinity(value)).toEqual(true);
+          expect(isInfinity(value)).toBeTrue();
         });
     });
 
@@ -474,7 +474,7 @@ describe('AnyMap', () => {
         .excludes('infinity')
         .values()
         .forEach((value) => {
-          expect(isInfinity(value)).toEqual(false);
+          expect(isInfinity(value)).toBeFalse();
         });
     });
 
@@ -483,7 +483,7 @@ describe('AnyMap', () => {
         .includes('Int16Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof Int16Array).toEqual(true);
+          expect(value instanceof Int16Array).toBeTrue();
         });
     });
 
@@ -492,7 +492,7 @@ describe('AnyMap', () => {
         .excludes('Int16Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof Int16Array).toEqual(false);
+          expect(value instanceof Int16Array).toBeFalse();
         });
     });
 
@@ -501,7 +501,7 @@ describe('AnyMap', () => {
         .includes('Int32Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof Int32Array).toEqual(true);
+          expect(value instanceof Int32Array).toBeTrue();
         });
     });
 
@@ -510,7 +510,7 @@ describe('AnyMap', () => {
         .excludes('Int32Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof Int32Array).toEqual(false);
+          expect(value instanceof Int32Array).toBeFalse();
         });
     });
 
@@ -519,7 +519,7 @@ describe('AnyMap', () => {
         .includes('Int8Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof Int8Array).toEqual(true);
+          expect(value instanceof Int8Array).toBeTrue();
         });
     });
 
@@ -528,7 +528,7 @@ describe('AnyMap', () => {
         .excludes('Int8Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof Int8Array).toEqual(false);
+          expect(value instanceof Int8Array).toBeFalse();
         });
     });
 
@@ -543,7 +543,7 @@ describe('AnyMap', () => {
         .includes('iterable')
         .values()
         .forEach((value) => {
-          expect(isIterable(value)).toEqual(true);
+          expect(isIterable(value)).toBeTrue();
         });
     });
 
@@ -552,7 +552,7 @@ describe('AnyMap', () => {
         .excludes('iterable')
         .values()
         .forEach((value) => {
-          expect(isIterable(value)).toEqual(false);
+          expect(isIterable(value)).toBeFalse();
         });
     });
 
@@ -579,7 +579,7 @@ describe('AnyMap', () => {
         .includes('Map')
         .values()
         .forEach((value) => {
-          expect(value instanceof Map).toEqual(true);
+          expect(value instanceof Map).toBeTrue();
         });
     });
 
@@ -588,7 +588,7 @@ describe('AnyMap', () => {
         .excludes('Map')
         .values()
         .forEach((value) => {
-          expect(value instanceof Map).toEqual(false);
+          expect(value instanceof Map).toBeFalse();
         });
     });
 
@@ -619,7 +619,7 @@ describe('AnyMap', () => {
         .includes('namedFunction')
         .values()
         .forEach((value) => {
-          expect(isNamedFunction(value)).toEqual(true);
+          expect(isNamedFunction(value)).toBeTrue();
         });
     });
 
@@ -628,7 +628,7 @@ describe('AnyMap', () => {
         .excludes('namedFunction')
         .values()
         .forEach((value) => {
-          expect(isNamedFunction(value)).toEqual(false);
+          expect(isNamedFunction(value)).toBeFalse();
         });
     });
 
@@ -641,7 +641,7 @@ describe('AnyMap', () => {
         .includes('namedObject')
         .values()
         .forEach((value) => {
-          expect(isNamedObject(value)).toEqual(true);
+          expect(isNamedObject(value)).toBeTrue();
         });
     });
 
@@ -650,7 +650,7 @@ describe('AnyMap', () => {
         .excludes('namedObject')
         .values()
         .forEach((value) => {
-          expect(isNamedObject(value)).toEqual(false);
+          expect(isNamedObject(value)).toBeFalse();
         });
     });
 
@@ -659,7 +659,7 @@ describe('AnyMap', () => {
         .includes('NaN')
         .values()
         .forEach((value) => {
-          expect(Number.isNaN(value)).toEqual(true);
+          expect(Number.isNaN(value)).toBeTrue();
         });
     });
 
@@ -668,7 +668,7 @@ describe('AnyMap', () => {
         .excludes('NaN')
         .values()
         .forEach((value) => {
-          expect(Number.isNaN(value)).toEqual(false);
+          expect(Number.isNaN(value)).toBeFalse();
         });
     });
 
@@ -684,7 +684,7 @@ describe('AnyMap', () => {
         .includes('negative')
         .values()
         .forEach((value) => {
-          expect(isNegative(value)).toEqual(true);
+          expect(isNegative(value)).toBeTrue();
         });
     });
 
@@ -693,7 +693,7 @@ describe('AnyMap', () => {
         .excludes('negative')
         .values()
         .forEach((value) => {
-          expect(isNegative(value)).toEqual(false);
+          expect(isNegative(value)).toBeFalse();
         });
     });
 
@@ -702,7 +702,7 @@ describe('AnyMap', () => {
         .includes('null')
         .values()
         .forEach((value) => {
-          expect(value === null).toEqual(true);
+          expect(value === null).toBeTrue();
         });
     });
 
@@ -711,7 +711,7 @@ describe('AnyMap', () => {
         .excludes('null')
         .values()
         .forEach((value) => {
-          expect(value === null).toEqual(false);
+          expect(value === null).toBeFalse();
         });
     });
 
@@ -738,7 +738,7 @@ describe('AnyMap', () => {
         .includes('number')
         .values()
         .forEach((value) => {
-          expect(typeof value === 'number').toEqual(true);
+          expect(typeof value === 'number').toBeTrue();
         });
     });
 
@@ -747,7 +747,7 @@ describe('AnyMap', () => {
         .excludes('number')
         .values()
         .forEach((value) => {
-          expect(typeof value === 'number').toEqual(false);
+          expect(typeof value === 'number').toBeFalse();
         });
     });
 
@@ -756,7 +756,7 @@ describe('AnyMap', () => {
         .includes('Number')
         .values()
         .forEach((value) => {
-          expect(value instanceof Number).toEqual(true);
+          expect(value instanceof Number).toBeTrue();
         });
     });
 
@@ -765,7 +765,7 @@ describe('AnyMap', () => {
         .excludes('Number')
         .values()
         .forEach((value) => {
-          expect(value instanceof Number).toEqual(false);
+          expect(value instanceof Number).toBeFalse();
         });
     });
 
@@ -774,7 +774,7 @@ describe('AnyMap', () => {
         .includes('object')
         .values()
         .forEach((value) => {
-          expect(typeof value === 'object').toEqual(true);
+          expect(typeof value === 'object').toBeTrue();
         });
     });
 
@@ -783,7 +783,7 @@ describe('AnyMap', () => {
         .excludes('object')
         .values()
         .forEach((value) => {
-          expect(typeof value === 'object').toEqual(false);
+          expect(typeof value === 'object').toBeFalse();
         });
     });
 
@@ -794,7 +794,7 @@ describe('AnyMap', () => {
         .includes('plainObject')
         .values()
         .forEach((value) => {
-          expect(isPlainObject(value)).toEqual(true);
+          expect(isPlainObject(value)).toBeTrue();
         });
     });
 
@@ -803,7 +803,7 @@ describe('AnyMap', () => {
         .excludes('plainObject')
         .values()
         .forEach((value) => {
-          expect(isPlainObject(value)).toEqual(false);
+          expect(isPlainObject(value)).toBeFalse();
         });
     });
 
@@ -816,7 +816,7 @@ describe('AnyMap', () => {
         .includes('primitive')
         .values()
         .forEach((value) => {
-          expect(isPrimitive(value)).toEqual(true);
+          expect(isPrimitive(value)).toBeTrue();
         });
     });
 
@@ -826,7 +826,7 @@ describe('AnyMap', () => {
         .excludes('null')
         .values()
         .forEach((value) => {
-          expect(isPrimitive(value)).toEqual(false);
+          expect(isPrimitive(value)).toBeFalse();
         });
     });
 
@@ -835,7 +835,7 @@ describe('AnyMap', () => {
         .includes('RangeError')
         .values()
         .forEach((value) => {
-          expect(value instanceof RangeError).toEqual(true);
+          expect(value instanceof RangeError).toBeTrue();
         });
     });
 
@@ -844,7 +844,7 @@ describe('AnyMap', () => {
         .excludes('RangeError')
         .values()
         .forEach((value) => {
-          expect(value instanceof RangeError).toEqual(false);
+          expect(value instanceof RangeError).toBeFalse();
         });
     });
 
@@ -853,7 +853,7 @@ describe('AnyMap', () => {
         .includes('ReferenceError')
         .values()
         .forEach((value) => {
-          expect(value instanceof ReferenceError).toEqual(true);
+          expect(value instanceof ReferenceError).toBeTrue();
         });
     });
 
@@ -862,7 +862,7 @@ describe('AnyMap', () => {
         .excludes('ReferenceError')
         .values()
         .forEach((value) => {
-          expect(value instanceof ReferenceError).toEqual(false);
+          expect(value instanceof ReferenceError).toBeFalse();
         });
     });
 
@@ -871,7 +871,7 @@ describe('AnyMap', () => {
         .includes('RegExp')
         .values()
         .forEach((value) => {
-          expect(value instanceof RegExp).toEqual(true);
+          expect(value instanceof RegExp).toBeTrue();
         });
     });
 
@@ -880,7 +880,7 @@ describe('AnyMap', () => {
         .excludes('RegExp')
         .values()
         .forEach((value) => {
-          expect(value instanceof RegExp).toEqual(false);
+          expect(value instanceof RegExp).toBeFalse();
         });
     });
 
@@ -889,7 +889,7 @@ describe('AnyMap', () => {
         .includes('Set')
         .values()
         .forEach((value) => {
-          expect(value instanceof Set).toEqual(true);
+          expect(value instanceof Set).toBeTrue();
         });
     });
 
@@ -898,7 +898,7 @@ describe('AnyMap', () => {
         .excludes('Set')
         .values()
         .forEach((value) => {
-          expect(value instanceof Set).toEqual(false);
+          expect(value instanceof Set).toBeFalse();
         });
     });
 
@@ -907,7 +907,7 @@ describe('AnyMap', () => {
         .includes('SharedArrayBuffer')
         .values()
         .forEach((value) => {
-          expect(value instanceof SharedArrayBuffer).toEqual(true);
+          expect(value instanceof SharedArrayBuffer).toBeTrue();
         });
     });
 
@@ -916,7 +916,7 @@ describe('AnyMap', () => {
         .excludes('SharedArrayBuffer')
         .values()
         .forEach((value) => {
-          expect(value instanceof SharedArrayBuffer).toEqual(false);
+          expect(value instanceof SharedArrayBuffer).toBeFalse();
         });
     });
 
@@ -925,7 +925,7 @@ describe('AnyMap', () => {
         .includes('string')
         .values()
         .forEach((value) => {
-          expect(typeof value === 'string').toEqual(true);
+          expect(typeof value === 'string').toBeTrue();
         });
     });
 
@@ -934,7 +934,7 @@ describe('AnyMap', () => {
         .excludes('string')
         .values()
         .forEach((value) => {
-          expect(typeof value === 'string').toEqual(false);
+          expect(typeof value === 'string').toBeFalse();
         });
     });
 
@@ -943,7 +943,7 @@ describe('AnyMap', () => {
         .includes('String')
         .values()
         .forEach((value) => {
-          expect(value instanceof String).toEqual(true);
+          expect(value instanceof String).toBeTrue();
         });
     });
 
@@ -952,7 +952,7 @@ describe('AnyMap', () => {
         .excludes('String')
         .values()
         .forEach((value) => {
-          expect(value instanceof String).toEqual(false);
+          expect(value instanceof String).toBeFalse();
         });
     });
 
@@ -961,7 +961,7 @@ describe('AnyMap', () => {
         .includes('symbol')
         .values()
         .forEach((value) => {
-          expect(typeof value === 'symbol').toEqual(true);
+          expect(typeof value === 'symbol').toBeTrue();
         });
     });
 
@@ -970,7 +970,7 @@ describe('AnyMap', () => {
         .excludes('symbol')
         .values()
         .forEach((value) => {
-          expect(typeof value === 'symbol').toEqual(false);
+          expect(typeof value === 'symbol').toBeFalse();
         });
     });
 
@@ -979,7 +979,7 @@ describe('AnyMap', () => {
         .includes('SyntaxError')
         .values()
         .forEach((value) => {
-          expect(value instanceof SyntaxError).toEqual(true);
+          expect(value instanceof SyntaxError).toBeTrue();
         });
     });
 
@@ -988,7 +988,7 @@ describe('AnyMap', () => {
         .excludes('SyntaxError')
         .values()
         .forEach((value) => {
-          expect(value instanceof SyntaxError).toEqual(false);
+          expect(value instanceof SyntaxError).toBeFalse();
         });
     });
 
@@ -997,7 +997,7 @@ describe('AnyMap', () => {
         .includes('TypedArray')
         .values()
         .forEach((value) => {
-          expect(isTypedArray(value)).toEqual(true);
+          expect(isTypedArray(value)).toBeTrue();
         });
     });
 
@@ -1006,7 +1006,7 @@ describe('AnyMap', () => {
         .excludes('TypedArray')
         .values()
         .forEach((value) => {
-          expect(isTypedArray(value)).toEqual(false);
+          expect(isTypedArray(value)).toBeFalse();
         });
     });
 
@@ -1015,7 +1015,7 @@ describe('AnyMap', () => {
         .includes('TypeError')
         .values()
         .forEach((value) => {
-          expect(value instanceof TypeError).toEqual(true);
+          expect(value instanceof TypeError).toBeTrue();
         });
     });
 
@@ -1024,7 +1024,7 @@ describe('AnyMap', () => {
         .excludes('TypeError')
         .values()
         .forEach((value) => {
-          expect(value instanceof TypeError).toEqual(false);
+          expect(value instanceof TypeError).toBeFalse();
         });
     });
 
@@ -1033,7 +1033,7 @@ describe('AnyMap', () => {
         .includes('Uint16Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof Uint16Array).toEqual(true);
+          expect(value instanceof Uint16Array).toBeTrue();
         });
     });
 
@@ -1042,7 +1042,7 @@ describe('AnyMap', () => {
         .excludes('Uint16Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof Uint16Array).toEqual(false);
+          expect(value instanceof Uint16Array).toBeFalse();
         });
     });
 
@@ -1051,7 +1051,7 @@ describe('AnyMap', () => {
         .includes('Uint32Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof Uint32Array).toEqual(true);
+          expect(value instanceof Uint32Array).toBeTrue();
         });
     });
 
@@ -1060,7 +1060,7 @@ describe('AnyMap', () => {
         .excludes('Uint32Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof Uint32Array).toEqual(false);
+          expect(value instanceof Uint32Array).toBeFalse();
         });
     });
 
@@ -1069,7 +1069,7 @@ describe('AnyMap', () => {
         .includes('Uint8Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof Uint8Array).toEqual(true);
+          expect(value instanceof Uint8Array).toBeTrue();
         });
     });
 
@@ -1078,7 +1078,7 @@ describe('AnyMap', () => {
         .excludes('Uint8Array')
         .values()
         .forEach((value) => {
-          expect(value instanceof Uint8Array).toEqual(false);
+          expect(value instanceof Uint8Array).toBeFalse();
         });
     });
 
@@ -1087,7 +1087,7 @@ describe('AnyMap', () => {
         .includes('Uint8ClampedArray')
         .values()
         .forEach((value) => {
-          expect(value instanceof Uint8ClampedArray).toEqual(true);
+          expect(value instanceof Uint8ClampedArray).toBeTrue();
         });
     });
 
@@ -1096,7 +1096,7 @@ describe('AnyMap', () => {
         .excludes('Uint8ClampedArray')
         .values()
         .forEach((value) => {
-          expect(value instanceof Uint8ClampedArray).toEqual(false);
+          expect(value instanceof Uint8ClampedArray).toBeFalse();
         });
     });
 
@@ -1123,7 +1123,7 @@ describe('AnyMap', () => {
         .includes('URIError')
         .values()
         .forEach((value) => {
-          expect(value instanceof URIError).toEqual(true);
+          expect(value instanceof URIError).toBeTrue();
         });
     });
 
@@ -1132,7 +1132,7 @@ describe('AnyMap', () => {
         .excludes('URIError')
         .values()
         .forEach((value) => {
-          expect(value instanceof URIError).toEqual(false);
+          expect(value instanceof URIError).toBeFalse();
         });
     });
 
@@ -1141,7 +1141,7 @@ describe('AnyMap', () => {
         .includes('WeakMap')
         .values()
         .forEach((value) => {
-          expect(value instanceof WeakMap).toEqual(true);
+          expect(value instanceof WeakMap).toBeTrue();
         });
     });
 
@@ -1150,7 +1150,7 @@ describe('AnyMap', () => {
         .excludes('WeakMap')
         .values()
         .forEach((value) => {
-          expect(value instanceof WeakMap).toEqual(false);
+          expect(value instanceof WeakMap).toBeFalse();
         });
     });
 
@@ -1159,7 +1159,7 @@ describe('AnyMap', () => {
         .includes('WeakSet')
         .values()
         .forEach((value) => {
-          expect(value instanceof WeakSet).toEqual(true);
+          expect(value instanceof WeakSet).toBeTrue();
         });
     });
 
@@ -1168,7 +1168,7 @@ describe('AnyMap', () => {
         .excludes('WeakSet')
         .values()
         .forEach((value) => {
-          expect(value instanceof WeakSet).toEqual(false);
+          expect(value instanceof WeakSet).toBeFalse();
         });
     });
   });
@@ -1183,7 +1183,7 @@ describe('AnyMap', () => {
           .map((v) => '`' + v + '`')
           .join(', ');
         console.log(keywords);
-        expect(true).toEqual(true);
+        expect(true).toBeTrue();
       });
   */
 });

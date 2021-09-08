@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { KaikokekeCommonAngularModule } from '@kaikokeke/angular';
+import { KaikokekeAngularModule } from '@kaikokeke/angular';
 
 import { AppComponent } from './app.component';
 import { AkitaEnvironmentModule } from './environment/akita-environment.module';
@@ -7,7 +7,7 @@ import { AkitaEnvironmentModule } from './environment/akita-environment.module';
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [KaikokekeCommonAngularModule, AkitaEnvironmentModule],
+      imports: [KaikokekeAngularModule, AkitaEnvironmentModule],
       declarations: [AppComponent],
     }).compileComponents();
   });

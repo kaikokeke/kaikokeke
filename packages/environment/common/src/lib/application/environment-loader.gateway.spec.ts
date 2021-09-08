@@ -1034,10 +1034,10 @@ describe('EnvironmentLoader', () => {
       loader.load();
       jest.advanceTimersByTime(10);
       expect(service.merge).toHaveBeenCalledTimes(1);
-      expect(loader['destroy$List'][0].isStopped).toEqual(false);
+      expect(loader['destroy$List'][0].isStopped).toBeFalse();
       loader.onDestroy();
       jest.runAllTimers();
-      expect(loader['destroy$List'][0].isStopped).toEqual(true);
+      expect(loader['destroy$List'][0].isStopped).toBeTrue();
       expect(service.merge).toHaveBeenCalledTimes(1);
     });
 
@@ -1046,10 +1046,10 @@ describe('EnvironmentLoader', () => {
       jest.useFakeTimers();
       loader.load();
       jest.advanceTimersByTime(10);
-      expect(loader['load$List'][0].isStopped).toEqual(false);
+      expect(loader['load$List'][0].isStopped).toBeFalse();
       loader.onDestroy();
       jest.runAllTimers();
-      expect(loader['load$List'][0].isStopped).toEqual(true);
+      expect(loader['load$List'][0].isStopped).toBeTrue();
     });
 
     it(`completes the required to load sources`, () => {
@@ -1057,10 +1057,10 @@ describe('EnvironmentLoader', () => {
       jest.useFakeTimers();
       loader.load();
       jest.advanceTimersByTime(10);
-      expect(loader['requiredToLoad$List'][0].isStopped).toEqual(false);
+      expect(loader['requiredToLoad$List'][0].isStopped).toBeFalse();
       loader.onDestroy();
       jest.runAllTimers();
-      expect(loader['requiredToLoad$List'][0].isStopped).toEqual(true);
+      expect(loader['requiredToLoad$List'][0].isStopped).toBeTrue();
     });
   });
 });

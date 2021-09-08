@@ -22,30 +22,30 @@ describe('PropertiesSource', () => {
   });
 
   it(`.requiredToLoad is false by default`, () => {
-    expect(source.requiredToLoad).toEqual(false);
+    expect(source.requiredToLoad).toBeFalse();
   });
 
   it(`.loadInOrder is false by default`, () => {
-    expect(source.loadInOrder).toEqual(false);
+    expect(source.loadInOrder).toBeFalse();
   });
 
   it(`.loadImmediately is false by default`, () => {
-    expect(source.loadImmediately).toEqual(false);
+    expect(source.loadImmediately).toBeFalse();
   });
 
   it(`.dismissOtherSources is false by default`, () => {
-    expect(source.dismissOtherSources).toEqual(false);
+    expect(source.dismissOtherSources).toBeFalse();
   });
 
   it(`.deepMergeValues is false by default`, () => {
-    expect(source.deepMergeValues).toEqual(false);
+    expect(source.deepMergeValues).toBeFalse();
   });
 
   it(`.resetEnvironment is false by default`, () => {
-    expect(source.resetEnvironment).toEqual(false);
+    expect(source.resetEnvironment).toBeFalse();
   });
 
   it(`.ignoreError is false by default`, () => {
-    expect(source.ignoreError).toEqual(false);
+    expect(source.ignoreError).toBeFalse();
   });
 });
