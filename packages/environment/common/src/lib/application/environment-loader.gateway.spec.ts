@@ -203,6 +203,13 @@ class PromiseSource extends PropertiesSource {
   }
 }
 
+class ArraySource extends PropertiesSource {
+  requiredToLoad = true;
+  load(): Array<Properties> {
+    return [{ array: 0 }];
+  }
+}
+
 const orderedSources = [
   new RequiredOrderedSource(),
   new NoRequiredOrderedSource(),
@@ -657,6 +664,16 @@ describe('EnvironmentLoader', () => {
       });
     });
 
+    // Load Array
+
+    it(`works if source load returns an Array`, () => {
+      (loader as unknown)['sources'] = [new ArraySource()];
+      return loader.load().then(() => {
+        expect(service.merge).toHaveBeenNthCalledWith(1, { array: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(1);
+      });
+    });
+
     // single source
 
     it(`works with a single source`, () => {
@@ -1010,6 +1027,15 @@ describe('EnvironmentLoader', () => {
     it(`works if source load returns a Promise`, () => {
       return loader.loadSubmodule([new PromiseSource()]).then(() => {
         expect(service.merge).toHaveBeenNthCalledWith(1, { p: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    // Load Array
+
+    it(`works if source load returns an Array`, () => {
+      return loader.loadSubmodule([new ArraySource()]).then(() => {
+        expect(service.merge).toHaveBeenNthCalledWith(1, { array: 0 }, undefined);
         expect(service.merge).toHaveBeenCalledTimes(1);
       });
     });
