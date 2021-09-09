@@ -1,5 +1,5 @@
-import { deepMerge, unfreeze, unfreezeAll } from '@kaikokeke/common';
-import { get, isEqual, isString } from 'lodash-es';
+import { deepMerge } from '@kaikokeke/common';
+import { cloneDeep, get, isEqual, isString } from 'lodash-es';
 import { Observable } from 'rxjs';
 import { distinctUntilChanged, map, shareReplay } from 'rxjs/operators';
 
@@ -28,7 +28,11 @@ export abstract class EnvironmentQuery {
    * @returns All the environment properties as Observable.
    */
   getProperties$(): Observable<Properties> {
-    return this.store.getAll$().pipe(distinctUntilChanged(isEqual), shareReplay(1), unfreezeAll());
+    return this.store.getAll$().pipe(
+      distinctUntilChanged(isEqual),
+      shareReplay(1),
+      map((environment: Properties) => this.asMutable(environment)),
+    );
   }
 
   /**
@@ -38,7 +42,11 @@ export abstract class EnvironmentQuery {
   getProperties(): Properties {
     const environment: Properties = this.store.getAll();
 
-    return unfreeze(environment);
+    return this.asMutable(environment);
+  }
+
+  protected asMutable(environment: Properties): Properties {
+    return Object.isSealed(environment) ? cloneDeep(environment) : environment;
   }
 
   /**
@@ -48,7 +56,10 @@ export abstract class EnvironmentQuery {
    * @see Path
    */
   getProperty$<P extends Property>(path: Path): Observable<P | undefined> {
-    return this.getProperties$().pipe(map((environment: Properties): P | undefined => get(environment, path)));
+    return this.getProperties$().pipe(
+      map((environment: Properties): P | undefined => get(environment, path)),
+      distinctUntilChanged(isEqual),
+    );
   }
 
   /**
@@ -70,7 +81,10 @@ export abstract class EnvironmentQuery {
    * @see Path
    */
   containsProperty$(path: Path): Observable<boolean> {
-    return this.getProperty$(path).pipe(map((property?: Property) => property !== undefined));
+    return this.getProperty$(path).pipe(
+      map((property?: Property) => property !== undefined),
+      distinctUntilChanged(),
+    );
   }
 
   /**
@@ -93,7 +107,10 @@ export abstract class EnvironmentQuery {
    * @see Path
    */
   getRequiredProperty$<P extends Property, D extends Property>(path: Path, defaultValue: D): Observable<P | D> {
-    return this.getProperties$().pipe(map((environment: Properties): P | D => get(environment, path, defaultValue)));
+    return this.getProperties$().pipe(
+      map((environment: Properties): P | D => get(environment, path, defaultValue)),
+      distinctUntilChanged(isEqual),
+    );
   }
 
   /**
@@ -209,6 +226,7 @@ export abstract class EnvironmentQuery {
 
         return this.transpile(property, properties, config);
       }),
+      distinctUntilChanged(isEqual),
     );
   }
 
@@ -252,6 +270,7 @@ export abstract class EnvironmentQuery {
   ): Observable<P | D | string> {
     return this.getRequiredProperty$<P, D>(path, defaultValue).pipe(
       map((property: P | D) => this.transpile(property, properties, config)),
+      distinctUntilChanged(isEqual),
     );
   }
 
@@ -298,8 +317,10 @@ export abstract class EnvironmentQuery {
 
   protected getMatcher(config: EnvironmentConfig): RegExp {
     const [start, end]: [string, string] = config.interpolation;
+    const escapedStart: string = this.escapeChars(start);
+    const escapedEnd: string = this.escapeChars(end);
 
-    return new RegExp(`${this.escapeChars(start)}\\s*(.*?)\\s*${this.escapeChars(end)}`, 'g');
+    return new RegExp(`${escapedStart}\\s*(.*?)\\s*${escapedEnd}`, 'g');
   }
 
   protected escapeChars(chars: string): string {
@@ -307,7 +328,13 @@ export abstract class EnvironmentQuery {
   }
 
   protected getTranspileProperties(properties: Properties, config: EnvironmentConfig): Properties {
-    return config.useEnvironmentToTranspile ? deepMerge(this.store.getAll(), properties) : properties;
+    if (!config.useEnvironmentToTranspile) {
+      return properties;
+    }
+
+    const environment: Properties = this.store.getAll();
+
+    return deepMerge(environment, properties);
   }
 
   protected replacer(substring: string, match: string, properties: Properties): string {
