@@ -1,7 +1,7 @@
 import { cloneDeep, isEqual } from 'lodash-es';
 
 /**
- * Unfreezes the frozen object value.
+ * Unfreezes the frozen or sealed object values.
  *
  * This method is loosely based on the structured clone algorithm and supports cloning arrays, array buffers, booleans,
  * date objects, maps, numbers, Object objects, regexes, sets, strings, symbols, and typed arrays.

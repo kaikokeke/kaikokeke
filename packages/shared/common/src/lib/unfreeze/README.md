@@ -1,9 +1,10 @@
 # Unfreeze
 
-Unfreezes the frozen object value.
+Unfreezes the frozen or sealed object values.
 
 This method is loosely based on the structured clone algorithm and supports cloning arrays, array buffers, booleans, date objects, maps, numbers, Object objects, regexes, sets, strings, symbols, and typed arrays.
-The own enumerable properties of arguments objects are cloned as plain objects. The object is returned as is for uncloneable values such as error objects, functions, DOM nodes, JSON object, Atomics object, Math object, WeakSets, WeakMaps, BigInt64Array, BigUint64Array and SharedArrayBuffers.
+The own enumerable properties of arguments objects are cloned as plain objects.
+The object is returned as is for uncloneable values such as error objects, functions, DOM nodes, JSON object, Atomics object, Math object, WeakSets, WeakMaps, BigInt64Array, BigUint64Array and SharedArrayBuffers.
 
 ## API
 

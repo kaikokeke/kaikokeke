@@ -28,8 +28,8 @@ deepMerge(obj1, obj2);
 ```ts
 import { deepMerge } from '@kaikokeke/common';
 
-const a: Record<PropertyKey, unknown> = { a: { a: [0] }, b: 1 };
-const b: Record<PropertyKey, unknown> = { a: { a: [1] }, b: 0, c: { a: 0 } };
-const c: Record<PropertyKey, unknown> = { a: { a: [1] }, b: undefined, c: { b: 1 } };
+const a: object = { a: { a: [0] }, b: 1 };
+const b: object = { a: { a: [1] }, b: 0, c: { a: 0 } };
+const c: object = { a: { a: [1] }, b: undefined, c: { b: 1 } };
 deepMerge(a, b, c); // { a: { a: [0, 1, 1] }, b: 0, c: { a: 0, b: 1} }
 ```
