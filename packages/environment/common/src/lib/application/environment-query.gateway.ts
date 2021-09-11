@@ -306,9 +306,9 @@ export abstract class EnvironmentQuery {
       const matcher: RegExp = this.getMatcher(transpileConfig);
 
       return value.replace(matcher, (substring: string, match: string) => {
-        const transpiledProperties: Properties = this.getTranspileProperties(properties, transpileConfig);
+        const transpileProperties: Properties = this.getTranspileProperties(properties, transpileConfig);
 
-        return this.replacer(substring, match, transpiledProperties);
+        return this.replacer(substring, match, transpileProperties);
       });
     }
 
