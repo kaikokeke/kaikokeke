@@ -1,4 +1,5 @@
 import { ObservableInput } from 'rxjs';
+import { v4 } from 'uuid';
 
 import { Path, Properties } from '../types';
 
@@ -6,6 +7,12 @@ import { Path, Properties } from '../types';
  * An environment properties source definition to get the application properties asynchronously.
  */
 export abstract class PropertiesSource {
+  /**
+   * The unique random id for each class instance.
+   * @see RFC4122 v4
+   */
+  readonly id: string = v4();
+
   /**
    * The properties source name.
    * Defaults to the class name.
@@ -44,13 +51,6 @@ export abstract class PropertiesSource {
   deepMergeValues = false;
 
   /**
-   * The optional path where the loaded properties are going to be setted in the environment.
-   * If a path is not specified, the loaded properties will be set to the root of the environment properties.
-   * @see Path
-   */
-  path?: Path;
-
-  /**
    * Resets the environment before inserting the properties from this source.
    * Defaults to `false`.
    */
@@ -62,6 +62,13 @@ export abstract class PropertiesSource {
    * Defaults to `false`.
    */
   ignoreError = false;
+
+  /**
+   * The optional path where the loaded properties are going to be setted in the environment.
+   * If a path is not specified, the loaded properties will be set to the root of the environment properties.
+   * @see Path
+   */
+  path?: Path;
 
   /**
    * Asynchronously loads environment properties from source.

@@ -69,9 +69,7 @@ export abstract class EnvironmentLoader {
 
   protected watchRequiredToLoadSources(index: number, sources: PropertiesSource[]): void {
     const requiredToLoadSources: Set<string> = new Set(
-      sources
-        .filter((source: PropertiesSource) => source.requiredToLoad)
-        .map((source: PropertiesSource) => source.name),
+      sources.filter((source: PropertiesSource) => source.requiredToLoad).map((source: PropertiesSource) => source.id),
     );
 
     this.requiredToLoad$List[index]
@@ -174,7 +172,7 @@ export abstract class EnvironmentLoader {
 
   protected checkRequiredToLoad(index: number, value: Properties, source: PropertiesSource): void {
     if (source.requiredToLoad) {
-      const requiredToLoadLoaded: Set<string> = this.requiredToLoad$List[index].getValue().add(source.name);
+      const requiredToLoadLoaded: Set<string> = this.requiredToLoad$List[index].getValue().add(source.id);
 
       this.requiredToLoad$List[index].next(requiredToLoadLoaded);
     }

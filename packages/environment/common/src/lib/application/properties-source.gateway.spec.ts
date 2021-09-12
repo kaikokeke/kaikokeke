@@ -1,11 +1,11 @@
-import { Observable } from 'rxjs';
+import { ObservableInput } from 'rxjs';
+import { validate } from 'uuid';
 
 import { Properties } from '../types';
 import { PropertiesSource } from './properties-source.gateway';
 
 class TestPropertiesSource extends PropertiesSource {
-  name = 'TestPropertiesSource';
-  load(): Observable<Properties> | Promise<Properties> {
+  load(): ObservableInput<Properties> {
     throw new Error('Method not implemented.');
   }
 }
@@ -15,6 +15,10 @@ describe('PropertiesSource', () => {
 
   beforeEach(() => {
     source = new TestPropertiesSource();
+  });
+
+  it(`.id is setted with an UUID`, () => {
+    expect(validate(source.id)).toBeTrue();
   });
 
   it(`.name is setted with the class name`, () => {
