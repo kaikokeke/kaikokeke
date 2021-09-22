@@ -1,3 +1,4 @@
+import { HttpClientModule } from '@angular/common/http';
 import { Injectable, NgModule } from '@angular/core';
 import { Store, StoreConfig } from '@datorama/akita';
 import { EnvironmentStore, Properties } from '@kaikokeke/environment';
@@ -38,7 +39,7 @@ export class AngularAkitaEnvironmentStore extends EnvironmentStore {
 }
 
 @NgModule({
-  imports: [EnvironmentModule.forRoot()],
+  imports: [HttpClientModule, EnvironmentModule.forRoot()],
   providers: [{ provide: EnvironmentStore, useClass: AngularAkitaEnvironmentStore }, ...PROPERTIES_SOURCE_PROVIDERS],
 })
 export class AkitaEnvironmentModule {}
