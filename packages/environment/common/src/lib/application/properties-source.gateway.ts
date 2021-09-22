@@ -11,13 +11,13 @@ export abstract class PropertiesSource {
    * The unique random id for each class instance.
    * @see RFC4122 v4
    */
-  readonly id: string = v4();
+  readonly _sourceId: string = v4();
 
   /**
    * The properties source name.
    * Defaults to the class name.
    */
-  name: string = this.constructor.name;
+  sourceName: string = this.constructor.name;
 
   /**
    * Loads the source values before the application or submodule load.
@@ -51,12 +51,6 @@ export abstract class PropertiesSource {
   deepMergeValues = false;
 
   /**
-   * Resets the environment before inserting the properties from this source.
-   * Defaults to `false`.
-   */
-  resetEnvironment = false;
-
-  /**
    * Ignores the errors from the source load.
    * The application or submodule load will not occur if the source load throws an error.
    * Defaults to `false`.
@@ -74,4 +68,36 @@ export abstract class PropertiesSource {
    * Asynchronously loads environment properties from source.
    */
   abstract load(): ObservableInput<Properties>;
+
+  /**
+   * Actions to be executed before load the properties in the environment.
+   * @param properties The loaded environment properties from source.
+   */
+  onBeforeLoad(properties: Properties): void {
+    // Override to provide functionality.
+  }
+
+  /**
+   * Actions to be executed after load the properties in the environment.
+   * @param properties The loaded environment properties from source.
+   */
+  onAfterLoad(properties: Properties): void {
+    // Override to provide functionality.
+  }
+
+  /**
+   * Actions to be executed after a source error before the application load.
+   * @param error The returned source error.
+   */
+  onError(error: Error): void {
+    // Override to provide functionality.
+  }
+
+  /**
+   * Actions to be executed after an ignored source error or any error after the application load.
+   * @param error The returned source error.
+   */
+  onSoftError(error: Error): void {
+    // Override to provide functionality.
+  }
 }

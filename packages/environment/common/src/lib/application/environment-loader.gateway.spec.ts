@@ -30,241 +30,78 @@ class TestLoaderService extends EnvironmentLoader {
   }
 }
 
-class RequiredOrderedSource extends PropertiesSource {
-  requiredToLoad = true;
-  loadInOrder = true;
-  load(): Observable<Properties> {
-    return of({ io: 0 }).pipe(delay(10));
-  }
-}
-
-class RequiredOrderedSource2 extends PropertiesSource {
-  requiredToLoad = true;
-  loadInOrder = true;
-  load(): Observable<Properties> {
-    return of({ io2: 0 }).pipe(delay(10));
-  }
-}
-
-class NoRequiredOrderedSource extends PropertiesSource {
-  requiredToLoad = false;
-  loadInOrder = true;
-  load(): Observable<Properties> {
-    return of({ nio: 0 }).pipe(delay(10));
-  }
-}
-
-class NoRequiredOrderedSource2 extends PropertiesSource {
-  requiredToLoad = false;
-  loadInOrder = true;
-  load(): Observable<Properties> {
-    return of({ nio2: 0 }).pipe(delay(10));
-  }
-}
-
-class RequiredUnorderedSource extends PropertiesSource {
-  requiredToLoad = true;
-  loadInOrder = false;
-  load(): Observable<Properties> {
-    return of({ iu: 0 }).pipe(delay(10));
-  }
-}
-
-class RequiredUnorderedSource2 extends PropertiesSource {
-  requiredToLoad = true;
-  loadInOrder = false;
-  load(): Observable<Properties> {
-    return of({ iu: 0 }).pipe(delay(10));
-  }
-}
-
-class NoRequiredUnorderedSource extends PropertiesSource {
-  requiredToLoad = false;
-  loadInOrder = false;
-  load(): Observable<Properties> {
-    return of({ niu: 0 }).pipe(delay(10));
-  }
-}
-
-class NoRequiredUnorderedSource2 extends PropertiesSource {
-  requiredToLoad = false;
-  loadInOrder = false;
-  load(): Observable<Properties> {
-    return of({ niu: 0 }).pipe(delay(10));
-  }
-}
-
-class RequiredOrderedMultipleCompletesSource extends PropertiesSource {
-  requiredToLoad = true;
-  loadInOrder = true;
-  load(): Observable<Properties> {
-    return interval(10).pipe(
-      map((n) => ({ a: n })),
-      take(3),
-    );
-  }
-}
-
-class LoadImmediatelySource extends PropertiesSource {
-  requiredToLoad = true;
-  loadInOrder = true;
-  loadImmediately = true;
-  load(): Observable<Properties> {
-    return of({ li: 0 }).pipe(delay(10));
-  }
-}
-
-class DismissOtherSourcesSource extends PropertiesSource {
-  requiredToLoad = true;
-  loadInOrder = true;
-  dismissOtherSources = true;
-  load(): Observable<Properties> {
-    return of({ dos: 0 }).pipe(delay(1));
-  }
-}
-
-class MergeSource extends PropertiesSource {
-  deepMergeValues = false;
-  load(): Observable<Properties> {
-    return of({ mv: 0 }).pipe(delay(10));
-  }
-}
-
-class DeepMergeSource extends PropertiesSource {
-  deepMergeValues = true;
-  load(): Observable<Properties> {
-    return of({ dmv: 0 }).pipe(delay(10));
-  }
-}
-
-class PathMergeSource extends PropertiesSource {
-  deepMergeValues = false;
-  path = 'a';
-  load(): Observable<Properties> {
-    return of({ pmv: 0 }).pipe(delay(10));
-  }
-}
-
-class PathDeepMergeSource extends PropertiesSource {
-  deepMergeValues = true;
-  path = 'a';
-  load(): Observable<Properties> {
-    return of({ pdmv: 0 }).pipe(delay(10));
-  }
-}
-
-class ResetEnvironmentSource extends PropertiesSource {
-  resetEnvironment = true;
-  load(): Observable<Properties> {
-    return of({ pdmv: 0 }).pipe(delay(10));
-  }
-}
-
-class ErrorNoMessageSource extends PropertiesSource {
-  requiredToLoad = true;
-  ignoreError = true;
-  loadInOrder = true;
-  load(): Observable<Properties> {
-    return throwError(new Error()).pipe(delay(10));
-  }
-}
-
-class NoIgnoreRequiredErrorSource extends PropertiesSource {
-  requiredToLoad = true;
-  ignoreError = false;
-  loadInOrder = true;
-  load(): Observable<Properties> {
-    return throwError(new Error('error')).pipe(delay(10));
-  }
-}
-
-class IgnoreRequiredErrorSource extends PropertiesSource {
-  requiredToLoad = true;
-  ignoreError = true;
-  loadInOrder = true;
-  load(): Observable<Properties> {
-    return throwError(new Error('error')).pipe(delay(10));
-  }
-}
-
-class NoIgnoreNoRequiredErrorSource extends PropertiesSource {
-  requiredToLoad = false;
-  ignoreError = false;
-  loadInOrder = true;
-  load(): Observable<Properties> {
-    return throwError(new Error('error')).pipe(delay(10));
-  }
-}
-
 class PromiseSource extends PropertiesSource {
-  requiredToLoad = true;
   async load(): Promise<Properties> {
     return Promise.resolve({ p: 0 });
   }
 }
 
 class ArraySource extends PropertiesSource {
-  requiredToLoad = true;
-  load(): Array<Properties> {
-    return [{ array: 0 }];
+  load(): Properties[] {
+    return [{ arr: 0 }];
   }
 }
 
-const orderedSources = [
-  new RequiredOrderedSource(),
-  new NoRequiredOrderedSource(),
-  new RequiredOrderedSource2(),
-  new NoRequiredOrderedSource2(),
-];
+class Source1 extends PropertiesSource {
+  load(): Observable<Properties> {
+    return of({ a: 0 }).pipe(delay(5));
+  }
+}
 
-const unorderedSources = [
-  new RequiredUnorderedSource(),
-  new NoRequiredUnorderedSource(),
-  new RequiredUnorderedSource2(),
-  new NoRequiredUnorderedSource2(),
-];
+class Source2 extends PropertiesSource {
+  load(): Observable<Properties> {
+    return of({ b: 0 }).pipe(delay(5));
+  }
+}
 
-const noRequiredSources = [new NoRequiredOrderedSource(), new NoRequiredOrderedSource2()];
+class InfiniteSource extends PropertiesSource {
+  load(): Observable<Properties> {
+    return interval(5).pipe(map((n) => ({ i: n })));
+  }
+}
 
-const mixedOrderSources = [
-  new RequiredOrderedSource(),
-  new NoRequiredOrderedSource(),
-  new RequiredUnorderedSource2(),
-  new NoRequiredUnorderedSource2(),
-];
+class MultipleSource extends PropertiesSource {
+  load(): Observable<Properties> {
+    return interval(5).pipe(
+      map((n) => ({ m: n })),
+      take(2),
+    );
+  }
+}
 
-const multipleSources = [new RequiredOrderedMultipleCompletesSource(), new RequiredOrderedSource()];
+class ErrorSource extends PropertiesSource {
+  load(): Observable<Properties> {
+    return throwError(new Error()).pipe(delay(5));
+  }
+}
 
-const loadImmediatellySources = [
-  new RequiredOrderedSource(),
-  new LoadImmediatelySource(),
-  new RequiredOrderedSource2(),
-];
+class ErrorMessageSource extends PropertiesSource {
+  load(): Observable<Properties> {
+    return throwError(new Error('error')).pipe(delay(5));
+  }
+}
 
-const dismissOtherSourcesSources = [
-  new DismissOtherSourcesSource(),
-  new RequiredOrderedSource(),
-  new NoRequiredUnorderedSource(),
-  new RequiredOrderedSource2(),
-];
+const requiredErrorSource = new ErrorSource();
+requiredErrorSource.requiredToLoad = true;
 
-const errorNoIgnoreRequired = [
-  new RequiredOrderedSource(),
-  new NoIgnoreRequiredErrorSource(),
-  new RequiredOrderedSource2(),
-];
+const requiredOrderedErrorSource = new ErrorSource();
+requiredOrderedErrorSource.requiredToLoad = true;
+requiredOrderedErrorSource.loadInOrder = true;
 
-const errorIgnoreRequired = [
-  new RequiredOrderedSource(),
-  new IgnoreRequiredErrorSource(),
-  new RequiredOrderedSource2(),
-];
+const requiredOrderedSource1 = new Source1();
+requiredOrderedSource1.requiredToLoad = true;
+requiredOrderedSource1.loadInOrder = true;
 
-const errorNoIgnoreNoRequired = [
-  new RequiredOrderedSource(),
-  new NoIgnoreNoRequiredErrorSource(),
-  new RequiredOrderedSource2(),
-];
+const requiredOrderedSource2 = new Source2();
+requiredOrderedSource2.requiredToLoad = true;
+requiredOrderedSource2.loadInOrder = true;
+
+const orderedSource1 = new Source1();
+orderedSource1.loadInOrder = true;
+
+const immediateOrderedSource1 = new Source1();
+immediateOrderedSource1.loadInOrder = true;
+immediateOrderedSource1.loadImmediately = true;
 
 describe('EnvironmentLoader', () => {
   let service: EnvironmentService;
@@ -273,8 +110,6 @@ describe('EnvironmentLoader', () => {
   beforeEach(() => {
     service = new TestEnvironmentService(new TestStore());
     loader = new TestLoaderService(service);
-    jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    jest.spyOn(service, 'merge');
   });
 
   afterEach(() => {
@@ -284,781 +119,188 @@ describe('EnvironmentLoader', () => {
   });
 
   describe('load()', () => {
-    // no sources
-
-    it(`returns resolved Promise immedialely if no sources`, () => {
+    it(`returns resolved Promise if no sources`, async () => {
       (loader as unknown)['sources'] = undefined;
-      return loader.load().then(() => {
-        expect(service.merge).not.toHaveBeenCalled();
-      });
-    });
-
-    it(`returns resolved Promise immedialely if empty sources`, () => {
+      await expect(loader.load()).toResolve();
+      (loader as unknown)['sources'] = null;
+      await expect(loader.load()).toResolve();
       (loader as unknown)['sources'] = [];
-      return loader.load().then(() => {
-        expect(service.merge).not.toHaveBeenCalled();
-      });
+      await expect(loader.load()).toResolve();
     });
 
-    it(`loads nothing if no sources`, () => {
-      (loader as unknown)['sources'] = undefined;
+    it(`doesn't add properties if no sources`, () => {
+      jest.spyOn(service, 'merge');
       jest.useFakeTimers();
-      loader.load();
-      jest.runAllTimers();
-      expect(service.merge).not.toHaveBeenCalled();
-    });
-
-    it(`loads nothing if empty sources`, () => {
       (loader as unknown)['sources'] = [];
-      jest.useFakeTimers();
       loader.load();
       jest.runAllTimers();
       expect(service.merge).not.toHaveBeenCalled();
     });
 
-    // PropertiesSource.requiredToLoad
-
-    it(`returns resolved Promise when all sources with requiredToLoad loads`, () => {
-      (loader as unknown)['sources'] = orderedSources;
-      return loader.load().then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
-        expect(service.merge).toHaveBeenNthCalledWith(2, { nio: 0 }, undefined);
-        expect(service.merge).toHaveBeenNthCalledWith(3, { io2: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(3);
-      });
-    });
-
-    it(`returns resolved Promise immedialely if no sources with requiredToLoad`, () => {
-      (loader as unknown)['sources'] = noRequiredSources;
-      return loader.load().then(() => {
-        expect(service.merge).not.toHaveBeenCalled();
-      });
-    });
-
-    it(`loads all sources ignoring requiredToLoad`, () => {
-      (loader as unknown)['sources'] = mixedOrderSources;
+    it(`execute onLoad() if no sources`, () => {
+      jest.spyOn<any, any>(loader, 'onLoad');
+      jest.spyOn<any, any>(loader, 'onError');
       jest.useFakeTimers();
+      (loader as unknown)['sources'] = [];
       loader.load();
       jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(4);
+      expect(loader['onLoad']).toHaveBeenCalledTimes(1);
+      expect(loader['onError']).not.toHaveBeenCalled();
     });
 
-    // PropertiesSource.loadInOrder
+    it(`returns resolved Promise if source`, async () => {
+      (loader as unknown)['sources'] = [new Source1()];
+      await expect(loader.load()).toResolve();
+    });
 
-    it(`loads all sources in order if loadInOrder`, () => {
-      (loader as unknown)['sources'] = orderedSources;
+    it(`adds properties if source`, () => {
+      jest.spyOn(service, 'merge');
       jest.useFakeTimers();
+      (loader as unknown)['sources'] = [new Source1()];
       loader.load();
-      jest.advanceTimersByTime(9);
-      expect(service.merge).not.toHaveBeenCalled();
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).toHaveBeenCalledTimes(1);
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenNthCalledWith(2, { nio: 0 }, undefined);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).toHaveBeenCalledTimes(2);
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenNthCalledWith(3, { io2: 0 }, undefined);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).toHaveBeenCalledTimes(3);
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenNthCalledWith(4, { nio2: 0 }, undefined);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).toHaveBeenCalledTimes(4);
       jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(4);
-    });
-
-    it(`loads all sources at once if no loadInOrder`, () => {
-      (loader as unknown)['sources'] = unorderedSources;
-      jest.useFakeTimers();
-      loader.load();
-      jest.advanceTimersByTime(9);
-      expect(service.merge).not.toHaveBeenCalled();
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenCalledWith({ iu: 0 }, undefined);
-      expect(service.merge).toHaveBeenCalledWith({ niu: 0 }, undefined);
-      jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(4);
-    });
-
-    it(`loads all sources mixing loadInOrder and no loadInOrder values`, () => {
-      (loader as unknown)['sources'] = mixedOrderSources;
-      jest.useFakeTimers();
-      loader.load();
-      jest.advanceTimersByTime(9);
-      expect(service.merge).not.toHaveBeenCalled();
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenCalledWith({ iu: 0 }, undefined);
-      expect(service.merge).toHaveBeenCalledWith({ niu: 0 }, undefined);
-      expect(service.merge).toHaveBeenCalledWith({ io: 0 }, undefined);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).toHaveBeenCalledTimes(3);
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenNthCalledWith(4, { nio: 0 }, undefined);
-      jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(4);
-    });
-
-    it(`loads all sources with loadInOrder if one is multiple and completes`, () => {
-      (loader as unknown)['sources'] = multipleSources;
-      jest.useFakeTimers();
-      loader.load();
-      jest.advanceTimersByTime(9);
-      expect(service.merge).not.toHaveBeenCalled();
-      jest.advanceTimersByTime(1);
       expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).toHaveBeenCalledTimes(1);
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenNthCalledWith(2, { a: 1 }, undefined);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).toHaveBeenCalledTimes(2);
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenNthCalledWith(3, { a: 2 }, undefined);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).toHaveBeenCalledTimes(3);
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenNthCalledWith(4, { io: 0 }, undefined);
-      jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(4);
-    });
-
-    // PropertiesSource.loadImmediately
-
-    it(`returns resolved Promise just after loadImmediately source load `, () => {
-      (loader as unknown)['sources'] = loadImmediatellySources;
-      return loader.load().then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
-        expect(service.merge).toHaveBeenNthCalledWith(2, { li: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(2);
-      });
-    });
-
-    it(`loads all sources if loadImmediately`, () => {
-      (loader as unknown)['sources'] = loadImmediatellySources;
-      jest.useFakeTimers();
-      loader.load();
-      jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(3);
-    });
-
-    // PropertiesSource.dismissOtherSources
-
-    it(`returns resolved Promise just after dismissOtherSources source load `, () => {
-      (loader as unknown)['sources'] = dismissOtherSourcesSources;
-      return loader.load().then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { dos: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    it(`loads sources until source with dismissOtherSources`, () => {
-      (loader as unknown)['sources'] = dismissOtherSourcesSources;
-      jest.useFakeTimers();
-      loader.load();
-      jest.advanceTimersByTime(5);
-      expect(service.merge).toHaveBeenNthCalledWith(1, { dos: 0 }, undefined);
-      jest.runAllTimers();
       expect(service.merge).toHaveBeenCalledTimes(1);
     });
 
-    // PropertiesSource.deepMergeValues
-
-    it(`loads sources using merge strategy if no deepMergeValues`, () => {
-      (loader as unknown)['sources'] = [new MergeSource()];
+    it(`execute onLoad() if source`, () => {
+      jest.spyOn<any, any>(loader, 'onLoad');
+      jest.spyOn<any, any>(loader, 'onError');
       jest.useFakeTimers();
-      loader.load();
-      jest.advanceTimersByTime(10);
-      expect(service.merge).toHaveBeenNthCalledWith(1, { mv: 0 }, undefined);
-      jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(1);
-    });
-
-    it(`loads sources using deep merge strategy if deepMergeValues`, () => {
-      jest.spyOn(service, 'deepMerge');
-      (loader as unknown)['sources'] = [new DeepMergeSource()];
-      jest.useFakeTimers();
-      loader.load();
-      jest.advanceTimersByTime(10);
-      expect(service.deepMerge).toHaveBeenNthCalledWith(1, { dmv: 0 }, undefined);
-      jest.runAllTimers();
-      expect(service.deepMerge).toHaveBeenCalledTimes(1);
-    });
-
-    // PropertiesSource.path
-
-    it(`loads sources using merge strategy and path`, () => {
-      (loader as unknown)['sources'] = [new PathMergeSource()];
-      jest.useFakeTimers();
-      loader.load();
-      jest.advanceTimersByTime(10);
-      expect(service.merge).toHaveBeenNthCalledWith(1, { pmv: 0 }, 'a');
-      jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(1);
-    });
-
-    it(`loads sources using deep merge strategy and path`, () => {
-      jest.spyOn(service, 'deepMerge');
-      (loader as unknown)['sources'] = [new PathDeepMergeSource()];
-      jest.useFakeTimers();
-      loader.load();
-      jest.advanceTimersByTime(10);
-      expect(service.deepMerge).toHaveBeenNthCalledWith(1, { pdmv: 0 }, 'a');
-      jest.runAllTimers();
-      expect(service.deepMerge).toHaveBeenCalledTimes(1);
-    });
-
-    // PropertiesSource.resetEnvironment
-
-    it(`loads sources resetting the environment if resetEnvironment`, () => {
-      jest.spyOn(service, 'reset');
-      (loader as unknown)['sources'] = [new ResetEnvironmentSource()];
-      jest.useFakeTimers();
-      loader.load();
-      jest.advanceTimersByTime(9);
-      expect(service.reset).not.toHaveBeenCalled();
-      jest.advanceTimersByTime(1);
-      expect(service.reset).toHaveBeenCalled();
-    });
-
-    it(`loads sources without resetting the environment if no resetEnvironment`, () => {
-      jest.spyOn(service, 'reset');
-      (loader as unknown)['sources'] = [new RequiredOrderedSource()];
-      jest.useFakeTimers();
+      (loader as unknown)['sources'] = [new Source1()];
       loader.load();
       jest.runAllTimers();
-      expect(service.reset).not.toHaveBeenCalled();
+      expect(loader['onLoad']).toHaveBeenCalledTimes(1);
+      expect(loader['onError']).not.toHaveBeenCalled();
     });
 
-    // On error
-
-    it(`returns rejected Promise if source error, requiredToLoad, no ignoreError and app not loaded`, () => {
-      (loader as unknown)['sources'] = errorNoIgnoreRequired;
-      return loader.load().catch((error) => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(1);
-        expect(error.message).toEqual(
-          `Required Environment PropertiesSource "NoIgnoreRequiredErrorSource" failed to load: error`,
-        );
-      });
+    it(`returns resolved Promise if source error and app loaded`, async () => {
+      jest.spyOn(requiredOrderedErrorSource, 'onSoftError');
+      expect(requiredOrderedErrorSource.onSoftError).not.toHaveBeenCalled();
+      (loader as unknown)['sources'] = [immediateOrderedSource1, requiredOrderedErrorSource];
+      await expect(loader.load()).toResolve();
+      expect(requiredOrderedErrorSource.onSoftError).toHaveBeenCalledTimes(1);
     });
 
-    it(`returns resolved Promise if source error, no requiredToLoad, no ignoreError and app not loaded`, () => {
-      (loader as unknown)['sources'] = errorNoIgnoreNoRequired;
-      return loader.load().then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
-        expect(service.merge).toHaveBeenNthCalledWith(2, { io2: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(2);
-      });
-    });
-
-    it(`returns resolved Promise if source error, requiredToLoad, ignoreError and app not loaded`, () => {
-      (loader as unknown)['sources'] = errorIgnoreRequired;
-      return loader.load().then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
-        expect(service.merge).toHaveBeenNthCalledWith(2, { io2: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(2);
-      });
-    });
-
-    it(`returns resolved Promise if source error, requiredToLoad, no ignoreError and app loaded`, () => {
-      (loader as unknown)['sources'] = [new LoadImmediatelySource(), ...errorNoIgnoreRequired];
-      return loader.load().then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { li: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    it(`loads sources until source error if requiredToLoad, no ignoreError and app not loaded`, async () => {
-      (loader as unknown)['sources'] = errorNoIgnoreRequired;
-      await expect(loader.load()).toReject();
-      expect(service.merge).toHaveBeenCalledTimes(1);
-    });
-
-    it(`loads all sources if source error, no requiredToLoad, no ignoreError and app not loaded`, () => {
-      (loader as unknown)['sources'] = errorNoIgnoreNoRequired;
+    it(`doesn't add properties if source error`, () => {
+      jest.spyOn(service, 'merge');
       jest.useFakeTimers();
-      loader.load();
+      (loader as unknown)['sources'] = [requiredErrorSource];
+      loader.load().catch(() => null);
       jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(2);
+      expect(service.merge).not.toHaveBeenCalled();
     });
 
-    it(`loads all sources if source error, requiredToLoad, ignoreError and app not loaded`, () => {
-      (loader as unknown)['sources'] = errorIgnoreRequired;
-      jest.useFakeTimers();
-      loader.load();
-      jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(2);
-    });
-
-    it(`loads all sources if source error, requiredToLoad, no ignoreError and app loaded`, () => {
-      (loader as unknown)['sources'] = [new LoadImmediatelySource(), ...errorNoIgnoreRequired];
-      jest.useFakeTimers();
-      loader.load();
-      jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(3);
-    });
-
-    // console.error
-
-    it(`doesn't display console error if source error, requiredToLoad, no ignoreError and app not loaded`, async () => {
-      (loader as unknown)['sources'] = errorNoIgnoreRequired;
-      await expect(loader.load()).toReject();
-      expect(console.error).not.toHaveBeenCalled();
-    });
-
-    it(`displays console.error if source error, no requiredToLoad, no ignoreError and app not loaded`, () => {
-      (loader as unknown)['sources'] = errorNoIgnoreNoRequired;
-      jest.useFakeTimers();
-      loader.load();
-      jest.runAllTimers();
-      expect(console.error).toHaveBeenNthCalledWith(
-        1,
-        `Required Environment PropertiesSource "NoIgnoreNoRequiredErrorSource" failed to load: error`,
-      );
-    });
-
-    it(`displays console.error if source error, requiredToLoad, ignoreError and app not loaded`, () => {
-      (loader as unknown)['sources'] = errorIgnoreRequired;
-      jest.useFakeTimers();
-      loader.load();
-      jest.runAllTimers();
-      expect(console.error).toHaveBeenNthCalledWith(
-        1,
-        `Required Environment PropertiesSource "IgnoreRequiredErrorSource" failed to load: error`,
-      );
-    });
-
-    it(`displays console.error if source error, requiredToLoad, no ignoreError and app loaded`, () => {
-      (loader as unknown)['sources'] = [new LoadImmediatelySource(), ...errorNoIgnoreRequired];
-      jest.useFakeTimers();
-      loader.load();
-      jest.runAllTimers();
-      expect(console.error).toHaveBeenNthCalledWith(
-        1,
-        `Required Environment PropertiesSource "NoIgnoreRequiredErrorSource" failed to load: error`,
-      );
-    });
-
-    it(`displays console.error without error message`, () => {
-      (loader as unknown)['sources'] = [new ErrorNoMessageSource()];
-      jest.useFakeTimers();
-      loader.load();
-      jest.runAllTimers();
-      expect(console.error).toHaveBeenNthCalledWith(
-        1,
-        `Required Environment PropertiesSource "ErrorNoMessageSource" failed to load`,
-      );
-    });
-
-    // Load Promise
-
-    it(`works if source load returns a Promise`, () => {
-      (loader as unknown)['sources'] = [new PromiseSource()];
-      return loader.load().then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { p: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    // Load Array
-
-    it(`works if source load returns an Array`, () => {
-      (loader as unknown)['sources'] = [new ArraySource()];
-      return loader.load().then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { array: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    // single source
-
-    it(`works with a single source`, () => {
-      (loader as unknown)['sources'] = new PromiseSource();
-      return loader.load().then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { p: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    // use customSourceOperator
-
-    it(`customSourceOperator is used`, () => {
-      (loader as unknown)['sources'] = [new PromiseSource()];
-      loader['customSourceOperator'] = <T, K = T>(index, source) => {
-        return (observable: Observable<T>): Observable<T | K> => observable.pipe(map((v) => ({ ...v, custom: 0 })));
-      };
-      return loader.load().then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { p: 0, custom: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(1);
+    it(`execute onError(error) if source error`, async () => {
+      jest.spyOn<EnvironmentLoader, any>(loader, 'onLoad');
+      jest.spyOn<EnvironmentLoader, any>(loader, 'onError');
+      (loader as unknown)['sources'] = [requiredErrorSource];
+      await loader.load().catch((error) => {
+        expect(loader['onLoad']).not.toHaveBeenCalled();
+        expect(loader['onError']).toHaveBeenNthCalledWith(1, 0, error);
       });
     });
   });
 
-  describe('loadSubmodule(sources)', () => {
-    // no sources
-
-    it(`returns resolved Promise immedialely if empty sources`, () => {
-      return loader.loadSubmodule([]).then(() => {
-        expect(service.merge).not.toHaveBeenCalled();
-      });
+  describe('loadSubmodule(sources, onLoadFn?, onErrorFn?)', () => {
+    it(`returns resolved Promise if no sources`, async () => {
+      await expect(loader.loadSubmodule(undefined)).toResolve();
+      await expect(loader.loadSubmodule(null)).toResolve();
+      await expect(loader.loadSubmodule([])).toResolve();
     });
 
-    it(`loads nothing if empty sources`, () => {
+    it(`doesn't add properties if no sources`, () => {
+      jest.spyOn(service, 'merge');
       jest.useFakeTimers();
       loader.loadSubmodule([]);
       jest.runAllTimers();
       expect(service.merge).not.toHaveBeenCalled();
     });
 
-    // PropertiesSource.requiredToLoad
-
-    it(`returns resolved Promise when all sources with requiredToLoad loads`, () => {
-      return loader.loadSubmodule(orderedSources).then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
-        expect(service.merge).toHaveBeenNthCalledWith(2, { nio: 0 }, undefined);
-        expect(service.merge).toHaveBeenNthCalledWith(3, { io2: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(3);
-      });
-    });
-
-    it(`returns resolved Promise immedialely if no sources with requiredToLoad`, () => {
-      return loader.loadSubmodule(noRequiredSources).then(() => {
-        expect(service.merge).not.toHaveBeenCalled();
-      });
-    });
-
-    it(`loads all sources ignoring requiredToLoad`, () => {
+    it(`execute onLoadFn() if no sources`, () => {
+      jest.spyOn(console, 'log').mockImplementation(() => null);
       jest.useFakeTimers();
-      loader.loadSubmodule(mixedOrderSources);
+      loader.loadSubmodule([]);
       jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(4);
-    });
-
-    // PropertiesSource.loadInOrder
-
-    it(`loads all sources in order if loadInOrder`, () => {
-      jest.useFakeTimers();
-      loader.loadSubmodule(orderedSources);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).not.toHaveBeenCalled();
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).toHaveBeenCalledTimes(1);
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenNthCalledWith(2, { nio: 0 }, undefined);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).toHaveBeenCalledTimes(2);
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenNthCalledWith(3, { io2: 0 }, undefined);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).toHaveBeenCalledTimes(3);
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenNthCalledWith(4, { nio2: 0 }, undefined);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).toHaveBeenCalledTimes(4);
+      expect(console.log).not.toHaveBeenCalled();
+      loader.loadSubmodule(
+        new Source1(),
+        () => console.log('onLoadFn'),
+        () => console.log('onErrorFn'),
+      );
       jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(4);
+      expect(console.log).toHaveBeenNthCalledWith(1, 'onLoadFn');
+      expect(console.log).not.toHaveBeenCalledWith('onErrorFn');
     });
 
-    it(`loads all sources at once if no loadInOrder`, () => {
+    it(`returns resolved Promise if source`, async () => {
+      await expect(loader.loadSubmodule(new Source1())).toResolve();
+    });
+
+    it(`adds properties if source`, () => {
+      jest.spyOn(service, 'merge');
       jest.useFakeTimers();
-      loader.loadSubmodule(unorderedSources);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).not.toHaveBeenCalled();
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenCalledWith({ iu: 0 }, undefined);
-      expect(service.merge).toHaveBeenCalledWith({ niu: 0 }, undefined);
+      loader.loadSubmodule(new Source1());
       jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(4);
-    });
-
-    it(`loads all sources mixing loadInOrder and no loadInOrder values`, () => {
-      jest.useFakeTimers();
-      loader.loadSubmodule(mixedOrderSources);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).not.toHaveBeenCalled();
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenCalledWith({ iu: 0 }, undefined);
-      expect(service.merge).toHaveBeenCalledWith({ niu: 0 }, undefined);
-      expect(service.merge).toHaveBeenCalledWith({ io: 0 }, undefined);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).toHaveBeenCalledTimes(3);
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenNthCalledWith(4, { nio: 0 }, undefined);
-      jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(4);
-    });
-
-    it(`loads all sources with loadInOrder if one is multiple and completes`, () => {
-      jest.useFakeTimers();
-      loader.loadSubmodule(multipleSources);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).not.toHaveBeenCalled();
-      jest.advanceTimersByTime(1);
       expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).toHaveBeenCalledTimes(1);
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenNthCalledWith(2, { a: 1 }, undefined);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).toHaveBeenCalledTimes(2);
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenNthCalledWith(3, { a: 2 }, undefined);
-      jest.advanceTimersByTime(9);
-      expect(service.merge).toHaveBeenCalledTimes(3);
-      jest.advanceTimersByTime(1);
-      expect(service.merge).toHaveBeenNthCalledWith(4, { io: 0 }, undefined);
-      jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(4);
-    });
-
-    // PropertiesSource.loadImmediately
-
-    it(`returns resolved Promise just after loadImmediately source load `, () => {
-      return loader.loadSubmodule(loadImmediatellySources).then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
-        expect(service.merge).toHaveBeenNthCalledWith(2, { li: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(2);
-      });
-    });
-
-    it(`loads all sources if loadImmediately`, () => {
-      jest.useFakeTimers();
-      loader.loadSubmodule(loadImmediatellySources);
-      jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(3);
-    });
-
-    // PropertiesSource.dismissOtherSources
-
-    it(`returns resolved Promise just after dismissOtherSources source load `, () => {
-      return loader.loadSubmodule(dismissOtherSourcesSources).then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { dos: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    it(`loads sources until source with dismissOtherSources`, () => {
-      jest.useFakeTimers();
-      loader.loadSubmodule(dismissOtherSourcesSources);
-      jest.advanceTimersByTime(5);
-      expect(service.merge).toHaveBeenNthCalledWith(1, { dos: 0 }, undefined);
-      jest.runAllTimers();
       expect(service.merge).toHaveBeenCalledTimes(1);
     });
 
-    // PropertiesSource.deepMergeValues
-
-    it(`loads sources using merge strategy if no deepMergeValues`, () => {
+    it(`execute onLoadFn() if source`, () => {
+      jest.spyOn(console, 'log').mockImplementation(() => null);
       jest.useFakeTimers();
-      loader.loadSubmodule([new MergeSource()]);
-      jest.advanceTimersByTime(10);
-      expect(service.merge).toHaveBeenNthCalledWith(1, { mv: 0 }, undefined);
+      loader.loadSubmodule(new Source1());
       jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(1);
-    });
-
-    it(`loads sources using deep merge strategy if deepMergeValues`, () => {
-      jest.spyOn(service, 'deepMerge');
-      jest.useFakeTimers();
-      loader.loadSubmodule([new DeepMergeSource()]);
-      jest.advanceTimersByTime(10);
-      expect(service.deepMerge).toHaveBeenNthCalledWith(1, { dmv: 0 }, undefined);
-      jest.runAllTimers();
-      expect(service.deepMerge).toHaveBeenCalledTimes(1);
-    });
-
-    // PropertiesSource.path
-
-    it(`loads sources using merge strategy and path`, () => {
-      jest.useFakeTimers();
-      loader.loadSubmodule([new PathMergeSource()]);
-      jest.advanceTimersByTime(10);
-      expect(service.merge).toHaveBeenNthCalledWith(1, { pmv: 0 }, 'a');
-      jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(1);
-    });
-
-    it(`loads sources using deep merge strategy and path`, () => {
-      jest.spyOn(service, 'deepMerge');
-      jest.useFakeTimers();
-      loader.loadSubmodule([new PathDeepMergeSource()]);
-      jest.advanceTimersByTime(10);
-      expect(service.deepMerge).toHaveBeenNthCalledWith(1, { pdmv: 0 }, 'a');
-      jest.runAllTimers();
-      expect(service.deepMerge).toHaveBeenCalledTimes(1);
-    });
-
-    // PropertiesSource.resetEnvironment
-
-    it(`loads sources resetting the environment if resetEnvironment`, () => {
-      jest.spyOn(service, 'reset');
-      jest.useFakeTimers();
-      loader.loadSubmodule([new ResetEnvironmentSource()]);
-      jest.advanceTimersByTime(9);
-      expect(service.reset).not.toHaveBeenCalled();
-      jest.advanceTimersByTime(1);
-      expect(service.reset).toHaveBeenCalled();
-    });
-
-    it(`loads sources without resetting the environment if no resetEnvironment`, () => {
-      jest.spyOn(service, 'reset');
-      jest.useFakeTimers();
-      loader.loadSubmodule([new RequiredOrderedSource()]);
-      jest.runAllTimers();
-      expect(service.reset).not.toHaveBeenCalled();
-    });
-
-    // On error
-
-    it(`returns rejected Promise if source error, requiredToLoad, no ignoreError and app not loaded`, () => {
-      return loader.loadSubmodule(errorNoIgnoreRequired).catch((error) => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(1);
-        expect(error.message).toEqual(
-          `Required Environment PropertiesSource "NoIgnoreRequiredErrorSource" failed to load: error`,
-        );
-      });
-    });
-
-    it(`returns resolved Promise if source error, no requiredToLoad, no ignoreError and app not loaded`, () => {
-      return loader.loadSubmodule(errorNoIgnoreNoRequired).then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
-        expect(service.merge).toHaveBeenNthCalledWith(2, { io2: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(2);
-      });
-    });
-
-    it(`returns resolved Promise if source error, requiredToLoad, ignoreError and app not loaded`, () => {
-      return loader.loadSubmodule(errorIgnoreRequired).then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { io: 0 }, undefined);
-        expect(service.merge).toHaveBeenNthCalledWith(2, { io2: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(2);
-      });
-    });
-
-    it(`returns resolved Promise if source error, requiredToLoad, no ignoreError and app loaded`, () => {
-      return loader.loadSubmodule([new LoadImmediatelySource(), ...errorNoIgnoreRequired]).then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { li: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    it(`loads sources until source error if requiredToLoad, no ignoreError and app not loaded`, async () => {
-      await expect(loader.loadSubmodule(errorNoIgnoreRequired)).toReject();
-      expect(service.merge).toHaveBeenCalledTimes(1);
-    });
-
-    it(`loads all sources if source error, no requiredToLoad, no ignoreError and app not loaded`, () => {
-      jest.useFakeTimers();
-      loader.loadSubmodule(errorNoIgnoreNoRequired);
-      jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(2);
-    });
-
-    it(`loads all sources if source error, requiredToLoad, ignoreError and app not loaded`, () => {
-      jest.useFakeTimers();
-      loader.loadSubmodule(errorIgnoreRequired);
-      jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(2);
-    });
-
-    it(`loads all sources if source error, requiredToLoad, no ignoreError and app loaded`, () => {
-      jest.useFakeTimers();
-      loader.loadSubmodule([new LoadImmediatelySource(), ...errorNoIgnoreRequired]);
-      jest.runAllTimers();
-      expect(service.merge).toHaveBeenCalledTimes(3);
-    });
-
-    // console.error
-
-    it(`doesn't display console error if source error, requiredToLoad, no ignoreError and app not loaded`, async () => {
-      await expect(loader.loadSubmodule(errorNoIgnoreRequired)).toReject();
-      expect(console.error).not.toHaveBeenCalled();
-    });
-
-    it(`displays console.error if source error, no requiredToLoad, no ignoreError and app not loaded`, () => {
-      jest.useFakeTimers();
-      loader.loadSubmodule(errorNoIgnoreNoRequired);
-      jest.runAllTimers();
-      expect(console.error).toHaveBeenNthCalledWith(
-        1,
-        `Required Environment PropertiesSource "NoIgnoreNoRequiredErrorSource" failed to load: error`,
+      expect(console.log).not.toHaveBeenCalled();
+      loader.loadSubmodule(
+        new Source1(),
+        () => console.log('onLoadFn'),
+        () => console.log('onErrorFn'),
       );
-    });
-
-    it(`displays console.error if source error, requiredToLoad, ignoreError and app not loaded`, () => {
-      jest.useFakeTimers();
-      loader.loadSubmodule(errorIgnoreRequired);
       jest.runAllTimers();
-      expect(console.error).toHaveBeenNthCalledWith(
-        1,
-        `Required Environment PropertiesSource "IgnoreRequiredErrorSource" failed to load: error`,
-      );
+      expect(console.log).toHaveBeenNthCalledWith(1, 'onLoadFn');
+      expect(console.log).not.toHaveBeenCalledWith('onErrorFn');
     });
 
-    it(`displays console.error if source error, requiredToLoad, no ignoreError and app loaded`, () => {
+    it(`returns resolved Promise if source error and app loaded`, async () => {
+      jest.spyOn(requiredOrderedErrorSource, 'onSoftError');
+      expect(requiredOrderedErrorSource.onSoftError).not.toHaveBeenCalled();
+      await expect(loader.loadSubmodule([immediateOrderedSource1, requiredOrderedErrorSource])).toResolve();
+      expect(requiredOrderedErrorSource.onSoftError).toHaveBeenCalledTimes(1);
+    });
+
+    it(`doesn't add properties if source error`, () => {
+      jest.spyOn(service, 'merge');
       jest.useFakeTimers();
-      loader.loadSubmodule([new LoadImmediatelySource(), ...errorNoIgnoreRequired]).catch();
+      loader.loadSubmodule(requiredErrorSource).catch(() => null);
       jest.runAllTimers();
-      expect(console.error).toHaveBeenNthCalledWith(
-        1,
-        `Required Environment PropertiesSource "NoIgnoreRequiredErrorSource" failed to load: error`,
-      );
+      expect(service.merge).not.toHaveBeenCalled();
     });
 
-    it(`displays console.error without error message`, () => {
-      jest.useFakeTimers();
-      loader.loadSubmodule([new ErrorNoMessageSource()]);
-      jest.runAllTimers();
-      expect(console.error).toHaveBeenNthCalledWith(
-        1,
-        `Required Environment PropertiesSource "ErrorNoMessageSource" failed to load`,
-      );
-    });
-
-    // Load Promise
-
-    it(`works if source load returns a Promise`, () => {
-      return loader.loadSubmodule([new PromiseSource()]).then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { p: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    // Load Array
-
-    it(`works if source load returns an Array`, () => {
-      return loader.loadSubmodule([new ArraySource()]).then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { array: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    // use customSourceOperator
-
-    it(`customSourceOperator is used`, () => {
-      loader['customSourceOperator'] = (index, source) => {
-        return (observable) => observable.pipe(map((v) => ({ ...v, custom: 0 })));
-      };
-      return loader.loadSubmodule([new PromiseSource()]).then(() => {
-        expect(service.merge).toHaveBeenNthCalledWith(1, { p: 0, custom: 0 }, undefined);
-        expect(service.merge).toHaveBeenCalledTimes(1);
-      });
+    it(`execute onErrorFn(error) if source error`, async () => {
+      jest.spyOn(console, 'log').mockImplementation(() => null);
+      await loader
+        .loadSubmodule(
+          requiredErrorSource,
+          (index) => console.log('onLoadFn'),
+          (index, error) => console.log(error),
+        )
+        .catch((error) => {
+          expect(console.log).toHaveBeenNthCalledWith(1, error);
+          expect(console.log).not.toHaveBeenCalledWith('onLoadFn');
+        });
     });
   });
 
   describe('onDestroy()', () => {
+    beforeEach(() => {
+      jest.spyOn(service, 'merge');
+    });
+
     it(`destroys all loads`, () => {
-      (loader as unknown)['sources'] = orderedSources;
       jest.useFakeTimers();
-      loader.load();
-      jest.advanceTimersByTime(10);
+      loader.loadSubmodule([requiredOrderedSource1, requiredOrderedSource2]);
+      jest.advanceTimersByTime(5);
       expect(service.merge).toHaveBeenCalledTimes(1);
       expect(loader['destroy$List'][0].isStopped).toBeFalse();
       loader.onDestroy();
@@ -1068,10 +310,9 @@ describe('EnvironmentLoader', () => {
     });
 
     it(`completes the app load`, () => {
-      (loader as unknown)['sources'] = orderedSources;
       jest.useFakeTimers();
-      loader.load();
-      jest.advanceTimersByTime(10);
+      loader.loadSubmodule([requiredOrderedSource1, requiredOrderedSource2]);
+      jest.advanceTimersByTime(5);
       expect(loader['load$List'][0].isStopped).toBeFalse();
       loader.onDestroy();
       jest.runAllTimers();
@@ -1079,14 +320,505 @@ describe('EnvironmentLoader', () => {
     });
 
     it(`completes the required to load sources`, () => {
-      (loader as unknown)['sources'] = orderedSources;
       jest.useFakeTimers();
-      loader.load();
-      jest.advanceTimersByTime(10);
+      loader.loadSubmodule([requiredOrderedSource1, requiredOrderedSource2]);
+      jest.advanceTimersByTime(5);
       expect(loader['requiredToLoad$List'][0].isStopped).toBeFalse();
       loader.onDestroy();
       jest.runAllTimers();
       expect(loader['requiredToLoad$List'][0].isStopped).toBeTrue();
+    });
+  });
+
+  describe('PropertiesSource', () => {
+    beforeEach(() => {
+      jest.spyOn(service, 'merge');
+    });
+
+    describe('requiredToLoad', () => {
+      const orderedErrorSource = new ErrorSource();
+      orderedErrorSource.loadInOrder = true;
+
+      it(`returns resolved Promise after all requiredToLoad`, async () => {
+        await loader.loadSubmodule([requiredOrderedSource1, requiredOrderedSource2, orderedSource1]).then(() => {
+          expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+          expect(service.merge).toHaveBeenNthCalledWith(2, { b: 0 }, undefined);
+          expect(service.merge).toHaveBeenCalledTimes(2);
+        });
+      });
+
+      it(`returns resolved Promise immedialely if no requiredToLoad`, async () => {
+        await loader.loadSubmodule(new Source1()).then(() => {
+          expect(service.merge).not.toHaveBeenCalled();
+        });
+      });
+
+      it(`adds properties from all sources ignoring requiredToLoad`, async () => {
+        await loader.loadSubmodule([requiredOrderedSource1, requiredOrderedSource2, new Source1()]).then(() => {
+          expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+          expect(service.merge).toHaveBeenNthCalledWith(2, { a: 0 }, undefined);
+          expect(service.merge).toHaveBeenNthCalledWith(3, { b: 0 }, undefined);
+          expect(service.merge).toHaveBeenCalledTimes(3);
+        });
+      });
+
+      it(`returns rejected Promise after load error and requiredToLoad`, async () => {
+        const error = new Error('Required Environment PropertiesSource "ErrorSource" failed to load');
+        await loader
+          .loadSubmodule([requiredOrderedSource1, requiredOrderedErrorSource, requiredOrderedSource2])
+          .catch((err) => {
+            expect(err).toEqual(error);
+            expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+            expect(service.merge).toHaveBeenCalledTimes(1);
+          });
+      });
+
+      it(`returns resolved Promise after load error and no requiredToLoad`, async () => {
+        await loader.loadSubmodule([requiredOrderedSource1, orderedErrorSource, requiredOrderedSource2]).then(() => {
+          expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+          expect(service.merge).toHaveBeenNthCalledWith(2, { b: 0 }, undefined);
+          expect(service.merge).toHaveBeenCalledTimes(2);
+        });
+      });
+
+      it(`adds properties ignoring requiredToLoad`, () => {
+        jest.useFakeTimers();
+        loader
+          .loadSubmodule([requiredOrderedSource1, requiredOrderedErrorSource, requiredOrderedSource2])
+          .catch(() => null);
+        jest.runAllTimers();
+        expect(service.merge).toHaveBeenCalledWith({ a: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledWith({ b: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    describe('loadInOrder', () => {
+      const orderedInfiniteSource = new InfiniteSource();
+      orderedInfiniteSource.loadInOrder = true;
+
+      const orderedMultipleSource = new MultipleSource();
+      orderedMultipleSource.loadInOrder = true;
+
+      it(`adds properties in order if all completes`, () => {
+        jest.useFakeTimers();
+        loader.loadSubmodule([requiredOrderedSource1, requiredOrderedSource2, orderedSource1]);
+        expect(service.merge).not.toHaveBeenCalled();
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(1);
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(2, { b: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(2);
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(3, { a: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(3);
+        jest.runAllTimers();
+        expect(service.merge).toHaveBeenCalledTimes(3);
+      });
+
+      it(`adds properties in order ignoring error`, () => {
+        jest.useFakeTimers();
+        loader
+          .loadSubmodule([requiredOrderedSource1, requiredOrderedSource2, requiredOrderedErrorSource, orderedSource1])
+          .catch(() => null);
+        expect(service.merge).not.toHaveBeenCalled();
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(1);
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(2, { b: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(2);
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(3, { a: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(3);
+        jest.runAllTimers();
+        expect(service.merge).toHaveBeenCalledTimes(3);
+      });
+
+      it(`adds properties in order with multiple emits and all completes`, () => {
+        jest.useFakeTimers();
+        loader.loadSubmodule([orderedMultipleSource, orderedSource1]);
+        expect(service.merge).not.toHaveBeenCalled();
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(1, { m: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(1);
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(2, { m: 1 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(2);
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(3, { a: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(3);
+        jest.runAllTimers();
+        expect(service.merge).toHaveBeenCalledTimes(3);
+      });
+
+      it(`doesn't add properties in order if previous doesn't complete`, () => {
+        jest.useFakeTimers();
+        loader.loadSubmodule([orderedInfiniteSource, orderedSource1]);
+        expect(service.merge).not.toHaveBeenCalled();
+        jest.advanceTimersByTime(1000);
+        expect(service.merge).toHaveBeenCalledWith({ i: 0 }, undefined);
+        expect(service.merge).not.toHaveBeenCalledWith({ a: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(Math.floor(1000 / 5));
+      });
+
+      it(`adds all properties at once if no loadInOrder`, () => {
+        jest.useFakeTimers();
+        loader.loadSubmodule([new Source1(), new Source2()]);
+        expect(service.merge).not.toHaveBeenCalled();
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenCalledWith({ a: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledWith({ b: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(2);
+        jest.runAllTimers();
+        expect(service.merge).toHaveBeenCalledTimes(2);
+      });
+
+      it(`adds properties mixing loadInOrder and no loadInOrder`, () => {
+        jest.useFakeTimers();
+        loader.loadSubmodule([requiredOrderedSource2, new Source1(), new MultipleSource(), orderedSource1]);
+        expect(service.merge).not.toHaveBeenCalled();
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+        expect(service.merge).toHaveBeenNthCalledWith(2, { m: 0 }, undefined);
+        expect(service.merge).toHaveBeenNthCalledWith(3, { b: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(3);
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(4, { m: 1 }, undefined);
+        expect(service.merge).toHaveBeenNthCalledWith(5, { a: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(5);
+        jest.runAllTimers();
+        expect(service.merge).toHaveBeenCalledTimes(5);
+      });
+    });
+
+    describe('loadImmediately', () => {
+      const immediateOrderedErrorSource = new ErrorSource();
+      immediateOrderedErrorSource.loadImmediately = true;
+      immediateOrderedErrorSource.loadInOrder = true;
+
+      it(`returns resolved Promise after loadImmediately`, async () => {
+        await loader.loadSubmodule([immediateOrderedSource1, requiredOrderedSource2]).then(() => {
+          expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+          expect(service.merge).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      it(`adds properties ignoring loadImmediately`, () => {
+        jest.useFakeTimers();
+        loader.loadSubmodule([immediateOrderedSource1, requiredOrderedSource2]);
+        expect(service.merge).not.toHaveBeenCalled();
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(1);
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(2, { b: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(2);
+        jest.runAllTimers();
+        expect(service.merge).toHaveBeenCalledTimes(2);
+      });
+
+      it(`returns resolved Promise ignoring loadImmediately if error`, async () => {
+        await loader
+          .loadSubmodule([requiredOrderedSource1, immediateOrderedErrorSource, requiredOrderedSource2])
+          .then(() => {
+            expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+            expect(service.merge).toHaveBeenNthCalledWith(2, { b: 0 }, undefined);
+            expect(service.merge).toHaveBeenCalledTimes(2);
+          });
+      });
+    });
+
+    describe('dismissOtherSources', () => {
+      const dismissOrderedSource1 = new Source1();
+      dismissOrderedSource1.loadInOrder = true;
+      dismissOrderedSource1.dismissOtherSources = true;
+
+      const dismissOrderedErrorSource = new ErrorSource();
+      dismissOrderedErrorSource.loadInOrder = true;
+      dismissOrderedErrorSource.dismissOtherSources = true;
+
+      it(`returns resolved Promise after dismissOtherSources`, async () => {
+        await expect(loader.loadSubmodule([dismissOrderedSource1, orderedSource1])).toResolve();
+      });
+
+      it(`adds properties until dismissOtherSources`, () => {
+        jest.useFakeTimers();
+        loader.loadSubmodule([dismissOrderedSource1, orderedSource1]);
+        jest.runAllTimers();
+        expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(1);
+      });
+
+      it(`returns resolved Promise ignoring dismissOtherSources if error`, async () => {
+        await loader
+          .loadSubmodule([requiredOrderedSource1, dismissOrderedErrorSource, requiredOrderedSource2])
+          .then(() => {
+            expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+            expect(service.merge).toHaveBeenNthCalledWith(2, { b: 0 }, undefined);
+            expect(service.merge).toHaveBeenCalledTimes(2);
+          });
+      });
+    });
+
+    describe('deepMergeValues', () => {
+      const deepSource1 = new Source1();
+      deepSource1.deepMergeValues = true;
+
+      it(`ladds properties using merge strategy if no deepMergeValues`, () => {
+        jest.useFakeTimers();
+        loader.loadSubmodule(new Source1());
+        expect(service.merge).not.toHaveBeenCalled();
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+        jest.runAllTimers();
+        expect(service.merge).toHaveBeenCalledTimes(1);
+      });
+
+      it(`adds properties using deep merge strategy if deepMergeValues`, () => {
+        jest.spyOn(service, 'deepMerge');
+        jest.useFakeTimers();
+        loader.loadSubmodule(deepSource1);
+        expect(service.deepMerge).not.toHaveBeenCalled();
+        jest.advanceTimersByTime(5);
+        expect(service.deepMerge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+        jest.runAllTimers();
+        expect(service.deepMerge).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('ignoreError', () => {
+      const ignoreRequiredOrderedErrorSource = new ErrorSource();
+      ignoreRequiredOrderedErrorSource.ignoreError = true;
+      ignoreRequiredOrderedErrorSource.loadInOrder = true;
+      ignoreRequiredOrderedErrorSource.requiredToLoad = true;
+
+      it(`returns resolved Promise if error and ignoreError`, async () => {
+        await loader
+          .loadSubmodule([requiredOrderedSource1, ignoreRequiredOrderedErrorSource, requiredOrderedSource2])
+          .then(() => {
+            expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+            expect(service.merge).toHaveBeenNthCalledWith(2, { b: 0 }, undefined);
+            expect(service.merge).toHaveBeenCalledTimes(2);
+          });
+      });
+
+      it(`adds properties ignoring error`, () => {
+        jest.useFakeTimers();
+        loader
+          .loadSubmodule([requiredOrderedSource1, ignoreRequiredOrderedErrorSource, requiredOrderedSource2])
+          .catch(() => null);
+        expect(service.merge).not.toHaveBeenCalled();
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(1);
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(2, { b: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(2);
+        jest.runAllTimers();
+        expect(service.merge).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    describe('path', () => {
+      const pathSource1 = new Source1();
+      pathSource1.path = 'a';
+
+      const pathDeepMergeSource1 = new Source1();
+      pathDeepMergeSource1.path = 'a';
+      pathDeepMergeSource1.deepMergeValues = true;
+
+      it(`adds properties using merge strategy and path`, () => {
+        jest.useFakeTimers();
+        loader.loadSubmodule(pathSource1);
+        expect(service.merge).not.toHaveBeenCalled();
+        jest.advanceTimersByTime(5);
+        expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, 'a');
+        jest.runAllTimers();
+        expect(service.merge).toHaveBeenCalledTimes(1);
+      });
+
+      it(`adds properties using deep merge strategy and path`, () => {
+        jest.spyOn(service, 'deepMerge');
+        jest.useFakeTimers();
+        loader.loadSubmodule(pathDeepMergeSource1);
+        expect(service.deepMerge).not.toHaveBeenCalled();
+        jest.advanceTimersByTime(5);
+        expect(service.deepMerge).toHaveBeenNthCalledWith(1, { a: 0 }, 'a');
+        jest.runAllTimers();
+        expect(service.deepMerge).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('load()', () => {
+      const requiredErrorMessageSource = new ErrorMessageSource();
+      requiredErrorMessageSource.requiredToLoad = true;
+
+      it(`returns resolved Promise from Array source`, async () => {
+        await expect(loader.loadSubmodule(new ArraySource())).toResolve();
+      });
+
+      it(`adds properties from Array source`, () => {
+        jest.useFakeTimers();
+        loader.loadSubmodule(new ArraySource());
+        jest.runAllTimers();
+        expect(service.merge).toHaveBeenNthCalledWith(1, { arr: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(1);
+      });
+
+      it(`returns resolved Promise from Observable source`, async () => {
+        await expect(loader.loadSubmodule(new Source1())).toResolve();
+      });
+
+      it(`adds properties from Observable source`, () => {
+        jest.useFakeTimers();
+        loader.loadSubmodule(new Source1());
+        jest.runAllTimers();
+        expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(1);
+      });
+
+      it(`returns resolved Promise from Promise source`, async () => {
+        await expect(loader.loadSubmodule(new PromiseSource())).toResolve();
+      });
+
+      it(`adds properties from Promise source`, async () => {
+        await loader.loadSubmodule(new PromiseSource());
+        expect(service.merge).toHaveBeenNthCalledWith(1, { p: 0 }, undefined);
+        expect(service.merge).toHaveBeenCalledTimes(1);
+      });
+
+      it(`returns rejected Promise without error message`, async () => {
+        const error = new Error('Required Environment PropertiesSource "ErrorSource" failed to load');
+        await expect(loader.loadSubmodule(requiredErrorSource)).rejects.toEqual(error);
+      });
+
+      it(`returns rejected Promise with error message`, async () => {
+        const error = new Error('Required Environment PropertiesSource "ErrorMessageSource" failed to load: error');
+        await expect(loader.loadSubmodule(requiredErrorMessageSource)).rejects.toEqual(error);
+      });
+    });
+
+    describe('onBeforeLoad(properties)', () => {
+      it(`execute onBeforeLoad(properties) before source load`, () => {
+        const source = new Source1();
+        jest.spyOn(source, 'onBeforeLoad');
+        jest.useFakeTimers();
+        loader.loadSubmodule(source);
+        jest.runAllTimers();
+        expect(source.onBeforeLoad).toHaveBeenNthCalledWith(1, { a: 0 });
+        expect(source.onBeforeLoad).toHaveBeenCalledTimes(1);
+      });
+
+      it(`doesn't execute onBeforeLoad(properties) if error`, () => {
+        const source = new ErrorSource();
+        jest.spyOn(source, 'onBeforeLoad');
+        jest.useFakeTimers();
+        loader.loadSubmodule(source).catch(() => null);
+        jest.runAllTimers();
+        expect(source.onBeforeLoad).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('onAfterLoad(properties)', () => {
+      it(`execute onAfterLoad(properties) after source load`, () => {
+        const source = new Source1();
+        jest.spyOn(source, 'onAfterLoad');
+        jest.useFakeTimers();
+        loader.loadSubmodule(source);
+        jest.runAllTimers();
+        expect(source.onAfterLoad).toHaveBeenNthCalledWith(1, { a: 0 });
+        expect(source.onAfterLoad).toHaveBeenCalledTimes(1);
+      });
+
+      it(`doesn't execute onAfterLoad(properties) if error`, () => {
+        const source = new ErrorSource();
+        jest.spyOn(source, 'onAfterLoad');
+        jest.useFakeTimers();
+        loader.loadSubmodule(source).catch(() => null);
+        jest.runAllTimers();
+        expect(source.onAfterLoad).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('onError(error)', () => {
+      it(`execute onError(error) after source error that rejects`, () => {
+        const error = new Error('Required Environment PropertiesSource "ErrorSource" failed to load');
+        const source = requiredErrorSource;
+        jest.spyOn(source, 'onError');
+        jest.useFakeTimers();
+        loader.loadSubmodule(source).catch(() => null);
+        jest.runAllTimers();
+        expect(source.onError).toHaveBeenNthCalledWith(1, error);
+        expect(source.onError).toHaveBeenCalledTimes(1);
+      });
+
+      it(`doesn't execute onError(error) if error that doesn't reject`, () => {
+        const source = new ErrorSource();
+        jest.spyOn(source, 'onError');
+        jest.useFakeTimers();
+        loader.loadSubmodule(source).catch(() => null);
+        jest.runAllTimers();
+        expect(source.onError).not.toHaveBeenCalled();
+      });
+
+      it(`doesn't execute onError(error) if no error`, () => {
+        const source = new Source1();
+        jest.spyOn(source, 'onError');
+        jest.useFakeTimers();
+        loader.loadSubmodule(source);
+        jest.runAllTimers();
+        expect(source.onError).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('onSoftError(error)', () => {
+      it(`execute onSoftError(error) after source error that doesn't reject`, () => {
+        const error = new Error('Required Environment PropertiesSource "ErrorSource" failed to load');
+        const source = new ErrorSource();
+        jest.spyOn(source, 'onSoftError');
+        jest.useFakeTimers();
+        loader.loadSubmodule(source).catch(() => null);
+        jest.runAllTimers();
+        expect(source.onSoftError).toHaveBeenNthCalledWith(1, error);
+        expect(source.onSoftError).toHaveBeenCalledTimes(1);
+      });
+
+      it(`doesn't execute onSoftError(error) if error that rejects`, () => {
+        const source = requiredErrorSource;
+        jest.spyOn(source, 'onSoftError');
+        jest.useFakeTimers();
+        loader.loadSubmodule(source).catch(() => null);
+        jest.runAllTimers();
+        expect(source.onSoftError).not.toHaveBeenCalled();
+      });
+
+      it(`doesn't execute onSoftError(error) if no error`, () => {
+        const source = new Source1();
+        jest.spyOn(source, 'onSoftError');
+        jest.useFakeTimers();
+        loader.loadSubmodule(source);
+        jest.runAllTimers();
+        expect(source.onSoftError).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('examples of use', () => {
+    it(`completes after error`, () => {
+      jest.spyOn(service, 'merge');
+      jest.spyOn<any, any>(loader, 'onError').mockImplementation((index: number) => loader['onDestroySources'](index));
+      jest.useFakeTimers();
+      (loader as unknown)['sources'] = [requiredOrderedSource1, requiredOrderedErrorSource, requiredOrderedSource2];
+      loader.load().catch(() => null);
+      expect(service.merge).not.toHaveBeenCalled();
+      jest.advanceTimersByTime(5);
+      expect(loader['onError']).toHaveBeenCalled();
+      expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
+      expect(service.merge).toHaveBeenCalledTimes(1);
+      jest.runAllTimers();
+      expect(service.merge).toHaveBeenCalledTimes(1);
     });
   });
 });

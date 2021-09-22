@@ -1,6 +1,6 @@
 import { isEqual } from 'lodash-es';
-import { BehaviorSubject, concat, defer, merge, Observable, of, OperatorFunction, ReplaySubject } from 'rxjs';
-import { catchError, filter, take, takeUntil, tap } from 'rxjs/operators';
+import { BehaviorSubject, concat, defer, merge, Observable, of, ReplaySubject } from 'rxjs';
+import { catchError, filter, finalize, take, takeUntil, tap } from 'rxjs/operators';
 
 import { Properties } from '../types';
 import { EnvironmentService } from './environment-service.gateway';
@@ -31,29 +31,49 @@ export abstract class EnvironmentLoader {
    * @returns A promise to load the application once the required properties are loaded.
    */
   async load(): Promise<void> {
-    const sources: PropertiesSource[] = this.coerceSources();
+    const coercedSources: PropertiesSource[] = this.coerceSources(this.sources);
 
-    return this.loadSources(sources);
+    return this.loadSources(coercedSources, this.onLoad, this.onError);
   }
 
-  protected coerceSources(): PropertiesSource[] {
-    if (this.sources == null) {
-      return [];
-    }
+  protected onLoad(index: number): void {
+    // Override to provide functionality.
+  }
 
-    return Array.isArray(this.sources) ? this.sources : [this.sources];
+  protected onError(index: number, error: Error): void {
+    // Override to provide functionality.
   }
 
   /**
    * Loads the submodule environment properties from the provided asynchronous sources.
    * @param sources The environment properties sources to get the submodule properties asynchronously.
+   * @param onLoadFn The optional function to execute on submodule load.
+   * @param onErrorFn The optional function to execute on submodule load error.
    * @returns A promise to load the submodule once the required properties are loaded.
    */
-  async loadSubmodule(sources: PropertiesSource[]): Promise<void> {
-    return this.loadSources(sources);
+  async loadSubmodule(
+    sources: PropertiesSource | PropertiesSource[],
+    onLoadFn?: (index: number) => void,
+    onErrorFn?: (index: number, error: Error) => void,
+  ): Promise<void> {
+    const coercedSources: PropertiesSource[] = this.coerceSources(sources);
+
+    return this.loadSources(coercedSources, onLoadFn, onErrorFn);
   }
 
-  protected async loadSources(sources: PropertiesSource[]): Promise<void> {
+  protected coerceSources(sources?: PropertiesSource | PropertiesSource[]): PropertiesSource[] {
+    if (sources == null) {
+      return [];
+    }
+
+    return Array.isArray(sources) ? sources : [sources];
+  }
+
+  protected async loadSources(
+    sources: PropertiesSource[],
+    onLoadFn: (index: number) => void = () => null,
+    onErrorFn: (index: number, error: Error) => void = () => null,
+  ): Promise<void> {
     const index: number = this.loadIndex++;
 
     this.load$List[index] = new ReplaySubject();
@@ -64,12 +84,23 @@ export abstract class EnvironmentLoader {
     this.loadUnorderedSources(index, sources);
     this.loadOrderedSources(index, sources);
 
-    return this.load$List[index].pipe(take(1), takeUntil(this.destroy$List[index])).toPromise();
+    return this.load$List[index]
+      .pipe(
+        take(1),
+        takeUntil(this.destroy$List[index]),
+        tap({
+          next: () => onLoadFn(index),
+          error: (error: Error) => onErrorFn(index, error),
+        }),
+      )
+      .toPromise();
   }
 
   protected watchRequiredToLoadSources(index: number, sources: PropertiesSource[]): void {
     const requiredToLoadSources: Set<string> = new Set(
-      sources.filter((source: PropertiesSource) => source.requiredToLoad).map((source: PropertiesSource) => source.id),
+      sources
+        .filter((source: PropertiesSource) => source.requiredToLoad)
+        .map((source: PropertiesSource) => source._sourceId),
     );
 
     this.requiredToLoad$List[index]
@@ -103,32 +134,51 @@ export abstract class EnvironmentLoader {
   protected getSources$List(index: number, sources: PropertiesSource[]): Observable<Properties>[] {
     return sources.map((source: PropertiesSource) =>
       defer(() => source.load()).pipe(
-        catchError((error: Error) => this.checkLoadError(index, error, source)),
-        this.customSourceOperator(index, source),
         tap({
-          next: (value: Properties) => {
-            this.checkResetEnvironment(index, value, source);
-            this.saveSourceValueToStore(index, value, source);
-            this.checkLoadImmediately(index, value, source);
-            this.checkDismissOtherSources(index, value, source);
-            this.checkRequiredToLoad(index, value, source);
+          next: (properties: Properties) => {
+            source.onBeforeLoad(properties);
+            this.saveSourceValueToStore(index, properties, source);
+            this.checkDismissOtherSources(index, properties, source);
+            this.checkLoadImmediately(index, properties, source);
+            source.onAfterLoad(properties);
           },
         }),
+        catchError((error: Error) => this.checkLoadError(index, error, source)),
+        finalize(() => this.checkRequiredToLoad(index, source)),
       ),
     );
   }
 
+  protected saveSourceValueToStore(index: number, properties: Properties, source: PropertiesSource): void {
+    if (source.deepMergeValues) {
+      this.service.deepMerge(properties, source.path);
+    } else {
+      this.service.merge(properties, source.path);
+    }
+  }
+
+  protected checkDismissOtherSources(index: number, properties: Properties, source: PropertiesSource): void {
+    if (source.dismissOtherSources) {
+      this.onDestroySources(index);
+    }
+  }
+
+  protected checkLoadImmediately(index: number, properties: Properties, source: PropertiesSource): void {
+    if (source.loadImmediately) {
+      this.onLoadSources(index);
+    }
+  }
+
   protected checkLoadError(index: number, error: Error, source: PropertiesSource): Observable<Properties> {
     const originalMessage: string = error.message ? `: ${error.message}` : '';
-    const errorMessage = `Required Environment PropertiesSource "${source.name}" failed to load${originalMessage}`;
+    const errorMessage = `Required Environment PropertiesSource "${source.sourceName}" failed to load${originalMessage}`;
+    const loadError: Error = new Error(errorMessage);
 
     if (this.isRequiredToLoadAndNotLoaded(index, source)) {
-      const loadError: Error = new Error(errorMessage);
-
       this.load$List[index].error(loadError);
-      this.onDestroySources(index);
+      source.onError(loadError);
     } else {
-      console.error(errorMessage);
+      source.onSoftError(loadError);
     }
 
     return of({});
@@ -138,41 +188,9 @@ export abstract class EnvironmentLoader {
     return source.requiredToLoad && !source.ignoreError && !this.load$List[index].isStopped;
   }
 
-  protected customSourceOperator<T, K = T>(index: number, source: PropertiesSource): OperatorFunction<T, T | K> {
-    return (observable: Observable<T>) => observable;
-  }
-
-  protected checkResetEnvironment(index: number, value: Properties, source: PropertiesSource): void {
-    if (source.resetEnvironment) {
-      this.service.reset();
-    }
-  }
-
-  protected saveSourceValueToStore(index: number, value: Properties, source: PropertiesSource): void {
-    if (Object.keys(value).length > 0) {
-      if (source.deepMergeValues) {
-        this.service.deepMerge(value, source.path);
-      } else {
-        this.service.merge(value, source.path);
-      }
-    }
-  }
-
-  protected checkLoadImmediately(index: number, value: Properties, source: PropertiesSource): void {
-    if (source.loadImmediately) {
-      this.onLoadSources(index);
-    }
-  }
-
-  protected checkDismissOtherSources(index: number, value: Properties, source: PropertiesSource): void {
-    if (source.dismissOtherSources) {
-      this.onDestroySources(index);
-    }
-  }
-
-  protected checkRequiredToLoad(index: number, value: Properties, source: PropertiesSource): void {
+  protected checkRequiredToLoad(index: number, source: PropertiesSource): void {
     if (source.requiredToLoad) {
-      const requiredToLoadLoaded: Set<string> = this.requiredToLoad$List[index].getValue().add(source.id);
+      const requiredToLoadLoaded: Set<string> = this.requiredToLoad$List[index].getValue().add(source._sourceId);
 
       this.requiredToLoad$List[index].next(requiredToLoadLoaded);
     }

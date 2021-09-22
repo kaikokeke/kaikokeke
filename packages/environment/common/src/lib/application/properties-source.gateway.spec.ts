@@ -17,12 +17,12 @@ describe('PropertiesSource', () => {
     source = new TestPropertiesSource();
   });
 
-  it(`.id is setted with an UUID`, () => {
-    expect(validate(source.id)).toBeTrue();
+  it(`._sourceId is setted with an UUID`, () => {
+    expect(validate(source._sourceId)).toBeTrue();
   });
 
-  it(`.name is setted with the class name`, () => {
-    expect(source.name).toEqual('TestPropertiesSource');
+  it(`.sourceName is setted with the class name`, () => {
+    expect(source.sourceName).toEqual('TestPropertiesSource');
   });
 
   it(`.requiredToLoad is false by default`, () => {
@@ -45,11 +45,27 @@ describe('PropertiesSource', () => {
     expect(source.deepMergeValues).toBeFalse();
   });
 
-  it(`.resetEnvironment is false by default`, () => {
-    expect(source.resetEnvironment).toBeFalse();
-  });
-
   it(`.ignoreError is false by default`, () => {
     expect(source.ignoreError).toBeFalse();
+  });
+
+  it(`.load() is a defined method`, () => {
+    expect(source.load).toBeFunction();
+  });
+
+  it(`.onBeforeLoad() is a defined method`, () => {
+    expect(source.onBeforeLoad).toBeFunction();
+  });
+
+  it(`.onAfterLoad() is a defined method`, () => {
+    expect(source.onAfterLoad).toBeFunction();
+  });
+
+  it(`.onError() is a defined method`, () => {
+    expect(source.onError).toBeFunction();
+  });
+
+  it(`.onSoftError() is a defined method`, () => {
+    expect(source.onSoftError).toBeFunction();
   });
 });

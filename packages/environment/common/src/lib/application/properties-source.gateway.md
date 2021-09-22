@@ -4,16 +4,20 @@ An environment properties source definition to get the application properties as
 
 ```ts
 export abstract class PropertiesSource {
-  name: string = this.constructor.name;
-  requiredToLoad: boolean = false;
+  readonly _sourceId: string;
+  sourceName: string = this.constructor.name;
+  requiredToLoad = false;
   loadInOrder: boolean = false;
   loadImmediately: boolean = false;
   dismissOtherSources: boolean = false;
   deepMergeValues: boolean = false;
-  resetEnvironment: boolean = false;
   ignoreError: boolean = false;
   path?: Path;
   abstract load(): ObservableInput<Properties>;
+  onBeforeLoad(properties: Properties): void;
+  onAfterLoad(properties: Properties): void;
+  onError(error: Error): void;
+  onSoftError(error: Error): void;
 }
 ```
 
@@ -37,26 +41,26 @@ This minimal implementation can be extended by setting properties or using other
 
 ### Exposed Properties
 
-### `id`
+#### `_sourceId`
 
 The unique random id for each class instance.
 
 ```ts
-readonly id: string = v4();
+readonly _sourceId: string = v4();
 ```
 
-Uses a RFC4122 v4 generator.
+This property is setted on instantiation using a RFC4122 v4 generator, and should not be setted after that because is used to manage the `requiredToLoad` property.
 
-### `name`
+#### `sourceName`
 
 The properties source name.
 Defaults to the class name.
 
 ```ts
-name: string = this.constructor.name;
+sourceName: string = this.constructor.name;
 ```
 
-> If the code is minimized or uglified on build and logs are stored, this property should be overridden with a descriptive value, such as the class name, because the constructor name changes in these processes.
+If the code is minimized or uglified on build and logs are stored, this property should be overridden with a descriptive value, such as the class name, because the constructor name changes in these processes.
 
 #### `requiredToLoad`
 
@@ -66,6 +70,8 @@ Defaults to `false`.
 ```ts
 requiredToLoad = false;
 ```
+
+It is useful to delay the loading of the application or submodule until all the necessary properties from this sources are available.
 
 #### `loadInOrder`
 
@@ -104,14 +110,7 @@ Defaults to `false`.
 deepMergeValues = false;
 ```
 
-#### `resetEnvironment`
-
-Resets the environment before inserting the properties from this source.
-Defaults to `false`.
-
-```ts
-resetEnvironment = false;
-```
+See `EnvironmentService#deepMerge(properties, path?)`;
 
 #### `ignoreError`
 
@@ -155,7 +154,7 @@ export declare type ObservableInput<Properties> =
 
 ### Max load time
 
-If it is necessary to set a maximum wait time before loading the application, regardless of whether the required source values ​​are loaded, we can create a `PropertiesSource` with `loadImmediately` set to `true`. This is because we do want to wait for max load source to load the application.
+If it is necessary to set a maximum wait time before loading the application, regardless of whether the required source values ​​are loaded, we can create a `PropertiesSource` with `loadImmediately` set to `true`.
 
 ```ts
 export class MaxLoadTimeSource extends PropertiesSource {
