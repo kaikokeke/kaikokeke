@@ -8,13 +8,7 @@ export function environmentModuleForRoot(loader: EnvironmentLoader): () => Promi
   return () => loader.load();
 }
 
-@NgModule({
-  providers: [
-    { provide: EnvironmentService, useClass: AngularEnvironmentService },
-    { provide: EnvironmentLoader, useClass: AngularEnvironmentLoader },
-    { provide: EnvironmentQuery, useClass: AngularEnvironmentQuery },
-  ],
-})
+@NgModule()
 export class EnvironmentModule {
   static forRoot(config?: Partial<EnvironmentConfig>): ModuleWithProviders<EnvironmentModule> {
     return {
@@ -26,6 +20,9 @@ export class EnvironmentModule {
           deps: [EnvironmentLoader],
           multi: true,
         },
+        { provide: EnvironmentService, useClass: AngularEnvironmentService },
+        { provide: EnvironmentLoader, useClass: AngularEnvironmentLoader },
+        { provide: EnvironmentQuery, useClass: AngularEnvironmentQuery },
         config ? { provide: ENVIRONMENT_CONFIG, useValue: config } : [],
       ],
     };
