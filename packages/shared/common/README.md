@@ -2,7 +2,7 @@
 
 [![Quality Gate Status](https://img.shields.io/sonar/quality_gate/kaikokeke:common?logo=SonarCloud&server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/dashboard?id=kaikokeke%3Acommon)
 
-The Common library provides fundamental Kaikokeke framework functionality.
+Provides common Kaikokeke framework functionality.
 
 ## Install
 
@@ -13,9 +13,10 @@ yarn add @kaikokeke/common
 ## API
 
 - [Deep Merge](./src/lib/deep-merge/README.md): Recursively merges own and inherited enumerable string keyed properties of source objects.
+- [filterNil](./src/lib/filter-nil/README.md): Filter items emitted by the source Observable by only emitting those that are not null or undefined.
+- [firstNonNil](./src/lib/first-non-nil/README.md): Emits only the first not null or undefined value emitted by the source Observable.
 - [SafeRxJS](./src/lib/safe-rxjs/README.md): Manages safe RxJS subscriptions.
 - [SafeSubscription](./src/lib/safe-subscription/README.md): Safely store disposable resources, such as the execution of an Observable.
-- [Unfreeze](./src/lib/unfreeze/README.md): Unfreezes the frozen values creating a recursive shallow clone of each value emitted by the source Observable, and emitting the resulting deep cloned values as an Observable.
 
 ## Types
 

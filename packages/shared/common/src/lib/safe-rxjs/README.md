@@ -46,7 +46,7 @@ Disposes the resource held by Observable subscriptions.
 safeRxJS.onDestroy();
 ```
 
-## Example of use
+## Examples of use
 
 ```ts
 import { HttpClient } from '@angular/common/http';
