@@ -1,7 +1,7 @@
 import { APP_INITIALIZER, ModuleWithProviders, NgModule } from '@angular/core';
 import { EnvironmentConfig, EnvironmentLoader, EnvironmentQuery, EnvironmentService } from '@kaikokeke/environment';
 
-import { EnvironmentAngularLoader, EnvironmentAngularQuery, EnvironmentAngularService } from './application';
+import { AngularEnvironmentLoader, AngularEnvironmentQuery, AngularEnvironmentService } from './application';
 import { ENVIRONMENT_CONFIG } from './tokens';
 
 export function environmentModuleForRoot(loader: EnvironmentLoader): () => Promise<void> {
@@ -10,9 +10,9 @@ export function environmentModuleForRoot(loader: EnvironmentLoader): () => Promi
 
 @NgModule({
   providers: [
-    { provide: EnvironmentService, useClass: EnvironmentAngularService },
-    { provide: EnvironmentLoader, useClass: EnvironmentAngularLoader },
-    { provide: EnvironmentQuery, useClass: EnvironmentAngularQuery },
+    { provide: EnvironmentService, useClass: AngularEnvironmentService },
+    { provide: EnvironmentLoader, useClass: AngularEnvironmentLoader },
+    { provide: EnvironmentQuery, useClass: AngularEnvironmentQuery },
   ],
 })
 export class EnvironmentModule {

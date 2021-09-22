@@ -4,7 +4,7 @@ import { EnvironmentConfig, EnvironmentQuery, EnvironmentStore } from '@kaikokek
 import { ENVIRONMENT_CONFIG } from '../tokens';
 
 @Injectable()
-export class EnvironmentAngularQuery extends EnvironmentQuery {
+export class AngularEnvironmentQuery extends EnvironmentQuery {
   constructor(
     @Inject(EnvironmentStore) protected readonly store: EnvironmentStore,
     @Optional() @Inject(ENVIRONMENT_CONFIG) protected readonly partialConfig?: Partial<EnvironmentConfig>,

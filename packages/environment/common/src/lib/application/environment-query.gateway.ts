@@ -9,6 +9,7 @@ import { EnvironmentStore } from './environment-store.gateway';
 
 /**
  * Gets the properties from the environment store.
+ * TODO?: add required defaultValue optional and throws if undefined
  */
 export abstract class EnvironmentQuery {
   protected readonly config: EnvironmentConfig = environmentConfigFactory(this.partialConfig);

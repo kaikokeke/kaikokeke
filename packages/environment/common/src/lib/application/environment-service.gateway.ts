@@ -6,6 +6,7 @@ import { EnvironmentStore } from './environment-store.gateway';
 
 /**
  * Sets properties in the environment store.
+ * TODO: check merge and upsert subproperty override (path)
  */
 export abstract class EnvironmentService {
   /**

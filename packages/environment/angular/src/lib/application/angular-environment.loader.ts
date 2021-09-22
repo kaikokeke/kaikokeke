@@ -4,7 +4,7 @@ import { EnvironmentLoader, EnvironmentService, PropertiesSource } from '@kaikok
 import { ENVIRONMENT_SOURCES } from '../tokens';
 
 @Injectable()
-export class EnvironmentAngularLoader extends EnvironmentLoader {
+export class AngularEnvironmentLoader extends EnvironmentLoader {
   constructor(
     @Inject(EnvironmentService) protected readonly service: EnvironmentService,
     @Optional() @Inject(ENVIRONMENT_SOURCES) protected readonly sources?: PropertiesSource | PropertiesSource[],
