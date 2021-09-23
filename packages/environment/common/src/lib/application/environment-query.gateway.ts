@@ -1,5 +1,5 @@
 import { deepMerge } from '@kaikokeke/common';
-import { cloneDeep, get, isEqual, isString } from 'lodash-es';
+import { get, isEqual, isString } from 'lodash-es';
 import { Observable } from 'rxjs';
 import { distinctUntilChanged, map, shareReplay } from 'rxjs/operators';
 
@@ -9,7 +9,6 @@ import { EnvironmentStore } from './environment-store.gateway';
 
 /**
  * Gets the properties from the environment store.
- * TODO?: add required defaultValue optional and throws if undefined
  */
 export abstract class EnvironmentQuery {
   protected readonly config: EnvironmentConfig = environmentConfigFactory(this.partialConfig);
@@ -25,46 +24,36 @@ export abstract class EnvironmentQuery {
   ) {}
 
   /**
-   * Gets all the distinct environment properties as mutable.
+   * Gets all the distinct environment properties.
    * @returns All the environment properties as Observable.
    */
   getProperties$(): Observable<Properties> {
-    return this.store.getAll$().pipe(
-      distinctUntilChanged(isEqual),
-      shareReplay(1),
-      map((environment: Properties) => this.asMutable(environment)),
-    );
+    return this.store.getAll$().pipe(distinctUntilChanged(isEqual), shareReplay(1));
   }
 
   /**
-   * Gets all the environment properties as mutable.
+   * Gets all the environment properties.
    * @returns All the environment properties.
    */
   getProperties(): Properties {
-    const environment: Properties = this.store.getAll();
-
-    return this.asMutable(environment);
-  }
-
-  protected asMutable(environment: Properties): Properties {
-    return Object.isSealed(environment) ? cloneDeep(environment) : environment;
+    return this.store.getAll();
   }
 
   /**
-   * Gets the distinct environment property at path as mutable.
+   * Gets the distinct environment property at path.
    * @param path The property path to resolve.
    * @returns The environment property at path as Observable or `undefined` if the path cannot be resolved.
    * @see Path
    */
   getProperty$<P extends Property>(path: Path): Observable<P | undefined> {
     return this.getProperties$().pipe(
-      map((environment: Properties): P | undefined => get(environment, path)),
+      map((environment: Properties): P | undefined => this._getProperty(environment, path)),
       distinctUntilChanged(isEqual),
     );
   }
 
   /**
-   * Gets the environment property at path as mutable.
+   * Gets the environment property at path.
    * @param path The property path to resolve.
    * @returns The environment property at path or `undefined` if the path cannot be resolved.
    * @see Path
@@ -72,6 +61,10 @@ export abstract class EnvironmentQuery {
   getProperty<P extends Property>(path: Path): P | undefined {
     const environment: Properties = this.getProperties();
 
+    return this._getProperty(environment, path);
+  }
+
+  protected _getProperty<T extends Property>(environment: Properties, path: Path): T | undefined {
     return get(environment, path);
   }
 
@@ -83,7 +76,7 @@ export abstract class EnvironmentQuery {
    */
   containsProperty$(path: Path): Observable<boolean> {
     return this.getProperty$(path).pipe(
-      map((property?: Property) => property !== undefined),
+      map((property?: Property) => this._containsProperty(property)),
       distinctUntilChanged(),
     );
   }
@@ -97,38 +90,54 @@ export abstract class EnvironmentQuery {
   containsProperty(path: Path): boolean {
     const property: Property | undefined = this.getProperty(path);
 
+    return this._containsProperty(property);
+  }
+
+  protected _containsProperty(property?: Property): boolean {
     return property !== undefined;
   }
 
   /**
-   * Gets the distinct required environment property at path as mutable.
+   * Gets the distinct required environment property at path.
    * @param path The property path to resolve.
    * @param defaultValue The value to return if the path cannot be resolved.
    * @returns The environment property at path as Observable or the `defaultValue` if the path cannot be resolved.
+   * @throws If the property at path is undefined and `defaultValue` is not provided.
    * @see Path
    */
-  getRequiredProperty$<P extends Property, D extends Property>(path: Path, defaultValue: D): Observable<P | D> {
+  getRequiredProperty$<P extends Property, D extends Property>(path: Path, defaultValue?: D): Observable<P | D> {
     return this.getProperties$().pipe(
-      map((environment: Properties): P | D => get(environment, path, defaultValue)),
+      map((environment: Properties): P | D => this._getRequiredProperty(environment, path, defaultValue)),
       distinctUntilChanged(isEqual),
     );
   }
 
   /**
-   * Gets the required environment property at path as mutable.
+   * Gets the required environment property at path.
    * @param path The property path to resolve.
    * @param defaultValue The value to return if the path cannot be resolved.
    * @returns The environment property at path or the `defaultValue` if the path cannot be resolved.
+   * @throws If the property at path is undefined and `defaultValue` is not provided.
    * @see Path
    */
-  getRequiredProperty<P extends Property, D extends Property>(path: Path, defaultValue: D): P | D {
+  getRequiredProperty<P extends Property, D extends Property>(path: Path, defaultValue?: D): P | D {
     const environment: Properties = this.getProperties();
+
+    return this._getRequiredProperty(environment, path, defaultValue);
+  }
+
+  protected _getRequiredProperty<T extends Property>(environment: Properties, path: Path, defaultValue?: T): T {
+    const value: T | undefined = get(environment, path, defaultValue);
+
+    if (value === undefined) {
+      throw new Error(`The environment property at path "${path}" is required and is undefined`);
+    }
 
     return get(environment, path, defaultValue);
   }
 
   /**
-   * Gets the distinct typed environment property at path as mutable.
+   * Gets the distinct typed environment property at path.
    * @param path The property path to resolve.
    * @param targetType The expected type converter function.
    * @returns The environment property at path converted to the `targetType` as Observable
@@ -137,19 +146,13 @@ export abstract class EnvironmentQuery {
    */
   getTypedProperty$<P extends Property, T>(path: Path, targetType: (value: P) => T): Observable<T | undefined> {
     return this.getProperty$<P>(path).pipe(
-      map((property?: P) => {
-        if (property === undefined) {
-          return;
-        }
-
-        return targetType(property);
-      }),
+      map((property?: P) => this._getTypedProperty(targetType, property)),
       distinctUntilChanged(isEqual),
     );
   }
 
   /**
-   * Gets the typed environment property at path as mutable.
+   * Gets the typed environment property at path.
    * @param path The property path to resolve.
    * @param targetType The expected type converter function.
    * @returns The environment property at path converted to the `targetType`
@@ -159,6 +162,10 @@ export abstract class EnvironmentQuery {
   getTypedProperty<P extends Property, T>(path: Path, targetType: (value: P) => T): T | undefined {
     const property: P | undefined = this.getProperty<P>(path);
 
+    return this._getTypedProperty(targetType, property);
+  }
+
+  protected _getTypedProperty<T>(targetType: (value: Property) => T, property?: Property): T | undefined {
     if (property === undefined) {
       return;
     }
@@ -167,46 +174,52 @@ export abstract class EnvironmentQuery {
   }
 
   /**
-   * Gets the distinct required typed environment property at path as mutable.
+   * Gets the distinct required typed environment property at path.
    * @param path The property path to resolve.
    * @param defaultValue The value to return if the path cannot be resolved.
    * @param targetType The expected type converter function.
    * @returns The environment property at path converted to the `targetType` as Observable
    * or the converted `defaultValue` if the path cannot be resolved.
+   * @throws If the property at path is undefined and `defaultValue` is not provided.
    * @see Path
    */
   getRequiredTypedProperty$<P extends Property, D extends Property, T>(
     path: Path,
-    defaultValue: D,
     targetType: (value: P | D) => T,
+    defaultValue?: D,
   ): Observable<T> {
     return this.getRequiredProperty$<P, D>(path, defaultValue).pipe(
-      map((property: P | D) => targetType(property)),
+      map((property: P | D) => this._getRequiredTypedProperty(property, targetType)),
       distinctUntilChanged(isEqual),
     );
   }
 
   /**
-   * Gets the required typed environment property at path as mutable.
+   * Gets the required typed environment property at path.
    * @param path The property path to resolve.
    * @param defaultValue The value to return if the path cannot be resolved.
    * @param targetType The expected type converter function.
    * @returns The environment property at path converted to the `targetType`
    * or the converted `defaultValue` if the path cannot be resolved.
+   * @throws If the property at path is undefined and `defaultValue` is not provided.
    * @see Path
    */
   getRequiredTypedProperty<P extends Property, D extends Property, T>(
     path: Path,
-    defaultValue: D,
     targetType: (value: P | D) => T,
+    defaultValue?: D,
   ): T {
     const property: P | D = this.getRequiredProperty<P, D>(path, defaultValue);
 
+    return this._getRequiredTypedProperty(property, targetType);
+  }
+
+  protected _getRequiredTypedProperty<T>(property: Property, targetType: (value: Property) => T): T {
     return targetType(property);
   }
 
   /**
-   * Gets the distinct transpiled environment property at path as mutable.
+   * Gets the distinct transpiled environment property at path.
    * @param path The property path to resolve.
    * @param properties The properties to resolve the interpolation.
    * @param config The custom environment config for the transpile.
@@ -220,19 +233,13 @@ export abstract class EnvironmentQuery {
     config?: Partial<EnvironmentConfig>,
   ): Observable<P | string | undefined> {
     return this.getProperty$<P>(path).pipe(
-      map((property?: P) => {
-        if (property === undefined) {
-          return;
-        }
-
-        return this.transpile(property, properties, config);
-      }),
+      map((property?: P) => this._getTranspiledProperty(property, properties, config)),
       distinctUntilChanged(isEqual),
     );
   }
 
   /**
-   * Gets the transpiled environment property at path as mutable.
+   * Gets the transpiled environment property at path.
    * @param path The property path to resolve.
    * @param properties The properties to resolve the interpolation.
    * @param config The custom environment config for the transpile.
@@ -246,6 +253,14 @@ export abstract class EnvironmentQuery {
   ): P | string | undefined {
     const property: P | undefined = this.getProperty<P>(path);
 
+    return this._getTranspiledProperty(property, properties, config);
+  }
+
+  protected _getTranspiledProperty<T extends Property>(
+    property?: T,
+    properties?: Properties,
+    config?: Partial<EnvironmentConfig>,
+  ): T | string | undefined {
     if (property === undefined) {
       return;
     }
@@ -254,45 +269,55 @@ export abstract class EnvironmentQuery {
   }
 
   /**
-   * Gets the distinct required transpiled environment property at path as mutable.
+   * Gets the distinct required transpiled environment property at path.
    * @param path The property path to resolve.
    * @param defaultValue The default value to resolve if no value is found.
    * @param properties The properties to resolve the interpolation.
    * @param config The custom environment config for the transpile.
    * @returns The transpiled environment property at path as Observable
    * or the transpiled `defaultValue` if the path cannot be resolved.
+   * @throws If the property at path is undefined and `defaultValue` is not provided.
    * @see Path
    */
   getRequiredTranspiledProperty$<P extends Property, D extends Property>(
     path: Path,
-    defaultValue: D,
+    defaultValue?: D,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
   ): Observable<P | D | string> {
     return this.getRequiredProperty$<P, D>(path, defaultValue).pipe(
-      map((property: P | D) => this.transpile(property, properties, config)),
+      map((property: P | D) => this._getRequiredTranspiledProperty(property, properties, config)),
       distinctUntilChanged(isEqual),
     );
   }
 
   /**
-   * Gets the required transpiled environment property at path as mutable.
+   * Gets the required transpiled environment property at path.
    * @param path The property path to resolve.
    * @param defaultValue The default value to resolve if no value is found.
    * @param properties The properties to resolve the interpolation.
    * @param config The custom environment config for the transpile.
    * @returns The transpiled environment property at path
    * or the transpiled `defaultValue` if the path cannot be resolved.
+   * @throws If the property at path is undefined and `defaultValue` is not provided.
    * @see Path
    */
   getRequiredTranspiledProperty<P extends Property, D extends Property>(
     path: Path,
-    defaultValue: D,
+    defaultValue?: D,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
   ): P | D | string {
     const property: P | D = this.getRequiredProperty<P, D>(path, defaultValue);
 
+    return this._getRequiredTranspiledProperty(property, properties, config);
+  }
+
+  protected _getRequiredTranspiledProperty<T extends Property>(
+    property: T,
+    properties?: Properties,
+    config?: Partial<EnvironmentConfig>,
+  ): T | string {
     return this.transpile(property, properties, config);
   }
 

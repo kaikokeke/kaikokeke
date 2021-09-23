@@ -1,6 +1,7 @@
 import { Observable, of, Subject } from 'rxjs';
 import { marbles } from 'rxjs-marbles/jest';
 
+import { asMutable, mapAsMutable } from '../helpers';
 import { Properties } from '../types';
 import { EnvironmentQuery } from './environment-query.gateway';
 import { EnvironmentStore } from './environment-store.gateway';
@@ -56,20 +57,6 @@ describe('EnvironmentQuery', () => {
     }),
   );
 
-  it(`getProperties$() returns all the environment properties as mutable`, (done) => {
-    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
-    query.getProperties$().subscribe({
-      next: (value) => {
-        expect(value).toEqual(envA1);
-        expect(Object.isFrozen(envA1)).toBeTrue();
-        expect(Object.isFrozen(envA1.a)).toBeTrue();
-        expect(Object.isFrozen(value)).toBeFalse();
-        expect(Object.isFrozen(value.a)).toBeFalse();
-        done();
-      },
-    });
-  });
-
   it(`getProperties$() returns always the last value`, () => {
     const sub = new Subject<Properties>();
     const value = { a: 0 };
@@ -81,16 +68,6 @@ describe('EnvironmentQuery', () => {
     expect(console.log).toHaveBeenNthCalledWith(1, value);
     prop.subscribe({ next: (v) => console.log(v) });
     expect(console.log).toHaveBeenNthCalledWith(2, value);
-  });
-
-  it(`getProperties() returns all the environment properties as mutable`, () => {
-    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
-    const value = query.getProperties();
-    expect(value).toEqual(envA1);
-    expect(Object.isFrozen(envA1)).toBeTrue();
-    expect(Object.isFrozen(envA1.a)).toBeTrue();
-    expect(Object.isFrozen(value)).toBeFalse();
-    expect(Object.isFrozen(value.a)).toBeFalse();
   });
 
   // getProperty
@@ -105,18 +82,6 @@ describe('EnvironmentQuery', () => {
     }),
   );
 
-  it(`getProperty$(path) returns the environment property at path as mutable`, (done) => {
-    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
-    query.getProperty$('a').subscribe({
-      next: (value) => {
-        expect(value).toEqual(envA1.a);
-        expect(Object.isFrozen(envA1.a)).toBeTrue();
-        expect(Object.isFrozen(value)).toBeFalse();
-        done();
-      },
-    });
-  });
-
   it(`getProperty$(path) returns always the last value`, () => {
     const sub = new Subject<Properties>();
     const value = { a: 0 };
@@ -128,14 +93,6 @@ describe('EnvironmentQuery', () => {
     expect(console.log).toHaveBeenNthCalledWith(1, value.a);
     prop.subscribe({ next: (v) => console.log(v) });
     expect(console.log).toHaveBeenNthCalledWith(2, value.a);
-  });
-
-  it(`getProperty(path) returns the environment property at path as mutable`, () => {
-    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
-    const value = query.getProperty('a');
-    expect(value).toEqual(envA1.a);
-    expect(Object.isFrozen(envA1.a)).toBeTrue();
-    expect(Object.isFrozen(value)).toBeFalse();
   });
 
   it(`getProperty(path) returns undefined if the path cannot be resolved`, () => {
@@ -190,18 +147,6 @@ describe('EnvironmentQuery', () => {
     }),
   );
 
-  it(`getRequiredProperty$(path, defaultValue) returns the environment property at path as mutable`, (done) => {
-    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
-    query.getRequiredProperty$('a', 'def').subscribe({
-      next: (value) => {
-        expect(value).toEqual(envA1.a);
-        expect(Object.isFrozen(envA1.a)).toBeTrue();
-        expect(Object.isFrozen(value)).toBeFalse();
-        done();
-      },
-    });
-  });
-
   it(`getRequiredProperty$(path, defaultValue) returns always the last value`, () => {
     const sub = new Subject<Properties>();
     const value = { a: 0 };
@@ -213,15 +158,6 @@ describe('EnvironmentQuery', () => {
     expect(console.log).toHaveBeenNthCalledWith(1, value.a);
     prop.subscribe({ next: (v) => console.log(v) });
     expect(console.log).toHaveBeenNthCalledWith(2, value.a);
-  });
-
-  it(`getRequiredProperty(path, defaultValue) returns the environment property at path as mutable`, () => {
-    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
-    expect(query.getRequiredProperty('a.a', 'def')).toEqual(0);
-    const value = query.getRequiredProperty('a', 'def');
-    expect(value).toEqual(envA1.a);
-    expect(Object.isFrozen(envA1.a)).toBeTrue();
-    expect(Object.isFrozen(value)).toBeFalse();
   });
 
   it(`getRequiredProperty(path, defaultValue) returns the defaultValue if the path cannot be resolved`, () => {
@@ -241,20 +177,6 @@ describe('EnvironmentQuery', () => {
     }),
   );
 
-  it(`getTypedProperty$(path, targetType) returns the environment property at path converted to the targetType as mutable`, (done) => {
-    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
-    query
-      .getTypedProperty$('a', (value) => value)
-      .subscribe({
-        next: (value) => {
-          expect(value).toEqual(envA1.a);
-          expect(Object.isFrozen(envA1.a)).toBeTrue();
-          expect(Object.isFrozen(value)).toBeFalse();
-          done();
-        },
-      });
-  });
-
   it(`getTypedProperty$(path, targetType) returns always the last value`, () => {
     const sub = new Subject<Properties>();
     const value = { a: 0 };
@@ -266,15 +188,6 @@ describe('EnvironmentQuery', () => {
     expect(console.log).toHaveBeenNthCalledWith(1, value.a);
     prop.subscribe({ next: (v) => console.log(v) });
     expect(console.log).toHaveBeenNthCalledWith(2, value.a);
-  });
-
-  it(`getTypedProperty(path, targetType) returns the environment property at path converted to the targetType as mutable`, () => {
-    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
-    expect(query.getTypedProperty('a.a', String)).toEqual('0');
-    const value = query.getTypedProperty('a', (value) => value);
-    expect(value).toEqual(envA1.a);
-    expect(Object.isFrozen(envA1.a)).toBeTrue();
-    expect(Object.isFrozen(value)).toBeFalse();
   });
 
   it(`getTypedProperty(path, targetType) returns undefined if the path cannot be resolved`, () => {
@@ -290,30 +203,16 @@ describe('EnvironmentQuery', () => {
       const source = m.cold('-a-b-c-d-a-|', { a: envA1, b: envA2, c: envB1, d: envB2 });
       const expected = m.cold('-a---b---a-|', { a: '0', b: '1' });
       jest.spyOn(store, 'getAll$').mockReturnValue(source);
-      m.expect(query.getRequiredTypedProperty$('a.a', 1, String)).toBeObservable(expected);
+      m.expect(query.getRequiredTypedProperty$('a.a', String, 1)).toBeObservable(expected);
     }),
   );
-
-  it(`getRequiredTypedProperty$(path, defaultValue, targetType) returns the environment property at path converted to the targetType as mutable`, (done) => {
-    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
-    query
-      .getRequiredTypedProperty$('a', 1, (value) => value)
-      .subscribe({
-        next: (value) => {
-          expect(value).toEqual(envA1.a);
-          expect(Object.isFrozen(envA1.a)).toBeTrue();
-          expect(Object.isFrozen(value)).toBeFalse();
-          done();
-        },
-      });
-  });
 
   it(`getRequiredTypedProperty$(path, defaultValue, targetType) returns always the last value`, () => {
     const sub = new Subject<Properties>();
     const value = { a: 0 };
     jest.spyOn(console, 'log').mockImplementation(() => null);
     jest.spyOn(store, 'getAll$').mockReturnValue(sub);
-    const prop = query.getRequiredTypedProperty$('a', 1, (v) => v);
+    const prop = query.getRequiredTypedProperty$('a', (v) => v, 1);
     prop.subscribe({ next: (v) => console.log(v) });
     sub.next(value);
     expect(console.log).toHaveBeenNthCalledWith(1, value.a);
@@ -321,18 +220,9 @@ describe('EnvironmentQuery', () => {
     expect(console.log).toHaveBeenNthCalledWith(2, value.a);
   });
 
-  it(`getRequiredTypedProperty(path, defaultValue, targetType) returns the environment property at path converted to the targetType as mutable`, () => {
-    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
-    expect(query.getRequiredTypedProperty('a.a', 1, String)).toEqual('0');
-    const value = query.getRequiredTypedProperty('a', 1, (value) => value);
-    expect(value).toEqual(envA1.a);
-    expect(Object.isFrozen(envA1.a)).toBeTrue();
-    expect(Object.isFrozen(value)).toBeFalse();
-  });
-
   it(`getRequiredTypedProperty(path, defaultValue, targetType) returns the defaultValue converted to the targetType if the path cannot be resolved`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue(envA1);
-    expect(query.getRequiredTypedProperty('a.b', 1, String)).toEqual('1');
+    expect(query.getRequiredTypedProperty('a.b', String, 1)).toEqual('1');
   });
 
   // getTranspiledProperty
@@ -346,18 +236,6 @@ describe('EnvironmentQuery', () => {
       m.expect(query.getTranspiledProperty$('a.a')).toBeObservable(expected);
     }),
   );
-
-  it(`getTranspiledProperty$(path) returns the environment property at path as mutable`, (done) => {
-    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
-    query.getTranspiledProperty$('a').subscribe({
-      next: (value) => {
-        expect(value).toEqual(envA1.a);
-        expect(Object.isFrozen(envA1.a)).toBeTrue();
-        expect(Object.isFrozen(value)).toBeFalse();
-        done();
-      },
-    });
-  });
 
   it(`getTranspiledProperty$(path) returns always the last value`, () => {
     const sub = new Subject<Properties>();
@@ -485,14 +363,6 @@ describe('EnvironmentQuery', () => {
     });
   });
 
-  it(`getTranspiledProperty(path) returns the environment property at path as mutable`, () => {
-    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
-    const value = query.getTranspiledProperty('a');
-    expect(value).toEqual(envA1.a);
-    expect(Object.isFrozen(envA1.a)).toBeTrue();
-    expect(Object.isFrozen(value)).toBeFalse();
-  });
-
   it(`getTranspiledProperty(path) returns undefined if the path cannot be resolved`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue(envA1);
     expect(query.getTranspiledProperty('a.b')).toBeUndefined();
@@ -577,18 +447,6 @@ describe('EnvironmentQuery', () => {
       m.expect(query.getRequiredTranspiledProperty$('a.a', 'def')).toBeObservable(expected);
     }),
   );
-
-  it(`getRequiredTranspiledProperty$(path, defaultValue) returns the environment property at path as mutable`, (done) => {
-    jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
-    query.getRequiredTranspiledProperty$('a', 'def').subscribe({
-      next: (value) => {
-        expect(value).toEqual(envA1.a);
-        expect(Object.isFrozen(envA1.a)).toBeTrue();
-        expect(Object.isFrozen(value)).toBeFalse();
-        done();
-      },
-    });
-  });
 
   it(`getRequiredTranspiledProperty$(path, defaultValue) returns always the last value`, () => {
     const sub = new Subject<Properties>();
@@ -716,15 +574,6 @@ describe('EnvironmentQuery', () => {
     });
   });
 
-  it(`getRequiredTranspiledProperty(path, defaultValue) returns the environment property at path as mutable`, () => {
-    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
-    expect(query.getRequiredTranspiledProperty('a.a', 'def')).toEqual(0);
-    const value = query.getRequiredTranspiledProperty('a', 'def');
-    expect(value).toEqual(envA1.a);
-    expect(Object.isFrozen(envA1.a)).toBeTrue();
-    expect(Object.isFrozen(value)).toBeFalse();
-  });
-
   it(`getRequiredTranspiledProperty(path, defaultValue) returns the defaultValue if the path cannot be resolved`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue(envA1);
     expect(query.getRequiredTranspiledProperty('a.b', 'def')).toEqual('def');
@@ -796,5 +645,28 @@ describe('EnvironmentQuery', () => {
     jest.spyOn(store, 'getAll').mockReturnValue(env);
     (query as any)['config'].useEnvironmentToTranspile = true;
     expect(query.getRequiredTranspiledProperty('b', 2)).toEqual('0');
+  });
+
+  describe('examples of use', () => {
+    it(`return as mutable`, (done) => {
+      jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+      jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
+      expect(Object.isFrozen(envA1.a)).toBeTrue();
+
+      const value = query.getTypedProperty('a', asMutable);
+      expect(value).toEqual(envA1.a);
+      expect(Object.isFrozen(value)).toBeFalse();
+
+      query
+        .getProperty$('a')
+        .pipe(mapAsMutable())
+        .subscribe({
+          next: (_value) => {
+            expect(_value).toEqual(envA1.a);
+            expect(Object.isFrozen(_value)).toBeFalse();
+            done();
+          },
+        });
+    });
   });
 });
