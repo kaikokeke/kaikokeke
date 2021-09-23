@@ -12,7 +12,7 @@ yarn add @kaikokeke/common
 
 ## API
 
-- [Deep Merge](./src/lib/deep-merge/README.md): Recursively merges own and inherited enumerable string keyed properties of source objects.
+- [deepMerge](./src/lib/deep-merge/README.md): Recursively merges own and inherited enumerable string keyed properties of source objects.
 - [filterNil](./src/lib/filter-nil/README.md): Filter items emitted by the source Observable by only emitting those that are not null or undefined.
 - [firstNonNil](./src/lib/first-non-nil/README.md): Emits only the first not null or undefined value emitted by the source Observable.
 - [SafeRxJS](./src/lib/safe-rxjs/README.md): Manages safe RxJS subscriptions.
