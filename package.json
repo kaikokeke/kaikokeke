@@ -103,6 +103,7 @@
     "prettier": "2.3.1",
     "rxjs-marbles": "^6.0.1",
     "sonarqube-scanner": "^2.8.0",
+    "ts-essentials": "^8.1.0",
     "ts-jest": "27.0.3",
     "ts-node": "~9.1.1",
     "typescript": "4.3.5"
