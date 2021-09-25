@@ -39,12 +39,12 @@ You don't have to implement all (or any) of the lifecycle hooks, just the ones y
 ### Completes after error
 
 Is a common requirement to complete all sources after application load error and reset the environment store.
-It's easy to do by implementing `AfterLoadError`.
+It's easy to do by implementing `OnAfterLoadError`.
 
 ```ts
 import { AfterLoadError, EnvironmentLoader, EnvironmentService, PropertiesSource } from '@kaikokeke/environment';
 
-export class CustomEnvironmentLoader extends EnvironmentLoader implements AfterLoadError {
+export class CustomEnvironmentLoader extends EnvironmentLoader implements OnAfterLoadError {
   constructor(
     protected readonly service: EnvironmentService,
     protected readonly sources?: PropertiesSource | PropertiesSource[],
