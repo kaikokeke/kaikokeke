@@ -1,6 +1,6 @@
 import { HttpClientModule } from '@angular/common/http';
 import { Injectable, NgModule } from '@angular/core';
-import { Store, StoreConfig } from '@datorama/akita';
+import { isDev, setAction, Store, StoreConfig } from '@datorama/akita';
 import { EnvironmentStore, Properties } from '@kaikokeke/environment';
 import { EnvironmentModule } from '@kaikokeke/environment-angular';
 import { Observable } from 'rxjs';
@@ -30,7 +30,8 @@ export class AngularAkitaEnvironmentStore extends EnvironmentStore {
   }
 
   update(properties: Properties): void {
-    this.store.update(properties);
+    isDev() && setAction('Update');
+    this.store._setState(properties);
   }
 
   reset(): void {

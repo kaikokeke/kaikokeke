@@ -8,7 +8,7 @@ import { Properties } from '../types';
 export abstract class EnvironmentStore {
   /**
    * Gets all properties from the environment store.
-   * @returns The environment properties as Observable.
+   * @returns The environment properties as Observable that emits on every environment change.
    */
   abstract getAll$(): Observable<Properties>;
 
@@ -19,7 +19,7 @@ export abstract class EnvironmentStore {
   abstract getAll(): Properties;
 
   /**
-   * Update the properties in the environment store.
+   * Updates the properties in the environment store.
    * @param properties The new properties set.
    */
   abstract update(properties: Properties): void;
