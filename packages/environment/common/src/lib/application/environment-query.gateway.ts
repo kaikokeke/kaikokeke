@@ -64,7 +64,7 @@ export abstract class EnvironmentQuery {
     return this._getProperty(environment, path);
   }
 
-  protected _getProperty<T extends Property>(environment: Properties, path: Path): T | undefined {
+  protected _getProperty<P extends Property>(environment: Properties, path: Path): P | undefined {
     return get(environment, path);
   }
 
@@ -107,7 +107,7 @@ export abstract class EnvironmentQuery {
    */
   getRequiredProperty$<P extends Property, D extends Property>(path: Path, defaultValue?: D): Observable<P | D> {
     return this.getProperties$().pipe(
-      map((environment: Properties): P | D => this._getRequiredProperty(environment, path, defaultValue)),
+      map((environment: Properties) => this._getRequiredProperty(environment, path, defaultValue)),
       distinctUntilChanged(isEqual),
     );
   }
@@ -126,8 +126,12 @@ export abstract class EnvironmentQuery {
     return this._getRequiredProperty(environment, path, defaultValue);
   }
 
-  protected _getRequiredProperty<T extends Property>(environment: Properties, path: Path, defaultValue?: T): T {
-    const value: T | undefined = get(environment, path, defaultValue);
+  protected _getRequiredProperty<P extends Property, D extends Property>(
+    environment: Properties,
+    path: Path,
+    defaultValue?: D,
+  ): P | D {
+    const value: P | D | undefined = get(environment, path, defaultValue);
 
     if (value === undefined) {
       throw new Error(`The environment property at path "${path}" is required and is undefined`);
@@ -165,7 +169,7 @@ export abstract class EnvironmentQuery {
     return this._getTypedProperty(targetType, property);
   }
 
-  protected _getTypedProperty<T>(targetType: (value: Property) => T, property?: Property): T | undefined {
+  protected _getTypedProperty<P extends Property, T>(targetType: (value: P) => T, property?: P): T | undefined {
     if (property === undefined) {
       return;
     }
@@ -214,7 +218,10 @@ export abstract class EnvironmentQuery {
     return this._getRequiredTypedProperty(property, targetType);
   }
 
-  protected _getRequiredTypedProperty<T>(property: Property, targetType: (value: Property) => T): T {
+  protected _getRequiredTypedProperty<P extends Property, D extends Property, T>(
+    property: P | D,
+    targetType: (value: P | D) => T,
+  ): T {
     return targetType(property);
   }
 
@@ -256,11 +263,11 @@ export abstract class EnvironmentQuery {
     return this._getTranspiledProperty(property, properties, config);
   }
 
-  protected _getTranspiledProperty<T extends Property>(
-    property?: T,
+  protected _getTranspiledProperty<P extends Property>(
+    property?: P,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
-  ): T | string | undefined {
+  ): P | string | undefined {
     if (property === undefined) {
       return;
     }
@@ -313,11 +320,11 @@ export abstract class EnvironmentQuery {
     return this._getRequiredTranspiledProperty(property, properties, config);
   }
 
-  protected _getRequiredTranspiledProperty<T extends Property>(
-    property: T,
+  protected _getRequiredTranspiledProperty<P extends Property>(
+    property: P,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
-  ): T | string {
+  ): P | string {
     return this.transpile(property, properties, config);
   }
 
