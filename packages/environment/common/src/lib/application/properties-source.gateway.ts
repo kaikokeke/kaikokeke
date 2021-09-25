@@ -4,7 +4,7 @@ import { v4 } from 'uuid';
 import { Path, Properties } from '../types';
 
 /**
- * An environment properties source definition to get the application properties asynchronously.
+ * Definition to get the application properties asynchronously.
  */
 export abstract class PropertiesSource {
   /**
@@ -68,36 +68,4 @@ export abstract class PropertiesSource {
    * Asynchronously loads environment properties from source.
    */
   abstract load(): ObservableInput<Properties>;
-
-  /**
-   * Actions to be executed before load the properties in the environment.
-   * @param properties The loaded environment properties from source.
-   */
-  onBeforeLoad(properties: Properties): void {
-    // Override to provide functionality.
-  }
-
-  /**
-   * Actions to be executed after load the properties in the environment.
-   * @param properties The loaded environment properties from source.
-   */
-  onAfterLoad(properties: Properties): void {
-    // Override to provide functionality.
-  }
-
-  /**
-   * Actions to be executed after a source error before the application load.
-   * @param error The returned source error.
-   */
-  onError(error: Error): void {
-    // Override to provide functionality.
-  }
-
-  /**
-   * Actions to be executed after an ignored source error or any error after the application load.
-   * @param error The returned source error.
-   */
-  onSoftError(error: Error): void {
-    // Override to provide functionality.
-  }
 }

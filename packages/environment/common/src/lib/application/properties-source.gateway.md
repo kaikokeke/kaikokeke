@@ -1,6 +1,6 @@
 # Properties Source
 
-An environment properties source definition to get the application properties asynchronously.
+Definition to get the application properties asynchronously.
 
 ```ts
 export abstract class PropertiesSource {
@@ -14,10 +14,6 @@ export abstract class PropertiesSource {
   ignoreError: boolean = false;
   path?: Path;
   abstract load(): ObservableInput<Properties>;
-  onBeforeLoad(properties: Properties): void;
-  onAfterLoad(properties: Properties): void;
-  onError(error: Error): void;
-  onSoftError(error: Error): void;
 }
 ```
 
@@ -35,7 +31,7 @@ export class TestSource extends PropertiesSource {
 }
 ```
 
-This minimal implementation can be extended by setting properties or using other classes in the load method, as described in the API and examples below.
+This minimal implementation can be extended by setting properties and implementing the load method, as described in the API and examples below.
 
 ## API
 
@@ -149,6 +145,26 @@ export declare type ObservableInput<Properties> =
   | ArrayLike<Properties>
   | Iterable<Properties>;
 ```
+
+### Lifecycle Hooks
+
+A `PropertiesSource` instance has a lifecycle that starts when the `EnvironmentLoader` loads the source. Each lifecycle ends when the source is loaded. Your implementation can use lifecycle hook methods to tap into key events in the source load.
+
+Respond to events in the lifecycle of the source by implementing one or more of the _lifecycle hook_ interfaces presented below. The hooks give you the opportunity to act on the instance at the appropriate moment.
+
+Each interface defines the prototype for a single hook method, whose name is the interface name starting in lowercase. For example, the `OnBeforeSourceLoad` interface has a hook method named `onBeforeSourceLoad()`.
+
+You don't have to implement all (or any) of the lifecycle hooks, just the ones you need.
+
+#### `OnBeforeSourceLoad`
+
+#### `OnBeforeSourceValue`
+
+#### `OnAfterSourceValue`
+
+#### `OnAfterSourceLoad`
+
+#### `OnAfterSourceError`
 
 ## Examples of use
 

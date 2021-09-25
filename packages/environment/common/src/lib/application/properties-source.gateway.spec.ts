@@ -52,20 +52,4 @@ describe('PropertiesSource', () => {
   it(`.load() is a defined method`, () => {
     expect(source.load).toBeFunction();
   });
-
-  it(`.onBeforeLoad() is a defined method`, () => {
-    expect(source.onBeforeLoad).toBeFunction();
-  });
-
-  it(`.onAfterLoad() is a defined method`, () => {
-    expect(source.onAfterLoad).toBeFunction();
-  });
-
-  it(`.onError() is a defined method`, () => {
-    expect(source.onError).toBeFunction();
-  });
-
-  it(`.onSoftError() is a defined method`, () => {
-    expect(source.onSoftError).toBeFunction();
-  });
 });
