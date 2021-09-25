@@ -4,7 +4,7 @@ Manages the environment store.
 
 ## Getting Started
 
-To use an environment store create a class that extends from `EnvironmentStore` and implement required methods, as described in the API and examples. The most basic implementation is shown below.
+You can create an environment store class extending from `EnvironmentStore` and implementing the required methods as described in the API and examples. The most basic implementation is shown below.
 
 ```ts
 import { EnvironmentStore, Properties } from '@kaikokeke/environment';
