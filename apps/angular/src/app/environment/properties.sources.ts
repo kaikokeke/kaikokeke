@@ -1,7 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Provider } from '@angular/core';
 import { firstNonNil } from '@kaikokeke/common';
-import { EnvironmentQuery, EnvironmentService, Properties, PropertiesSource } from '@kaikokeke/environment';
+import {
+  EnvironmentQuery,
+  EnvironmentService,
+  OnAfterSourceLoad,
+  Properties,
+  PropertiesSource,
+} from '@kaikokeke/environment';
 import { ENVIRONMENT_SOURCES } from '@kaikokeke/environment-angular';
 import { combineLatest, Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
@@ -28,14 +34,13 @@ export class PostSource extends PropertiesSource {
 
   readonly collection = 'posts';
   readonly postId = 1;
-  readonly maxWait = 5000;
 
   constructor(protected readonly http: HttpClient, protected readonly query: EnvironmentQuery) {
     super();
   }
 
   load(): Observable<Properties> {
-    const basePath$: Observable<string> = this.query.getProperty$<string>('basePath').pipe(firstNonNil(this.maxWait));
+    const basePath$: Observable<string> = this.query.getProperty$<string>('basePath').pipe(firstNonNil());
 
     return basePath$.pipe(
       switchMap((basePath: string) => this.http.get<Properties>(`${basePath}/${this.collection}/${this.postId}`)),
@@ -44,13 +49,11 @@ export class PostSource extends PropertiesSource {
 }
 
 @Injectable({ providedIn: 'root' })
-export class UserSource extends PropertiesSource {
+export class UserSource extends PropertiesSource implements OnAfterSourceLoad {
   readonly requiredToLoad = true;
-  readonly deepMergeValues = true;
   readonly path = 'post.user';
 
   readonly collection = 'users';
-  readonly maxWait = 5000;
 
   constructor(
     protected readonly http: HttpClient,
@@ -60,9 +63,13 @@ export class UserSource extends PropertiesSource {
     super();
   }
 
+  onAfterSourceLoad(): void {
+    this.service.delete('post.userId');
+  }
+
   load(): Observable<Properties> {
-    const basePath$: Observable<string> = this.query.getProperty$<string>('basePath').pipe(firstNonNil(this.maxWait));
-    const userId$: Observable<number> = this.query.getProperty$<number>('post.userId').pipe(firstNonNil(this.maxWait));
+    const basePath$: Observable<string> = this.query.getProperty$<string>('basePath').pipe(firstNonNil());
+    const userId$: Observable<number> = this.query.getProperty$<number>('post.userId').pipe(firstNonNil());
 
     return combineLatest([basePath$, userId$]).pipe(
       switchMap(([basePath, userId]: [string, number]) =>
