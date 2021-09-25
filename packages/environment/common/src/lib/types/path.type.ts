@@ -15,3 +15,18 @@ export function isPath(value: unknown): value is Path {
     value.length > 0
   );
 }
+
+/**
+ * An invalid path error.
+ * @see Path
+ */
+export class InvalidPathError extends Error {
+  /**
+   * Creates an invalid path error.
+   * @param path The invalid path.
+   */
+  constructor(path: Path) {
+    super(`The path "${path}" is invalid`);
+    this.name = 'InvalidPathError';
+  }
+}
