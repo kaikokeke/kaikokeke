@@ -34,13 +34,14 @@ export class PostSource extends PropertiesSource {
 
   readonly collection = 'posts';
   readonly postId = 1;
+  readonly timeout = 5000;
 
   constructor(protected readonly http: HttpClient, protected readonly query: EnvironmentQuery) {
     super();
   }
 
   load(): Observable<Properties> {
-    const basePath$: Observable<string> = this.query.getProperty$<string>('basePath').pipe(firstNonNil());
+    const basePath$: Observable<string> = this.query.getProperty$<string>('basePath').pipe(firstNonNil(this.timeout));
 
     return basePath$.pipe(
       switchMap((basePath: string) => this.http.get<Properties>(`${basePath}/${this.collection}/${this.postId}`)),
@@ -54,6 +55,7 @@ export class UserSource extends PropertiesSource implements OnAfterSourceLoad {
   readonly path = 'post.user';
 
   readonly collection = 'users';
+  readonly timeout = 5000;
 
   constructor(
     protected readonly http: HttpClient,
@@ -68,8 +70,8 @@ export class UserSource extends PropertiesSource implements OnAfterSourceLoad {
   }
 
   load(): Observable<Properties> {
-    const basePath$: Observable<string> = this.query.getProperty$<string>('basePath').pipe(firstNonNil());
-    const userId$: Observable<number> = this.query.getProperty$<number>('post.userId').pipe(firstNonNil());
+    const basePath$: Observable<string> = this.query.getProperty$<string>('basePath').pipe(firstNonNil(this.timeout));
+    const userId$: Observable<number> = this.query.getProperty$<number>('post.userId').pipe(firstNonNil(this.timeout));
 
     return combineLatest([basePath$, userId$]).pipe(
       switchMap(([basePath, userId]: [string, number]) =>
