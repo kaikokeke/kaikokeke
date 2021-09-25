@@ -1,5 +1,6 @@
-import { createStore, isDev, setAction, Store } from '@datorama/akita';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { createStore as createAkitaStore, isDev, setAction, Store as AkitaStore } from '@datorama/akita';
+import { Action, createStore as createReduxStore, Reducer, Store as ReduxStore } from 'redux';
+import { BehaviorSubject, Observable, Subscriber } from 'rxjs';
 
 import { Properties } from '../types';
 import { EnvironmentStore } from './environment-store.gateway';
@@ -39,20 +40,65 @@ export class RxjsEnvironmentStore extends EnvironmentStore {
   }
 }
 
+const akitaStore: AkitaStore<Properties> = createAkitaStore({}, { name: 'environment', resettable: true });
+
 class AkitaEvironmentStore extends EnvironmentStore {
-  private readonly store: Store<Properties> = createStore({}, { name: 'environment', resettable: true });
+  private readonly;
   getAll$(): Observable<Properties> {
-    return this.store._select((state: Properties) => state);
+    return akitaStore._select((state: Properties) => state);
   }
   getAll(): Properties {
-    return this.store.getValue();
+    return akitaStore.getValue();
   }
   update(properties: Properties): void {
     isDev() && setAction('Update');
-    this.store._setState(properties);
+    akitaStore._setState(properties);
   }
   reset(): void {
-    this.store.reset();
+    akitaStore.reset();
+  }
+}
+
+interface EnvironmentAction extends Action<string> {
+  properties?: Properties;
+}
+
+const environmentReducer: Reducer = (state: Properties = {}, action: EnvironmentAction) => {
+  switch (action.type) {
+    case 'UPDATE':
+      return action.properties;
+    case 'RESET':
+      return {};
+    default:
+      return state;
+  }
+};
+
+const reduxStore: ReduxStore<Properties> = createReduxStore(environmentReducer);
+
+class ReduxEvironmentStore extends EnvironmentStore {
+  getAll$(): Observable<Properties> {
+    return new Observable((observer: Subscriber<Properties>) => {
+      observer.next(reduxStore.getState());
+
+      const unsubscribe = reduxStore.subscribe(() => {
+        observer.next(reduxStore.getState());
+      });
+
+      return unsubscribe;
+    });
+  }
+
+  getAll(): Properties {
+    return reduxStore.getState();
+  }
+
+  update(properties: Properties): void {
+    reduxStore.dispatch({ type: 'UPDATE', properties });
+  }
+
+  reset(): void {
+    reduxStore.dispatch({ type: 'RESET' });
   }
 }
 
@@ -80,96 +126,72 @@ describe('EnvironmentStore', () => {
   });
 
   describe('examples of use', () => {
+    const testExampleImplementation = () => {
+      it(`getAll$() returns the environment properties as Observable that emits on every environment change`, () => {
+        const mock = jest.fn();
+        jest.useFakeTimers();
+        expect(mock).not.toHaveBeenCalled();
+        store.getAll$().subscribe((value) => mock(value));
+        jest.runAllTimers();
+        expect(mock).toHaveBeenNthCalledWith(1, {});
+        expect(mock).toHaveBeenCalledTimes(1);
+        store.update({ a: 0 });
+        jest.runAllTimers();
+        expect(mock).toHaveBeenNthCalledWith(2, { a: 0 });
+        expect(mock).toHaveBeenCalledTimes(2);
+        store.update({ a: 0 });
+        jest.runAllTimers();
+        expect(mock).toHaveBeenNthCalledWith(3, { a: 0 });
+        expect(mock).toHaveBeenCalledTimes(3);
+      });
+
+      it(`getAll() returns the environment properties`, () => {
+        expect(store.getAll()).toEqual({});
+        store.update({ a: 0 });
+        expect(store.getAll()).toEqual({ a: 0 });
+      });
+
+      it(`update(properties) updates the properties in the environment store`, () => {
+        expect(store.getAll()).toEqual({});
+        store.update({ a: 0 });
+        expect(store.getAll()).toEqual({ a: 0 });
+        store.update({ b: 0 });
+        expect(store.getAll()).toEqual({ b: 0 });
+      });
+
+      it(`reset() resets the environment store to the initial state`, () => {
+        expect(store.getAll()).toEqual({});
+        store.update({ a: 0 });
+        expect(store.getAll()).toEqual({ a: 0 });
+        store.reset();
+        expect(store.getAll()).toEqual({});
+      });
+    };
+
     describe(`using a basic RxJS State Manager`, () => {
       beforeEach(() => {
         store = new RxjsEnvironmentStore();
       });
 
-      it(`getAll$() returns the environment properties as Observable that emits on every environment change`, () => {
-        const mock = jest.fn();
-        jest.useFakeTimers();
-        expect(mock).not.toHaveBeenCalled();
-        store.getAll$().subscribe((value) => mock(value));
-        jest.runAllTimers();
-        expect(mock).toHaveBeenNthCalledWith(1, {});
-        expect(mock).toHaveBeenCalledTimes(1);
-        store.update({ a: 0 });
-        jest.runAllTimers();
-        expect(mock).toHaveBeenNthCalledWith(2, { a: 0 });
-        expect(mock).toHaveBeenCalledTimes(2);
-        store.update({ a: 0 });
-        jest.runAllTimers();
-        expect(mock).toHaveBeenNthCalledWith(3, { a: 0 });
-        expect(mock).toHaveBeenCalledTimes(3);
-      });
-
-      it(`getAll() returns the environment properties`, () => {
-        expect(store.getAll()).toEqual({});
-        store.update({ a: 0 });
-        expect(store.getAll()).toEqual({ a: 0 });
-      });
-
-      it(`update(properties) updates the properties in the environment store`, () => {
-        expect(store.getAll()).toEqual({});
-        store.update({ a: 0 });
-        expect(store.getAll()).toEqual({ a: 0 });
-        store.update({ b: 0 });
-        expect(store.getAll()).toEqual({ b: 0 });
-      });
-
-      it(`reset() resets the environment store to the initial state`, () => {
-        expect(store.getAll()).toEqual({});
-        store.update({ a: 0 });
-        expect(store.getAll()).toEqual({ a: 0 });
-        store.reset();
-        expect(store.getAll()).toEqual({});
-      });
+      testExampleImplementation();
     });
 
     describe(`using Akita Reactive State Management`, () => {
       beforeEach(() => {
         store = new AkitaEvironmentStore();
+        akitaStore.reset();
       });
 
-      it(`getAll$() returns the environment properties as Observable that emits on every environment change`, () => {
-        const mock = jest.fn();
-        jest.useFakeTimers();
-        expect(mock).not.toHaveBeenCalled();
-        store.getAll$().subscribe((value) => mock(value));
-        jest.runAllTimers();
-        expect(mock).toHaveBeenNthCalledWith(1, {});
-        expect(mock).toHaveBeenCalledTimes(1);
-        store.update({ a: 0 });
-        jest.runAllTimers();
-        expect(mock).toHaveBeenNthCalledWith(2, { a: 0 });
-        expect(mock).toHaveBeenCalledTimes(2);
-        store.update({ a: 0 });
-        jest.runAllTimers();
-        expect(mock).toHaveBeenNthCalledWith(3, { a: 0 });
-        expect(mock).toHaveBeenCalledTimes(3);
+      testExampleImplementation();
+    });
+
+    describe(`using Redux State Container`, () => {
+      beforeEach(() => {
+        store = new ReduxEvironmentStore();
+        reduxStore.dispatch({ type: 'RESET' });
       });
 
-      it(`getAll() returns the environment properties`, () => {
-        expect(store.getAll()).toEqual({});
-        store.update({ a: 0 });
-        expect(store.getAll()).toEqual({ a: 0 });
-      });
-
-      it(`update(properties) updates the properties in the environment store`, () => {
-        expect(store.getAll()).toEqual({});
-        store.update({ a: 0 });
-        expect(store.getAll()).toEqual({ a: 0 });
-        store.update({ b: 0 });
-        expect(store.getAll()).toEqual({ b: 0 });
-      });
-
-      it(`reset() resets the environment store to the initial state`, () => {
-        expect(store.getAll()).toEqual({});
-        store.update({ a: 0 });
-        expect(store.getAll()).toEqual({ a: 0 });
-        store.reset();
-        expect(store.getAll()).toEqual({});
-      });
+      testExampleImplementation();
     });
   });
 });

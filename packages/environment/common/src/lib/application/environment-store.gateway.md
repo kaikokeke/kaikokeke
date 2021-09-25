@@ -66,9 +66,11 @@ store.getAll(); // {}
 
 ## Examples of use
 
+Below we present the integration of this class with some of the most popular store managers. It is not intended to be an exhaustive list of integration with all the functionalities, but an example of how to do this with the manager that uses the application in which it is going to be used.
+
 ### Using a basic RxJS State Manager
 
-The most basic implementation uses a property as store.
+The most basic implementation uses an [RxJS](https://rxjs.dev/) [BehaviorSubject](https://rxjs.dev/api/index/class/BehaviorSubject) property as store.
 
 ```ts
 import { EnvironmentStore, Properties } from '@kaikokeke/environment';
@@ -104,24 +106,81 @@ import { createStore, isDev, setAction, Store } from '@datorama/akita';
 import { EnvironmentStore, Properties } from '@kaikokeke/environment';
 import { Observable } from 'rxjs';
 
-class AkitaEvironmentStore extends EnvironmentStore {
-  private readonly store: Store<Properties> = createStore({}, { name: 'environment', resettable: true });
+const store: Store<Properties> = createStore({}, { name: 'environment', resettable: true });
 
+class AkitaEvironmentStore extends EnvironmentStore {
   getAll$(): Observable<Properties> {
-    return this.store._select((state: Properties) => state);
+    return store._select((state: Properties) => state);
   }
 
   getAll(): Properties {
-    return this.store.getValue();
+    return store.getValue();
   }
 
   update(properties: Properties): void {
     isDev() && setAction('Update');
-    this.store._setState(properties);
+    store._setState(properties);
   }
 
   reset(): void {
-    this.store.reset();
+    store.reset();
+  }
+}
+```
+
+### Using Redux State Container
+
+[Redux](https://redux.js.org/) is a predictable state container for JavaScript apps.
+
+It helps you write applications that behave consistently, run in different environments (client, server, and native), and are easy to test. On top of that, it provides a great developer experience, such as live code editing combined with a time traveling debugger.
+
+You can use Redux together with React, or with any other view library. It is tiny (2kB, including dependencies), but has a large ecosystem of addons available.
+
+```ts
+import { EnvironmentStore, Properties } from '@kaikokeke/environment';
+import { Action, createStore, Reducer, Store } from 'redux';
+import { Observable, Subscriber } from 'rxjs';
+
+interface EnvironmentAction extends Action<string> {
+  properties?: Properties;
+}
+
+const environmentReducer: Reducer = (state: Properties = {}, action: EnvironmentAction) => {
+  switch (action.type) {
+    case 'UPDATE':
+      return action.properties;
+    case 'RESET':
+      return {};
+    default:
+      return state;
+  }
+};
+
+const store: Store<Properties> = createStore(environmentReducer);
+
+class ReduxEvironmentStore extends EnvironmentStore {
+  getAll$(): Observable<Properties> {
+    return new Observable((observer: Subscriber<Properties>) => {
+      observer.next(reduxStore.getState());
+
+      const unsubscribe = reduxStore.subscribe(() => {
+        observer.next(reduxStore.getState());
+      });
+
+      return unsubscribe;
+    });
+  }
+
+  getAll(): Properties {
+    return store.getState();
+  }
+
+  update(properties: Properties): void {
+    store.dispatch({ type: 'UPDATE', properties });
+  }
+
+  reset(): void {
+    store.dispatch({ type: 'RESET' });
   }
 }
 ```
