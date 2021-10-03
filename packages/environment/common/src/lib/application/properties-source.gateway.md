@@ -1,140 +1,299 @@
 # Properties Source
 
-Definition to get the application properties asynchronously.
+Definition of the source from which to get environment properties asynchronously.
 
 ```ts
-export abstract class PropertiesSource {
-  readonly _sourceId: string;
-  sourceName: string = this.constructor.name;
-  requiredToLoad = false;
-  loadInOrder: boolean = false;
-  loadImmediately: boolean = false;
-  dismissOtherSources: boolean = false;
-  deepMergeValues: boolean = false;
-  ignoreError: boolean = false;
+interface PropertiesSource {
+  name?: string;
+  requiredToLoad?: boolean;
+  loadInOrder?: boolean;
+  mergeProperties?: boolean;
+  ignoreError?: boolean;
   path?: Path;
-  abstract load(): ObservableInput<Properties>;
+  load(): ObservableInput<Properties>;
 }
 ```
 
 ## Getting Started
 
-For a minimal implementation create a class that extends from `PropertiesSource` and implement the `load()` method.
+The property source can be used by extending from the abstract class or implemented as an interface.
 
 ```ts
-import { Properties, PropertiesSource } from '@kaikokeke/environment';
+import { PropertiesSource, Properties } from '@kaikokeke/environment';
 
-export class TestSource extends PropertiesSource {
+export class ExtendsSource extends PropertiesSource {
   load(): Properties[] {
     return [{ a: 0 }];
   }
 }
+
+export class ImplementsSource implements PropertiesSource {
+  load(): Properties[] {
+    return [{ a: 0 }];
+  }
+}
+
+const source: PropertiesSource = new ExtendsSource();
 ```
 
-This minimal implementation can be extended by setting properties and implementing the load method, as described in the API and examples below.
+This minimal implementation can be extended by setting properties as described in the API and examples below.
 
 ## API
 
 ### Exposed Properties
 
-#### `_sourceId`
+#### `name?: string`
 
-The unique random id for each class instance.
-
-```ts
-readonly _sourceId: string = v4();
-```
-
-This property is setted on instantiation using a RFC4122 v4 generator, and should not be setted after that because is used to manage the `requiredToLoad` property.
-
-#### `sourceName`
-
-The properties source name.
-Defaults to the class name.
+The source name.
 
 ```ts
-sourceName: string = this.constructor.name;
+source.name = 'ExtendsSource';
 ```
 
-If the code is minimized or uglified on build and logs are stored, this property should be overridden with a descriptive value, such as the class name, because the constructor name changes in these processes.
+Set the name if you're planning to use a loader source lifecycle to add custom behavior to the source. This way it will be easier to discriminate the source to decide whether or not the custom code is executed.
+Avoid the use of `constructor.name` because if the code is minimized or uglified on build the constructor name changes.
 
-#### `requiredToLoad`
+#### `requiredToLoad?: boolean`
 
-Loads the source values before the application or submodule load.
-Defaults to `false`.
+Loads the required to load sources properties before the app load.
 
 ```ts
-requiredToLoad = false;
+source.requiredToLoad = true;
 ```
 
-It is useful to delay the loading of the application or submodule until all the necessary properties from this sources are available.
-
-#### `loadInOrder`
-
-Loads the source in the order defined in the array.
-The ordered sources will wait until the previous ordered source completes to start.
-Defaults to `false`.
+It's useful to delay the loading of the application until all the necessary properties from this sources are available in the environment.
 
 ```ts
-loadInOrder = false;
+export class FirstSource implements PropertiesSource {
+  requiredToLoad = true;
+  loadInOrder = true;
+  load(): Observable<Properties> {
+    return of({ a: 0 }).pipe(delay(10));
+  }
+}
+
+export class SecondSource implements PropertiesSource {
+  requiredToLoad = true;
+  loadInOrder = true;
+  load(): Observable<Properties> {
+    return of({ b: 0 }).pipe(delay(10));
+  }
+}
+
+loader.load(); // resolves after 20 ms
+// sets the FirstSource properties after 10 ms
+// sets the SecondSource properties after 20 ms
 ```
 
-#### `loadImmediately`
-
-The application or submodule will load immediately after loading the source.
-Defaults to `false`.
+If there is no required to load sources the loader will resolve immedialely.
 
 ```ts
-loadImmediately = false;
+export class NoRequiredSource implements PropertiesSource {
+  load(): Observable<Properties> {
+    return of({ a: 0 }).pipe(delay(10));
+  }
+}
+
+loader.load(); // resolves immedialely
+// sets the NoRequiredSource properties after 10 ms
 ```
 
-#### `dismissOtherSources`
-
-Dismiss the loading of all other sources after this source load and loads the application or submodule.
-Defaults to `false`.
+If a required to load source never completes the loader will never resolve.
 
 ```ts
-dismissOtherSources = false;
+export class InfiniteSource implements PropertiesSource {
+  requiredToLoad = true;
+  load(): Observable<Properties> {
+    return interval(10).pipe(map((value: number) => ({ a: value })));
+  }
+}
+
+loader.load(); // will never resolve
+// sets the InfiniteSource properties every 10 ms
 ```
 
-#### `deepMergeValues`
-
-The source recursively merge own and inherited enumerable values into the properties.
-Defaults to `false`.
+The loader will reject after a required to load source error.
 
 ```ts
-deepMergeValues = false;
+export class FirstSource implements PropertiesSource {
+  requiredToLoad = true;
+  loadInOrder = true;
+  load(): Observable<Properties> {
+    return throwError(new Error()).pipe(
+      catchError((error: Error) => timer(10).pipe(mergeMap(() => throwError(error)))),
+    );
+  }
+}
+
+export class SecondSource implements PropertiesSource {
+  requiredToLoad = true;
+  loadInOrder = true;
+  load(): Observable<Properties> {
+    return of({ b: 0 }).pipe(delay(10));
+  }
+}
+
+loader.load(); // rejects after 10 ms
+// sets the SecondSource properties after 20 ms
 ```
 
-See `EnvironmentService#deepMerge(properties, path?)`;
-
-#### `ignoreError`
-
-Ignores the errors from the source load.
-The application or submodule load will not occur if the source load throws an error.
-Defaults to `false`.
+The loader will resolves normally after a no required to load source error.
 
 ```ts
-ignoreError = false;
+export class FirstSource implements PropertiesSource {
+  loadInOrder = true;
+  load(): Observable<Properties> {
+    return throwError(new Error()).pipe(
+      catchError((error: Error) => timer(10).pipe(mergeMap(() => throwError(error)))),
+    );
+  }
+}
+
+export class SecondSource implements PropertiesSource {
+  requiredToLoad = true;
+  loadInOrder = true;
+  load(): Observable<Properties> {
+    return of({ b: 0 }).pipe(delay(10));
+  }
+}
+
+loader.load(); // resolves after 20 ms
+// sets the SecondSource properties after 20 ms
 ```
 
-#### `path`
+#### `loadInOrder?: boolean`
 
-The optional path where the loaded properties are going to be setted in the environment.
-If a path is not specified, the loaded properties will be set to the root of the environment properties.
+Loads the source in the declaration order.
 
 ```ts
-path?: Path;
+source.loadInOrder = true;
 ```
+
+The not loadInOrder sources will add properties all at once.
+
+```ts
+export class FirstSource implements PropertiesSource {
+  load(): Observable<Properties> {
+    return of({ a: 0 }).pipe(delay(10));
+  }
+}
+
+export class SecondSource implements PropertiesSource {
+  load(): Observable<Properties> {
+    return of({ b: 0 }).pipe(delay(10));
+  }
+}
+
+loader.load(); // resolves immediately
+// sets the FirstSource properties after 10 ms
+// sets the SecondSource properties after 10 ms
+```
+
+The loadInOrder sources will wait until the previous loadInOrder source completes to add the properties.
+
+```ts
+export class FirstSource implements PropertiesSource {
+  loadInOrder = true;
+  load(): Observable<Properties> {
+    return of({ a: 0 }, { a: 1 }, { a: 2 }).pipe(delay(10));
+  }
+}
+
+export class SecondSource implements PropertiesSource {
+  loadInOrder = true;
+  load(): Observable<Properties> {
+    return of({ b: 0 }).pipe(delay(10));
+  }
+}
+
+loader.load(); // resolves immediately
+// sets the FirstSource properties after 10 ms, 20 ms & 30ms
+// sets the SecondSource properties after 40 ms
+```
+
+If a loadInOrder source never completes will never set the next ordered source properties.
+
+```ts
+export class InfiniteSource implements PropertiesSource {
+  loadInOrder = true;
+  load(): Observable<Properties> {
+    return interval(10).pipe(map((value: number) => ({ a: value })));
+  }
+}
+
+export class SecondSource implements PropertiesSource {
+  loadInOrder = true;
+  load(): Observable<Properties> {
+    return of({ b: 0 }).pipe(delay(10));
+  }
+}
+
+loader.load(); // resolves immediately
+// sets the InfiniteSource properties every 10 ms
+// never sets the SecondSource properties
+```
+
+If a loadInOrder source returns an error will be ignored and will continue with the next ordered source.
+
+```ts
+export class FirstSource implements PropertiesSource {
+  loadInOrder = true;
+  load(): Observable<Properties> {
+    return throwError(new Error()).pipe(
+      catchError((error: Error) => timer(10).pipe(mergeMap(() => throwError(error)))),
+    );
+  }
+}
+
+export class SecondSource implements PropertiesSource {
+  loadInOrder = true;
+  load(): Observable<Properties> {
+    return of({ b: 0 }).pipe(delay(10));
+  }
+}
+
+loader.load(); // resolves immediately
+// sets the SecondSource properties after 20 ms
+```
+
+#### `mergeProperties?: boolean`
+
+Adds properties to the environment using the deep merge strategy.
+
+```ts
+source.mergeProperties = true;
+```
+
+See the `merge(properties, path?)` method from `EnvironmentService`.
+
+#### `ignoreError?: boolean`
+
+Ignores the errors thrown by the source.
+
+```ts
+source.ignoreError = true;
+```
+
+#### `path?: Path`
+
+The path to set the properties in the environment.
+
+```ts
+source.path = 'user';
+source.path = 'user.info';
+source.path = ['user', 'info'];
+```
+
+See [`Path`](../types/path.type.ts)
 
 ### Exposed Methods
 
 #### `load(): ObservableInput<Properties>`
 
-Asynchronously loads environment properties from source.
+Asynchronously loads the environment properties from the source.
 
 ```ts
-load(): ObservableInput<Properties>;
+source.load();
 ```
 
 ```ts
@@ -146,38 +305,54 @@ export declare type ObservableInput<Properties> =
   | Iterable<Properties>;
 ```
 
-### Lifecycle Hooks
-
-A `PropertiesSource` instance has a lifecycle that starts when the `EnvironmentLoader` loads the source. Each lifecycle ends when the source is loaded. Your implementation can use lifecycle hook methods to tap into key events in the source load.
-
-Respond to events in the lifecycle of the source by implementing one or more of the _lifecycle hook_ interfaces presented below. The hooks give you the opportunity to act on the instance at the appropriate moment.
-
-Each interface defines the prototype for a single hook method, whose name is the interface name starting in lowercase. For example, the `OnBeforeSourceLoad` interface has a hook method named `onBeforeSourceLoad()`.
-
-You don't have to implement all (or any) of the lifecycle hooks, just the ones you need.
-
-#### `OnBeforeSourceLoad`
-
-#### `OnBeforeSourceValue`
-
-#### `OnAfterSourceValue`
-
-#### `OnAfterSourceLoad`
-
-#### `OnAfterSourceError`
-
 ## Examples of use
 
 ### Max load time
 
-If it is necessary to set a maximum wait time before loading the application, regardless of whether the required source values ​​are loaded, we can create a `PropertiesSource` with `loadImmediately` set to `true`.
+In this use case is necessary to set a maximum wait time before loading the application, regardless of whether the required source values ​​are loaded.
 
 ```ts
+import { PropertiesSource, Properties } from '@kaikokeke/environment';
+import { Observable, timer } from 'rxjs';
+import { map, take } from 'rxjs/operators';
+
 export class MaxLoadTimeSource extends PropertiesSource {
-  readonly loadImmediately = true;
+  name = 'MaxLoadTimeSource';
+  maxTime = 10000;
 
   load(): Observable<Properties> {
-    return of({}).pipe(delay(1000));
+    return timer(this.maxTime).pipe(
+      map(() => throw new Error(`Timeout in ${Math.round(this.maxTime / 1000)} s`),
+      take(1)
+    ));
+  }
+}
+```
+
+### Load on required properties available
+
+Sometimes we want to load the app as soon as a set of required properties are available.
+
+```ts
+import { AtLeastOne } from '@kaikokeke/commons';
+import { EnvironmentQuery, Path, PropertiesSource, Properties } from '@kaikokeke/environment';
+import { Observable } from 'rxjs';
+import { filter, map, take } from 'rxjs/operators';
+
+export class RequiredPropertiesAvailableSource extends PropertiesSource {
+  name = 'RequiredPropertiesAvailableSource';
+  requiredKeys: AtLeastOne<Path> = ['user.name', 'basePath'];
+
+  constructor(protected readonly query: EnvironmentQuery) {
+    super();
+  }
+
+  load(): Observable<Properties> {
+    return this.query.containsAll(...requiredKeys).pipe(
+      filter((contains: boolean) => contains),
+      map(() => ({})),
+      take(1),
+    );
   }
 }
 ```
@@ -187,6 +362,11 @@ export class MaxLoadTimeSource extends PropertiesSource {
 Sometimes is needed to provide a fallback source if the first one fails. This can be done easily in the original properties source with the `catchError` function. This condition can be chained as many times as necessary.
 
 ```ts
+import { PropertiesSource, Properties } from '@kaikokeke/environment';
+import { Observable } from 'rxjs';
+import { catchError } from 'rxjs/operators':
+import { HttpClient } from '...';
+
 export class FileSource extends PropertiesSource {
   constructor(protected readonly http: HttpClient) {
     super();
@@ -203,8 +383,12 @@ export class FileSource extends PropertiesSource {
 If the application needs to load the properties from sources that emit multiple times asynchronously, such as a webservice or a Server Sent Event (SSE) service, ensure that `loadInOrder` is `false` or is the last source, because ordered sources must complete to let the next one start.
 
 ```ts
+import { PropertiesSource, Properties } from '@kaikokeke/environment';
+import { Observable } from 'rxjs';
+import { ServerSideEventClient } from '...';
+
 export class ServerSideEventSource extends PropertiesSource {
-  readonly loadInOrder = false;
+  loadInOrder = false;
 
   constructor(protected readonly sse: ServerSideEventClient) {
     super();

@@ -1,5 +1,4 @@
 import { ObservableInput } from 'rxjs';
-import { validate } from 'uuid';
 
 import { Properties } from '../types';
 import { PropertiesSource } from './properties-source.gateway';
@@ -17,36 +16,28 @@ describe('PropertiesSource', () => {
     source = new TestPropertiesSource();
   });
 
-  it(`._sourceId is setted with an UUID`, () => {
-    expect(validate(source._sourceId)).toBeTrue();
+  it(`.name is undefined`, () => {
+    expect(source.name).toBeUndefined();
   });
 
-  it(`.sourceName is setted with the class name`, () => {
-    expect(source.sourceName).toEqual('TestPropertiesSource');
+  it(`.requiredToLoad is undefined`, () => {
+    expect(source.requiredToLoad).toBeUndefined();
   });
 
-  it(`.requiredToLoad is false by default`, () => {
-    expect(source.requiredToLoad).toBeFalse();
+  it(`.loadInOrder is undefined`, () => {
+    expect(source.loadInOrder).toBeUndefined();
   });
 
-  it(`.loadInOrder is false by default`, () => {
-    expect(source.loadInOrder).toBeFalse();
+  it(`.mergeProperties is undefined`, () => {
+    expect(source.mergeProperties).toBeUndefined();
   });
 
-  it(`.loadImmediately is false by default`, () => {
-    expect(source.loadImmediately).toBeFalse();
+  it(`.ignoreError is undefined`, () => {
+    expect(source.ignoreError).toBeUndefined();
   });
 
-  it(`.dismissOtherSources is false by default`, () => {
-    expect(source.dismissOtherSources).toBeFalse();
-  });
-
-  it(`.deepMergeValues is false by default`, () => {
-    expect(source.deepMergeValues).toBeFalse();
-  });
-
-  it(`.ignoreError is false by default`, () => {
-    expect(source.ignoreError).toBeFalse();
+  it(`.path is undefined`, () => {
+    expect(source.path).toBeUndefined();
   });
 
   it(`.load() is a defined method`, () => {

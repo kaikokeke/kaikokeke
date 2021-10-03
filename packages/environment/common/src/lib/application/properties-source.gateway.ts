@@ -1,71 +1,45 @@
 import { ObservableInput } from 'rxjs';
-import { v4 } from 'uuid';
 
 import { Path, Properties } from '../types';
 
 /**
- * Definition to get the application properties asynchronously.
+ * Definition of the source from which to get environment properties asynchronously.
  */
 export abstract class PropertiesSource {
   /**
-   * The unique random id for each class instance.
-   * @see RFC4122 v4
+   * The source name.
    */
-  readonly _sourceId: string = v4();
+  name?: string;
 
   /**
-   * The properties source name.
-   * Defaults to the class name.
+   * Loads the required to load sources properties before the app load.
    */
-  sourceName: string = this.constructor.name;
+  requiredToLoad?: boolean;
 
   /**
-   * Loads the source values before the application or submodule load.
-   * Defaults to `false`.
-   */
-  requiredToLoad = false;
-
-  /**
-   * Loads the source in the order defined in the array.
+   * Loads the source in the declaration order.
    * The ordered sources will wait until the previous ordered source completes to start.
-   * Defaults to `false`.
    */
-  loadInOrder = false;
+  loadInOrder?: boolean;
 
   /**
-   * The application or submodule will load immediately after loading the source.
-   * Defaults to `false`.
+   * Adds properties to the environment using the deep merge strategy.
    */
-  loadImmediately = false;
+  mergeProperties?: boolean;
 
   /**
-   * Dismiss the loading of all other sources after this source load and loads the application or submodule.
-   * Defaults to `false`.
+   * Ignores the errors thrown by the source.
    */
-  dismissOtherSources = false;
+  ignoreError?: boolean;
 
   /**
-   * The source recursively merge own and inherited enumerable values into the properties.
-   * Defaults to `false`.
-   */
-  deepMergeValues = false;
-
-  /**
-   * Ignores the errors from the source load.
-   * The application or submodule load will not occur if the source load throws an error.
-   * Defaults to `false`.
-   */
-  ignoreError = false;
-
-  /**
-   * The optional path where the loaded properties are going to be setted in the environment.
-   * If a path is not specified, the loaded properties will be set to the root of the environment properties.
+   * The path to set the properties in the environment.
    * @see Path
    */
   path?: Path;
 
   /**
-   * Asynchronously loads environment properties from source.
+   * Asynchronously loads the environment properties from the source.
    */
   abstract load(): ObservableInput<Properties>;
 }
