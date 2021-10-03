@@ -32,7 +32,19 @@ You don't have to implement all (or any) of the lifecycle hooks, just the ones y
 
 #### `OnAfterLoad`
 
-#### `OnAfterLoadError`
+#### `OnAfterError`
+
+#### `OnAfterComplete`
+
+#### `OnBeforeSourceLoad`
+
+#### `OnBeforeSourceEmit`
+
+#### `OnAfterSourceEmit`
+
+#### `OnAfterSourceError`
+
+#### `OnAfterSourceComplete`
 
 ## Examples of use
 
@@ -58,3 +70,11 @@ export class CustomEnvironmentLoader extends EnvironmentLoader implements OnAfte
   }
 }
 ```
+
+### Dismiss other sources
+
+If the application must stop loading all the rest of sources after load.
+
+### Load immediately
+
+### Multiple sources ignore error until X error

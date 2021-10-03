@@ -3,20 +3,19 @@ import { isEqual } from 'lodash-es';
 import { BehaviorSubject, concat, defer, merge, Observable, of, ReplaySubject } from 'rxjs';
 import { catchError, filter, finalize, take, takeUntil, tap } from 'rxjs/operators';
 
-import { Properties } from '../types';
+import { LoaderPropertiesSource, Properties } from '../types';
 import { EnvironmentService } from './environment-service.gateway';
+import { propertiesSourceFactory } from './properties-source-factory.function';
 import { PropertiesSource } from './properties-source.gateway';
 
 /**
  * Loads the environment properties from the provided asynchronous sources.
  */
 export abstract class EnvironmentLoader {
-  protected readonly load$List: ReplaySubject<void>[] = [];
-  protected readonly destroy$List: ReplaySubject<void>[] = [];
-  protected readonly requiredToLoad$List: BehaviorSubject<Set<string>>[] = [];
-
-  protected loaderSources: PropertiesSource[][] = [];
-  protected loadIndex = 0;
+  protected readonly onLoad$: ReplaySubject<void> = new ReplaySubject();
+  protected readonly onCompleteSourcesLoad$: ReplaySubject<void> = new ReplaySubject();
+  protected readonly onRequiredToLoad$: BehaviorSubject<Set<string>> = new BehaviorSubject(new Set());
+  protected readonly loaderSources: LoaderPropertiesSource[] = propertiesSourceFactory(this.sources);
 
   /**
    * Loads the environment properties from the provided asynchronous sources.
@@ -29,218 +28,145 @@ export abstract class EnvironmentLoader {
   ) {}
 
   /**
-   * Loads the application environment properties from the provided asynchronous sources.
-   * @returns A promise to load the application once the required properties are loaded.
+   * Loads the environment properties from the provided asynchronous sources.
+   * @returns A promise to load once the `requiredToLoad` sources are loaded.
    */
   async load(): Promise<void> {
-    const coercedSources: PropertiesSource[] = this.coerceSources(this.sources);
-
-    return this.loadSources('app', coercedSources);
+    return this._load$().toPromise();
   }
 
-  /**
-   * Loads the submodule environment properties from the provided asynchronous sources.
-   * @param loadName The submodule load name.
-   * @param sources The environment properties sources to get the submodule properties asynchronously.
-   * @returns A promise to load the submodule once the required properties are loaded.
-   */
-  async loadSubmodule(loadName: string, sources: PropertiesSource | PropertiesSource[]): Promise<void> {
-    const coercedSources: PropertiesSource[] = this.coerceSources(sources);
+  protected _load$(): Observable<void> {
+    executeIfExists(this, 'onBeforeLoad');
 
-    return this.loadSources(loadName, coercedSources);
-  }
+    this._watchRequiredToLoadSources();
+    this._loadSources();
 
-  protected coerceSources(sources?: PropertiesSource | PropertiesSource[]): PropertiesSource[] {
-    if (sources == null) {
-      return [];
-    }
-
-    return Array.isArray(sources) ? sources : [sources];
-  }
-
-  protected async loadSources(loadName: string, sources: PropertiesSource[]): Promise<void> {
-    const loadIndex: number = this.loadIndex++;
-
-    this.load$List[loadIndex] = new ReplaySubject();
-    this.destroy$List[loadIndex] = new ReplaySubject();
-    this.requiredToLoad$List[loadIndex] = new BehaviorSubject(new Set());
-    this.loaderSources[loadIndex] = sources;
-
-    executeIfExists(this, 'onBeforeLoad', loadIndex, loadName);
-
-    this.watchRequiredToLoadSources(loadIndex, loadName);
-    this.loadUnorderedSources(loadIndex, loadName);
-    this.loadOrderedSources(loadIndex, loadName);
-
-    return this.load$List[loadIndex]
-      .pipe(
-        take(1),
-        takeUntil(this.destroy$List[loadIndex]),
-        tap({
-          next: () => executeIfExists(this, 'onAfterLoad', loadIndex, loadName),
-          error: (error: Error) => executeIfExists(this, 'onAfterLoadError', loadIndex, loadName, error),
-        }),
-      )
-      .toPromise();
-  }
-
-  protected watchRequiredToLoadSources(LoadIndex: number, loadName: string): void {
-    const requiredToLoadSources: Set<string> = new Set(
-      this.loaderSources[LoadIndex].filter((source: PropertiesSource) => source.requiredToLoad).map(
-        (source: PropertiesSource) => source._sourceId,
-      ),
-    );
-
-    this.requiredToLoad$List[LoadIndex].pipe(
-      filter((requiredToLoadLoaded: Set<string>) => isEqual(requiredToLoadLoaded, requiredToLoadSources)),
-      tap({ next: () => this.onLoadSources(LoadIndex) }),
+    return this.onLoad$.pipe(
+      tap({
+        next: () => executeIfExists(this, 'onAfterLoad'),
+        error: (error: Error) => executeIfExists(this, 'onAfterError', error),
+      }),
       take(1),
-      takeUntil(this.destroy$List[LoadIndex]),
-    ).subscribe();
+      takeUntil(this.onCompleteSourcesLoad$),
+    );
   }
 
-  protected loadUnorderedSources(loadIndex: number, loadName: string): void {
-    const unorderedSources: PropertiesSource[] = this.loaderSources[loadIndex].filter(
-      (source: PropertiesSource) => !source.loadInOrder,
+  protected _watchRequiredToLoadSources(): void {
+    const requiredToLoadSources: Set<string> = new Set(
+      this.loaderSources
+        .filter((source: LoaderPropertiesSource) => source.requiredToLoad)
+        .map((source: LoaderPropertiesSource) => source.id),
     );
-    const unorderedSources$List: Observable<Properties>[] = this.getSources$List(loadIndex, loadName, unorderedSources);
 
-    merge(...unorderedSources$List)
-      .pipe(takeUntil(this.destroy$List[loadIndex]))
+    this.onRequiredToLoad$
+      .pipe(
+        filter((requiredToLoadLoaded: Set<string>) => isEqual(requiredToLoadLoaded, requiredToLoadSources)),
+        tap({ next: () => this.resolveLoad() }),
+        take(1),
+        takeUntil(this.onCompleteSourcesLoad$),
+      )
       .subscribe();
   }
 
-  protected loadOrderedSources(loadIndex: number, loadName: string): void {
-    const orderedSources: PropertiesSource[] = this.loaderSources[loadIndex].filter(
-      (source: PropertiesSource) => source.loadInOrder,
-    );
-    const orderedSources$List: Observable<Properties>[] = this.getSources$List(loadIndex, loadName, orderedSources);
-
-    concat(...orderedSources$List)
-      .pipe(takeUntil(this.destroy$List[loadIndex]))
+  protected _loadSources(): void {
+    merge(this._loadUnorderedSources(), this._loadOrderedSources())
+      .pipe(finalize(() => executeIfExists(this, 'onAfterComplete')))
       .subscribe();
   }
 
-  protected getSources$List(
-    loadIndex: number,
-    loadName: string,
-    sources: PropertiesSource[],
-  ): Observable<Properties>[] {
-    return sources.map((source: PropertiesSource) => {
+  protected _loadUnorderedSources(): Observable<Properties> {
+    const unorderedSources: LoaderPropertiesSource[] = this.loaderSources.filter(
+      (source: LoaderPropertiesSource) => !source.loadInOrder,
+    );
+    const unorderedSources$: Observable<Properties>[] = this._getSources$(unorderedSources);
+
+    return merge(...unorderedSources$).pipe(takeUntil(this.onCompleteSourcesLoad$));
+  }
+
+  protected _loadOrderedSources(): Observable<Properties> {
+    const orderedSources: LoaderPropertiesSource[] = this.loaderSources.filter(
+      (source: LoaderPropertiesSource) => source.loadInOrder,
+    );
+    const orderedSources$: Observable<Properties>[] = this._getSources$(orderedSources);
+
+    return concat(...orderedSources$).pipe(takeUntil(this.onCompleteSourcesLoad$));
+  }
+
+  protected _getSources$(sources: LoaderPropertiesSource[]): Observable<Properties>[] {
+    return sources.map((source: LoaderPropertiesSource) => {
       return defer(() => {
-        executeIfExists(source, 'onBeforeSourceLoad', loadIndex, loadName);
+        executeIfExists(this, 'onBeforeSourceLoad', source);
 
         return source.load();
       }).pipe(
         tap({
           next: (properties: Properties) => {
-            executeIfExists(source, 'onBeforeSourceValue', loadIndex, loadName, properties);
-            this.saveSourceValueToStore(loadIndex, loadName, properties, source);
-            this.checkDismissOtherSources(loadIndex, loadName, properties, source);
-            this.checkLoadImmediately(loadIndex, loadName, properties, source);
-            executeIfExists(source, 'onAfterSourceValue', loadIndex, loadName, properties);
-          },
-          error: (error: Error) => {
-            const loadError: Error = this.getSourceError(loadIndex, loadName, error, source);
-            executeIfExists(source, 'onAfterSourceError', loadIndex, loadName, loadError);
+            executeIfExists(this, 'onBeforeSourceEmit', properties, source);
+            this._saveSourceValueToStore(properties, source);
+            executeIfExists(this, 'onAfterSourceEmit', properties, source);
           },
         }),
-        catchError((error: Error) => this.checkLoadError(loadIndex, loadName, error, source)),
+        catchError((error: Error) => this._checkSourceLoadError(error, source)),
         finalize(() => {
-          this.checkRequiredToLoad(loadIndex, loadName, source);
-          executeIfExists(source, 'onAfterSourceLoad', loadIndex, loadName);
+          this._checkRequiredToLoad(source);
+          executeIfExists(this, 'onAfterSourceComplete', source);
         }),
       );
     });
   }
 
-  protected saveSourceValueToStore(
-    loadIndex: number,
-    loadName: string,
-    properties: Properties,
-    source: PropertiesSource,
-  ): void {
-    if (source.deepMergeValues) {
-      this.service.deepMerge(properties, source.path);
-    } else {
+  protected _saveSourceValueToStore(properties: Properties, source: LoaderPropertiesSource): void {
+    if (source.mergeProperties) {
       this.service.merge(properties, source.path);
+    } else {
+      this.service.add(properties, source.path);
     }
   }
 
-  protected checkDismissOtherSources(
-    loadIndex: number,
-    loadName: string,
-    properties: Properties,
-    source: PropertiesSource,
-  ): void {
-    if (source.dismissOtherSources) {
-      this.onDestroySources(loadIndex);
-    }
-  }
+  protected _checkSourceLoadError(error: Error, source: LoaderPropertiesSource): Observable<Properties> {
+    const originalMessage: string = error.message ? `: ${error.message}` : '';
+    error.message = `The Environment PropertiesSource "${
+      source.name ? source.name : source.id
+    }" failed to load${originalMessage}`;
 
-  protected checkLoadImmediately(
-    loadIndex: number,
-    loadName: string,
-    properties: Properties,
-    source: PropertiesSource,
-  ): void {
-    if (source.loadImmediately) {
-      this.onLoadSources(loadIndex);
+    if (source.requiredToLoad && !source.ignoreError && !this.onLoad$.isStopped) {
+      this.onLoad$.error(error);
     }
-  }
 
-  protected checkLoadError(
-    loadIndex: number,
-    loadName: string,
-    error: Error,
-    source: PropertiesSource,
-  ): Observable<Properties> {
-    if (this.isRequiredToLoadAndNotLoaded(loadIndex, loadName, source)) {
-      const loadError: Error = this.getSourceError(loadIndex, loadName, error, source);
-      this.load$List[loadIndex].error(loadError);
-    }
+    executeIfExists(this, 'onAfterSourceError', error, source);
 
     return of({});
   }
 
-  protected getSourceError(loadIndex: number, loadName: string, error: Error, source: PropertiesSource): Error {
-    const originalMessage: string = error.message ? `: ${error.message}` : '';
-    const errorMessage = `The Environment PropertiesSource "${source.sourceName}" failed to load${originalMessage}`;
-
-    return new Error(errorMessage);
-  }
-
-  protected isRequiredToLoadAndNotLoaded(loadIndex: number, loadName: string, source: PropertiesSource): boolean {
-    return source.requiredToLoad && !source.ignoreError && !this.load$List[loadIndex].isStopped;
-  }
-
-  protected checkRequiredToLoad(loadIndex: number, loadName: string, source: PropertiesSource): void {
+  protected _checkRequiredToLoad(source: LoaderPropertiesSource): void {
     if (source.requiredToLoad) {
-      const requiredToLoadLoaded: Set<string> = this.requiredToLoad$List[loadIndex].getValue().add(source._sourceId);
+      const requiredToLoadLoaded: Set<string> = this.onRequiredToLoad$.getValue().add(source.id);
 
-      this.requiredToLoad$List[loadIndex].next(requiredToLoadLoaded);
+      this.onRequiredToLoad$.next(requiredToLoadLoaded);
     }
   }
 
-  protected onLoadSources(loadIndex: number, loadName?: string): void {
-    this.load$List[loadIndex].next();
-    this.load$List[loadIndex].complete();
-  }
-
-  protected onDestroySources(loadIndex: number, loadName?: string): void {
-    this.destroy$List[loadIndex].next();
-    this.destroy$List[loadIndex].complete();
+  /**
+   * Forces the load to resolve.
+   */
+  resolveLoad(): void {
+    this.onLoad$.next();
   }
 
   /**
-   * Stops sources loading and releases ongoing asynchronous calls.
+   * Forces the load to resolve and stops all ongoing source loads.
+   */
+  completeSourcesLoad(): void {
+    this.onCompleteSourcesLoad$.next();
+  }
+
+  /**
+   * the load to resolve, stops all ongoing source loads and completes the subjects.
    */
   onDestroy(): void {
-    this.destroy$List.forEach((subject: ReplaySubject<void>) => {
-      subject.next();
-      subject.complete();
-    });
-    this.load$List.forEach((subject: ReplaySubject<void>) => subject.complete());
-    this.requiredToLoad$List.forEach((subject: BehaviorSubject<Set<string>>) => subject.complete());
+    this.completeSourcesLoad();
+    this.onLoad$.complete();
+    this.onCompleteSourcesLoad$.complete();
+    this.onRequiredToLoad$.complete();
   }
 }
