@@ -40,10 +40,10 @@ store.update({ a: 0 });
 store.getAll(); // { a: 0 }
 ```
 
-It is important to ensure that **the store update is complete and not partial**, as the service will manage the entire environment in the implementation, and a partial update can cause inconsistencies.
+It is important to ensure that **the store update is an overwrite and not partial update**, as the service will manage the entire environment in the implementation, and a partial update can cause inconsistencies.
 
 ```ts
-// Total update
+// Store overwrite
 store.getAll(); // { a: 0 }
 store.update({ b: 0 });
 store.getAll(); // { b: 0 }
@@ -138,7 +138,7 @@ You can use Redux together with React, or with any other view library. It is tin
 
 ```ts
 import { EnvironmentStore, Properties } from '@kaikokeke/environment';
-import { Action, createStore, Reducer, Store } from 'redux';
+import { Action, createStore, Reducer, Store, Unsubscribe } from 'redux';
 import { Observable, Subscriber } from 'rxjs';
 
 interface EnvironmentAction extends Action<string> {
@@ -163,7 +163,7 @@ class ReduxEvironmentStore extends EnvironmentStore {
     return new Observable((observer: Subscriber<Properties>) => {
       observer.next(reduxStore.getState());
 
-      const unsubscribe = reduxStore.subscribe(() => {
+      const unsubscribe: Unsubscribe = reduxStore.subscribe(() => {
         observer.next(reduxStore.getState());
       });
 
