@@ -1,19 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Provider } from '@angular/core';
 import { firstNonNil } from '@kaikokeke/common';
-import {
-  EnvironmentQuery,
-  EnvironmentService,
-  OnAfterSourceLoad,
-  Properties,
-  PropertiesSource,
-} from '@kaikokeke/environment';
+import { EnvironmentQuery, EnvironmentService, Properties, PropertiesSource } from '@kaikokeke/environment';
 import { ENVIRONMENT_SOURCES } from '@kaikokeke/environment-angular';
 import { combineLatest, Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class LocalJsonSource extends PropertiesSource {
+  readonly name = 'LocalJsonSource';
   readonly requiredToLoad = true;
 
   readonly jsonPath = 'assets/environment.json';
@@ -29,6 +24,7 @@ export class LocalJsonSource extends PropertiesSource {
 
 @Injectable({ providedIn: 'root' })
 export class PostSource extends PropertiesSource {
+  readonly name = 'PostSource';
   readonly requiredToLoad = true;
   readonly path = 'post';
 
@@ -41,7 +37,7 @@ export class PostSource extends PropertiesSource {
   }
 
   load(): Observable<Properties> {
-    const basePath$: Observable<string> = this.query.getProperty$<string>('basePath').pipe(firstNonNil(this.timeout));
+    const basePath$: Observable<string> = this.query.get$<string>('basePath').pipe(firstNonNil(this.timeout));
 
     return basePath$.pipe(
       switchMap((basePath: string) => this.http.get<Properties>(`${basePath}/${this.collection}/${this.postId}`)),
@@ -50,7 +46,8 @@ export class PostSource extends PropertiesSource {
 }
 
 @Injectable({ providedIn: 'root' })
-export class UserSource extends PropertiesSource implements OnAfterSourceLoad {
+export class UserSource extends PropertiesSource {
+  readonly name = 'UserSource';
   readonly requiredToLoad = true;
   readonly path = 'post.user';
 
@@ -65,13 +62,9 @@ export class UserSource extends PropertiesSource implements OnAfterSourceLoad {
     super();
   }
 
-  onAfterSourceLoad(): void {
-    this.service.delete('post.userId');
-  }
-
   load(): Observable<Properties> {
-    const basePath$: Observable<string> = this.query.getProperty$<string>('basePath').pipe(firstNonNil(this.timeout));
-    const userId$: Observable<number> = this.query.getProperty$<number>('post.userId').pipe(firstNonNil(this.timeout));
+    const basePath$: Observable<string> = this.query.get$<string>('basePath').pipe(firstNonNil(this.timeout));
+    const userId$: Observable<number> = this.query.get$<number>('post.userId').pipe(firstNonNil(this.timeout));
 
     return combineLatest([basePath$, userId$]).pipe(
       switchMap(([basePath, userId]: [string, number]) =>
