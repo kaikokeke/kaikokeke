@@ -13,6 +13,7 @@ yarn add @kaikokeke/common
 ## API
 
 - [deepMerge](./src/lib/deep-merge/README.md): Recursively merges own and inherited enumerable string keyed properties of source objects.
+- [delayThrow](./src/lib/delay-throw/README.md): Delays the emission of errors from the source Observable by a given timeout or until a given Date.
 - [filterNil](./src/lib/filter-nil/README.md): Filter items emitted by the source Observable by only emitting those that are not null or undefined.
 - [firstNonNil](./src/lib/first-non-nil/README.md): Emits only the first not null or undefined value emitted by the source Observable.
 - [SafeRxJS](./src/lib/safe-rxjs/README.md): Manages safe RxJS subscriptions.
@@ -20,5 +21,6 @@ yarn add @kaikokeke/common
 
 ## Types
 
+- [AtLeastOne](./src/lib/types/at-least-one.type.ts): Type to ensure that an array has at least one alement.
 - [JSONValue](./src/lib/types/json-value.type.ts): A valid JavaScript Object Notation (JSON) value type.
 - [ParsedJSON](./src/lib/types/parsed-json.type.ts): A native JavaScript object literal resulting from the parse of a JavaScript Object Notation (JSON).
