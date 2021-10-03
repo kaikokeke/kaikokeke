@@ -6,17 +6,17 @@ import { InvalidPathError, isPath, Path, Properties, Property } from '../types';
 import { EnvironmentStore } from './environment-store.gateway';
 
 /**
- * Sets properties in the environment store.
+ * Sets properties in the environment.
  */
 export abstract class EnvironmentService {
   /**
-   * Sets properties in the environment store.
+   * Sets properties in the environment.
    * @param store The environment store.
    */
   constructor(protected readonly store: EnvironmentStore) {}
 
   /**
-   * Resets the environment store to the initial state.
+   * Resets the environment to the initial state.
    */
   reset(): void {
     this.store.reset();
@@ -24,8 +24,8 @@ export abstract class EnvironmentService {
 
   /**
    * Creates a new property in the environment and sets the value.
-   * If the property exists, it's ignored.
-   * @param path The path where the property will be created.
+   * Ignores the action if the property exists.
+   * @param path The path of the property to create.
    * @param value The value of the property.
    * @throws If the path is invalid.
    */
@@ -35,7 +35,7 @@ export abstract class EnvironmentService {
       const property: Property | undefined = get(environment, path);
 
       if (property === undefined) {
-        this.upsertStoreValue(environment, path, value);
+        this._upsertStore(environment, path, value);
       }
     } else {
       throw new InvalidPathError(path);
@@ -44,7 +44,7 @@ export abstract class EnvironmentService {
 
   /**
    * Updates the value of a property in the environment.
-   * If the property does not exist it's ignored.
+   * Ignores the action if the property doesn't exist.
    * @param path The path of the property to update.
    * @param value The value of the property.
    * @throws If the path is invalid.
@@ -55,7 +55,7 @@ export abstract class EnvironmentService {
       const property: Property | undefined = get(environment, path);
 
       if (property !== undefined) {
-        this.upsertStoreValue(environment, path, value);
+        this._upsertStore(environment, path, value);
       }
     } else {
       throw new InvalidPathError(path);
@@ -63,8 +63,8 @@ export abstract class EnvironmentService {
   }
 
   /**
-   * Upserts the value of a property in the environment.
-   * @param path The path where the properties will be set.
+   * Updates or creates the value of a property in the environment.
+   * @param path The path of the property to upsert.
    * @param value The value of the property.
    * @throws If the path is invalid.
    */
@@ -72,7 +72,7 @@ export abstract class EnvironmentService {
     if (isPath(path)) {
       const environment: Properties = this.store.getAll();
 
-      return this.upsertStoreValue(environment, path, value);
+      return this._upsertStore(environment, path, value);
     } else {
       throw new InvalidPathError(path);
     }
@@ -80,20 +80,20 @@ export abstract class EnvironmentService {
 
   /**
    * Deletes a property from the environment.
-   * @param path The path of the properties to delete.
+   * @param path The path of the property to delete.
    * @throws If the path is invalid.
    */
   delete(path: Path): void {
     if (isPath(path)) {
       const environment: Properties = this.store.getAll();
 
-      return this.upsertStoreValue(environment, path);
+      return this._upsertStore(environment, path);
     } else {
       throw new InvalidPathError(path);
     }
   }
 
-  protected upsertStoreValue(environment: Properties, path: Path, value?: Property): void {
+  protected _upsertStore(environment: Properties, path: Path, value?: Property): void {
     const mutableEnvironment: Properties = asMutable(environment);
     const newEnvironment: Properties = set(mutableEnvironment, path, value);
 
@@ -101,11 +101,11 @@ export abstract class EnvironmentService {
   }
 
   /**
-   * Upserts a set of properties in the environment store using the merge strategy.
-   * @param properties The set of properties to upsert.
-   * @param path The path where the properties will be set. If it is undefined will use the environment root.
+   * Adds properties to the environment.
+   * @param properties The properties to add.
+   * @param path The path of the properties to add.
    */
-  merge(properties: Properties, path?: Path): void {
+  add(properties: Properties, path?: Path): void {
     const environment: Properties = this.store.getAll();
     const mutableEnvionment: Properties = asMutable(environment);
     const newEnvironment: Properties = isPath(path)
@@ -116,15 +116,15 @@ export abstract class EnvironmentService {
   }
 
   /**
-   * Upserts a set of properties in the environment store using the deep merge strategy.
-   * @param properties The set of properties to upsert.
-   * @param path The path where the properties will be set. If it is undefined will use the environment root.
+   * Adds properties to the environment using the deep merge strategy.
+   * @param properties The properties to merge.
+   * @param path The path of the properties to merge.
    */
-  deepMerge(properties: Properties, path?: Path): void {
+  merge(properties: Properties, path?: Path): void {
     const environment: Properties = this.store.getAll();
     const mutableEnvionment: Properties = asMutable(environment);
-    const newProperties: Properties = isPath(path) ? set({}, path, properties) : properties;
-    const newEnvironment: Properties = deepMerge(mutableEnvionment, newProperties);
+    const propertiesAtPath: Properties = isPath(path) ? set({}, path, properties) : properties;
+    const newEnvironment: Properties = deepMerge(mutableEnvionment, propertiesAtPath);
 
     this.store.update(newEnvironment);
   }
