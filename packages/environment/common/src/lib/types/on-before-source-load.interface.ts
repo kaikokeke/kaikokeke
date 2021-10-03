@@ -1,3 +1,5 @@
+import { LoaderPropertiesSource } from './loader-properties-source.type';
+
 export interface OnBeforeSourceLoad {
-  onBeforeSourceLoad(loadIndex: number, loadName: string): void;
+  onBeforeSourceLoad(source: LoaderPropertiesSource): void;
 }

@@ -1,3 +1,5 @@
+import { LoaderPropertiesSource } from './loader-properties-source.type';
+
 export interface OnAfterSourceError {
-  onAfterSourceError(loadIndex: number, loadName: string, error: Error): void;
+  onAfterSourceError(error: Error, source: LoaderPropertiesSource): void;
 }
