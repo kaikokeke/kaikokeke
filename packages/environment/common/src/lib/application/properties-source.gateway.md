@@ -66,7 +66,6 @@ It's useful to delay the loading of the application until all the necessary prop
 ```ts
 export class FirstSource implements PropertiesSource {
   requiredToLoad = true;
-  loadInOrder = true;
   load(): Observable<Properties> {
     return of({ a: 0 }).pipe(delay(10));
   }
@@ -74,9 +73,8 @@ export class FirstSource implements PropertiesSource {
 
 export class SecondSource implements PropertiesSource {
   requiredToLoad = true;
-  loadInOrder = true;
   load(): Observable<Properties> {
-    return of({ b: 0 }).pipe(delay(10));
+    return of({ b: 0 }).pipe(delay(20));
   }
 }
 
@@ -104,7 +102,7 @@ If a required to load source never completes the loader will never resolve.
 export class InfiniteSource implements PropertiesSource {
   requiredToLoad = true;
   load(): Observable<Properties> {
-    return interval(10).pipe(map((value: number) => ({ a: value })));
+    return interval(10).pipe(map((value: number) => ({ value })));
   }
 }
 
@@ -117,19 +115,15 @@ The loader will reject after a required to load source error.
 ```ts
 export class FirstSource implements PropertiesSource {
   requiredToLoad = true;
-  loadInOrder = true;
   load(): Observable<Properties> {
-    return throwError(new Error()).pipe(
-      catchError((error: Error) => timer(10).pipe(mergeMap(() => throwError(error)))),
-    );
+    return throwError(new Error()).pipe(delayThrow(10));
   }
 }
 
 export class SecondSource implements PropertiesSource {
   requiredToLoad = true;
-  loadInOrder = true;
   load(): Observable<Properties> {
-    return of({ b: 0 }).pipe(delay(10));
+    return of({ b: 0 }).pipe(delay(20));
   }
 }
 
@@ -141,19 +135,15 @@ The loader will resolves normally after a no required to load source error.
 
 ```ts
 export class FirstSource implements PropertiesSource {
-  loadInOrder = true;
   load(): Observable<Properties> {
-    return throwError(new Error()).pipe(
-      catchError((error: Error) => timer(10).pipe(mergeMap(() => throwError(error)))),
-    );
+    return throwError(new Error()).pipe(delayThrow(10));
   }
 }
 
 export class SecondSource implements PropertiesSource {
   requiredToLoad = true;
-  loadInOrder = true;
   load(): Observable<Properties> {
-    return of({ b: 0 }).pipe(delay(10));
+    return of({ b: 0 }).pipe(delay(20));
   }
 }
 
@@ -239,9 +229,7 @@ If a loadInOrder source returns an error will be ignored and will continue with 
 export class FirstSource implements PropertiesSource {
   loadInOrder = true;
   load(): Observable<Properties> {
-    return throwError(new Error()).pipe(
-      catchError((error: Error) => timer(10).pipe(mergeMap(() => throwError(error)))),
-    );
+    return throwError(new Error()).pipe(delayThrow(10));
   }
 }
 
@@ -274,6 +262,28 @@ Ignores the errors thrown by the source.
 source.ignoreError = true;
 ```
 
+If a required to load source throws an error the loader will rejects, but if the `ignoreError` property is set to `true` the error will be ignored as a no required to load source error.
+
+```ts
+export class FirstSource implements PropertiesSource {
+  requiredToLoad = true;
+  ignoreError = true;
+  load(): Observable<Properties> {
+    return throwError(new Error()).pipe(delayThrow(10));
+  }
+}
+
+export class SecondSource implements PropertiesSource {
+  requiredToLoad = true;
+  load(): Observable<Properties> {
+    return of({ b: 0 }).pipe(delay(20));
+  }
+}
+
+loader.load(); // resolves after 20 ms
+// sets the SecondSource properties after 20 ms
+```
+
 #### `path?: Path`
 
 The path to set the properties in the environment.
@@ -284,7 +294,9 @@ source.path = 'user.info';
 source.path = ['user', 'info'];
 ```
 
-See [`Path`](../types/path.type.ts)
+```ts
+type Path = string | string[];
+```
 
 ### Exposed Methods
 
@@ -297,12 +309,65 @@ source.load();
 ```
 
 ```ts
-export declare type ObservableInput<Properties> =
-  | Subscribable<Properties>
+export type ObservableInput<Properties> =
   | PromiseLike<Properties>
+  | Subscribable<Properties>
   | InteropObservable<Properties>
   | ArrayLike<Properties>
   | Iterable<Properties>;
+```
+
+The PropertiesSource can returns a Promise.
+
+```ts
+export class PromiseSource implements PropertiesSource {
+  async load(): Promise<Properties> {
+    return Promise.resolve({ a: 0 });
+  }
+}
+
+loader.load(); // resolves immediately
+// sets the PromiseSource properties after 0 ms
+```
+
+The PropertiesSource can returns an Observable or any other Subscribable type.
+
+```ts
+export class ObservableSource implements PropertiesSource {
+  load(): Observable<Properties> {
+    return of({ a: 0 });
+  }
+}
+
+export class MultipleObservableSource implements PropertiesSource {
+  load(): Observable<Properties> {
+    return of({ a: 0 }, { b: 0 }, { c: 0 });
+  }
+}
+
+loader.load(); // resolves immediately
+// sets the ObservableSource properties after 0 ms
+// sets the MultipleObservableSource properties after 0 ms, 1 ms and 2 ms
+```
+
+The PropertiesSource can returns an Array or any Iterable type.
+
+```ts
+export class ArraySource implements PropertiesSource {
+  load(): Properties[] {
+    return [{ a: 0 }];
+  }
+}
+
+export class MultipleArraySource implements PropertiesSource {
+  load(): Properties[] {
+    return [{ a: 0 }, { b: 0 }, { c: 0 }];
+  }
+}
+
+loader.load(); // resolves immediately
+// sets the ArraySource properties after 0 ms
+// sets the MultipleArraySource properties after 0 ms, 1 ms and 2 ms
 ```
 
 ## Examples of use
