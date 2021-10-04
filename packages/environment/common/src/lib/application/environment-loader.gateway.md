@@ -18,7 +18,7 @@ Loads the submodule environment properties from the provided asynchronous source
 
 Returns a promise to load the submodule once the required properties are loaded.
 
-### Lifecycle Hooks
+## Lifecycle Hooks
 
 An `EnvironmentLoader` instance has a lifecycle that starts each time the `load()` or `loadSubmodule()` methods are invoked. Each lifecycle ends when the method returns. Your implementation can use lifecycle hook methods to tap into key events in the environment loader service.
 
@@ -28,6 +28,8 @@ Each interface defines the prototype for a single hook method, whose name is the
 
 You don't have to implement all (or any) of the lifecycle hooks, just the ones you need.
 
+### Load Lifecycle Hooks
+
 #### `OnBeforeLoad`
 
 #### `OnAfterLoad`
@@ -36,11 +38,13 @@ You don't have to implement all (or any) of the lifecycle hooks, just the ones y
 
 #### `OnAfterComplete`
 
+### Source Lifecycle Hooks
+
 #### `OnBeforeSourceLoad`
 
-#### `OnBeforeSourceEmit`
+#### `OnBeforeSourceAdd`
 
-#### `OnAfterSourceEmit`
+#### `OnAfterSourceAdd`
 
 #### `OnAfterSourceError`
 

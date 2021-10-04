@@ -35,9 +35,20 @@ class TestLoader extends EnvironmentLoader {
   onCompleteSourcesLoad$: ReplaySubject<void> = new ReplaySubject();
   onRequiredToLoad$: BehaviorSubject<Set<string>> = new BehaviorSubject(new Set());
   loaderSources = propertiesSourceFactory(this.sources);
+
   constructor(protected service: EnvironmentService) {
     super(service, []);
   }
+
+  onBeforeLoad() {}
+  onAfterLoad() {}
+  onAfterError() {}
+  onAfterComplete() {}
+  onBeforeSourceLoad() {}
+  onBeforeSourceAdd() {}
+  onAfterSourceAdd() {}
+  onAfterSourceError() {}
+  onAfterSourceComplete() {}
 }
 
 class ObservableSource extends PropertiesSource {
@@ -91,8 +102,6 @@ class InfiniteSource extends PropertiesSource {
   }
 }
 
-const infiniteSource = propertiesSourceFactory(new InfiniteSource());
-
 const infiniteRequiredOrderedSource = propertiesSourceFactory(new InfiniteSource());
 infiniteRequiredOrderedSource[0].name = 'InfiniteRequiredOrderedSource';
 infiniteRequiredOrderedSource[0].requiredToLoad = true;
@@ -125,7 +134,7 @@ multipleArrayRequiredSource[0].requiredToLoad = true;
 
 class ErrorSource extends PropertiesSource {
   load(): Observable<Properties> {
-    return throwError(new Error()).pipe(delayThrow(5));
+    return throwError('').pipe(delayThrow(5));
   }
 }
 
@@ -148,14 +157,6 @@ const errorIgnoreRequiredSource = propertiesSourceFactory(new ErrorSource());
 errorIgnoreRequiredSource[0].ignoreError = true;
 errorIgnoreRequiredSource[0].requiredToLoad = true;
 
-class ErrorWithMessageSource extends PropertiesSource {
-  load(): Observable<Properties> {
-    return throwError(new Error('error')).pipe(delayThrow(5));
-  }
-}
-
-const errorWithMessageSource = propertiesSourceFactory(new ErrorWithMessageSource());
-
 class MultipleWithErrorSource extends PropertiesSource {
   load(): Observable<Properties> {
     return interval(5).pipe(
@@ -170,8 +171,6 @@ class MultipleWithErrorSource extends PropertiesSource {
   }
 }
 
-const multipleWithErrorSource = propertiesSourceFactory(new MultipleWithErrorSource());
-
 const multipleWithErrorOrderedSource = propertiesSourceFactory(new MultipleWithErrorSource());
 multipleWithErrorOrderedSource[0].loadInOrder = true;
 
@@ -184,6 +183,15 @@ describe('EnvironmentLoader', () => {
     loader = new TestLoader(service);
     jest.spyOn(service, 'add').mockImplementation(() => null);
     jest.spyOn(service, 'merge').mockImplementation(() => null);
+    jest.spyOn(loader, 'onBeforeLoad').mockImplementation(() => null);
+    jest.spyOn(loader, 'onAfterLoad').mockImplementation(() => null);
+    jest.spyOn(loader, 'onAfterError').mockImplementation(() => null);
+    jest.spyOn(loader, 'onAfterComplete').mockImplementation(() => null);
+    jest.spyOn(loader, 'onBeforeSourceLoad').mockImplementation(() => null);
+    jest.spyOn(loader, 'onBeforeSourceAdd').mockImplementation(() => null);
+    jest.spyOn(loader, 'onAfterSourceAdd').mockImplementation(() => null);
+    jest.spyOn(loader, 'onAfterSourceError').mockImplementation(() => null);
+    jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => null);
   });
 
   afterEach(() => {
@@ -192,7 +200,7 @@ describe('EnvironmentLoader', () => {
     jest.useRealTimers();
   });
 
-  describe('load()', () => {
+  describe('.load()', () => {
     it(`returns resolved Promise if no sources`, async () => {
       loader.loaderSources = [];
       await expect(loader.load()).toResolve();
@@ -216,15 +224,11 @@ describe('EnvironmentLoader', () => {
     });
   });
 
-  describe('resolveLoad()', () => {
+  describe('.resolveLoad()', () => {
     const resolveSources = [...observableRequiredOrderedSource, ...observableRequiredOrderedSource2];
 
     beforeEach(() => {
-      loader['onAfterSourceComplete'] = () => loader.resolveLoad();
-    });
-
-    afterEach(() => {
-      loader['onAfterSourceComplete'] = undefined;
+      jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => loader.resolveLoad());
     });
 
     it(`forces the load to resolve`, async () => {
@@ -243,15 +247,34 @@ describe('EnvironmentLoader', () => {
     });
   });
 
-  describe('completeSourcesLoad()', () => {
+  describe('.rejectLoad()', () => {
+    const resolveSources = [...observableRequiredOrderedSource, ...observableRequiredOrderedSource2];
+
+    beforeEach(() => {
+      jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => loader.rejectLoad(''));
+    });
+
+    it(`forces the load to reject`, async () => {
+      loader.loaderSources = resolveSources;
+      expect(service.add).not.toHaveBeenCalled();
+      await expect(loader.load()).toReject();
+      expect(service.add).toHaveBeenCalledTimes(1);
+    });
+
+    it(`continues loading sources`, () => {
+      jest.useFakeTimers();
+      loader.loaderSources = resolveSources;
+      loader.load().catch(() => null);
+      jest.runAllTimers();
+      expect(service.add).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('.completeSourcesLoad()', () => {
     const completeSources = [...observableRequiredOrderedSource, ...observableRequiredOrderedSource2];
 
     beforeEach(() => {
-      loader['onAfterSourceComplete'] = () => loader.completeSourcesLoad();
-    });
-
-    afterEach(() => {
-      loader['onAfterSourceComplete'] = undefined;
+      jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => loader.completeSourcesLoad());
     });
 
     it(`forces the load to resolve`, async () => {
@@ -270,26 +293,24 @@ describe('EnvironmentLoader', () => {
     });
   });
 
-  describe('onDestroy()', () => {
+  describe('.onDestroy()', () => {
     const onDestroySources = [...observableRequiredOrderedSource, ...observableRequiredOrderedSource2];
 
     it(`forces the load to resolve`, async () => {
-      loader['onAfterSourceComplete'] = () => loader.onDestroy();
+      jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => loader.onDestroy());
       loader.loaderSources = onDestroySources;
       expect(service.add).not.toHaveBeenCalled();
       await expect(loader.load()).toResolve();
       expect(service.add).toHaveBeenCalledTimes(1);
-      loader['onAfterSourceComplete'] = undefined;
     });
 
     it(`stops all ongoing source loads`, () => {
-      loader['onAfterSourceComplete'] = () => loader.onDestroy();
+      jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => loader.onDestroy());
       jest.useFakeTimers();
       loader.loaderSources = onDestroySources;
       loader.load();
       jest.runAllTimers();
       expect(service.add).toHaveBeenCalledTimes(1);
-      loader['onAfterSourceComplete'] = undefined;
     });
 
     it(`completes the load subject`, () => {
@@ -366,7 +387,7 @@ describe('EnvironmentLoader', () => {
       it(`doesn't return if infinite requiredToLoad source`, async () => {
         loader.loaderSources = infiniteRequiredOrderedSource;
         let index = 0;
-        loader['onAfterSourceEmit'] = () => {
+        loader['onAfterSourceAdd'] = () => {
           if (index === 9) {
             loader.resolveLoad();
           } else {
@@ -374,7 +395,6 @@ describe('EnvironmentLoader', () => {
           }
         };
         await loader.load().then(() => expect(service.add).toHaveBeenCalledTimes(10));
-        loader['onAfterSourceEmit'] = undefined;
       });
 
       it(`returns resolved Promise after load error`, async () => {
@@ -497,8 +517,8 @@ describe('EnvironmentLoader', () => {
         expect(service.add).toHaveBeenNthCalledWith(1, { array: 0 }, undefined);
         expect(service.add).toHaveBeenCalledTimes(1);
         jest.advanceTimersByTime(5);
-        expect(service.add).toHaveBeenNthCalledWith(2, { observable: 0 }, undefined);
-        expect(service.add).toHaveBeenNthCalledWith(3, { multiple: 0 }, undefined);
+        expect(service.add).toHaveBeenCalledWith({ observable: 0 }, undefined);
+        expect(service.add).toHaveBeenCalledWith({ multiple: 0 }, undefined);
         expect(service.add).toHaveBeenCalledTimes(3);
         jest.advanceTimersByTime(5);
         expect(service.add).toHaveBeenNthCalledWith(4, { multiple: 1 }, undefined);
@@ -668,209 +688,190 @@ describe('EnvironmentLoader', () => {
     });
   });
 
-  //     it(`returns rejected Promise without error message`, async () => {
-  //       const error = new Error('The Environment PropertiesSource "ErrorSource" failed to load');
-  //       await expect(loader.load('app', requiredErrorSource)).rejects.toEqual(error);
-  //     });
+  describe('Lifecycle Hooks', () => {
+    it(`executes load lifecycle hooks in order if no error`, async () => {
+      loader.loaderSources = observableRequiredOrderedSource;
+      jest.spyOn(console, 'log').mockImplementation(() => null);
+      jest.spyOn(loader, 'onBeforeLoad').mockImplementation(() => console.log('onBeforeLoad'));
+      jest.spyOn(loader, 'onAfterComplete').mockImplementation(() => console.log('onAfterComplete'));
+      jest.spyOn(loader, 'onAfterLoad').mockImplementation(() => console.log('onAfterLoad'));
+      jest.spyOn(loader, 'onAfterError').mockImplementation(() => console.log('onAfterError'));
+      await expect(loader.load()).toResolve();
+      expect(console.log).toHaveBeenNthCalledWith(1, 'onBeforeLoad');
+      expect(console.log).toHaveBeenNthCalledWith(2, 'onAfterComplete');
+      expect(console.log).toHaveBeenNthCalledWith(3, 'onAfterLoad');
+      expect(console.log).toHaveBeenCalledTimes(3);
+    });
 
-  //     it(`returns rejected Promise with error message`, async () => {
-  //       const error = new Error('The Environment PropertiesSource "ErrorMessageSource" failed to load: error');
-  //       await expect(loader.load('app', requiredErrorMessageSource)).rejects.toEqual(error);
-  //     });
-  //   });
+    it(`executes load lifecycle hooks in order if error`, async () => {
+      loader.loaderSources = errorRequiredOrderedSource;
+      jest.spyOn(console, 'log').mockImplementation(() => null);
+      jest.spyOn(loader, 'onBeforeLoad').mockImplementation(() => console.log('onBeforeLoad'));
+      jest.spyOn(loader, 'onAfterComplete').mockImplementation(() => console.log('onAfterComplete'));
+      jest.spyOn(loader, 'onAfterLoad').mockImplementation(() => console.log('onAfterLoad'));
+      jest.spyOn(loader, 'onAfterError').mockImplementation(() => console.log('onAfterError'));
+      await expect(loader.load()).toReject();
+      expect(console.log).toHaveBeenNthCalledWith(1, 'onBeforeLoad');
+      expect(console.log).toHaveBeenNthCalledWith(2, 'onAfterComplete');
+      expect(console.log).toHaveBeenNthCalledWith(3, 'onAfterError');
+      expect(console.log).toHaveBeenCalledTimes(3);
+    });
 
-  // Test lifecycle order
-  // Test lifecycle with source with multiple emits
-  // Test lifecycle with source with infinite emits
-  // Test lifecycle with error
-  // Test lifecycle with source with multiple errors
-  // Test lifecycle with source with infinite errors
+    it(`executes source lifecycle hooks in order if no error`, async () => {
+      loader.loaderSources = observableRequiredOrderedSource;
+      jest.spyOn(console, 'log').mockImplementation(() => null);
+      jest.spyOn(loader, 'onBeforeSourceLoad').mockImplementation(() => console.log('onBeforeSourceLoad'));
+      jest.spyOn(loader, 'onBeforeSourceAdd').mockImplementation(() => console.log('onBeforeSourceAdd'));
+      jest.spyOn(loader, 'onAfterSourceAdd').mockImplementation(() => console.log('onAfterSourceAdd'));
+      jest.spyOn(loader, 'onAfterSourceError').mockImplementation(() => console.log('onAfterSourceError'));
+      jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => console.log('onAfterSourceComplete'));
+      await expect(loader.load()).toResolve();
+      expect(console.log).toHaveBeenNthCalledWith(1, 'onBeforeSourceLoad');
+      expect(console.log).toHaveBeenNthCalledWith(2, 'onBeforeSourceAdd');
+      expect(console.log).toHaveBeenNthCalledWith(3, 'onAfterSourceAdd');
+      expect(console.log).toHaveBeenNthCalledWith(4, 'onAfterSourceComplete');
+      expect(console.log).toHaveBeenCalledTimes(4);
+    });
 
-  //   // describe('lifecycle hooks', () => {
-  //   //   describe('OnBeforeSourceLoad', () => {
-  //   //     it(`execute onBeforeSourceLoad(properties) if exists before source load`, () => {
-  //   //       const source = new Source1();
-  //   //       source['onBeforeSourceLoad'] = () => null;
-  //   //       jest.spyOn<any, any>(source, 'onBeforeSourceLoad');
-  //   //       jest.useFakeTimers();
-  //   //       loader.loadSubmodule('app', source);
-  //   //       jest.runAllTimers();
-  //   //       expect(source['onBeforeSourceLoad']).toHaveBeenNthCalledWith(1, { a: 0 });
-  //   //       expect(source['onBeforeSourceLoad']).toHaveBeenCalledTimes(1);
-  //   //       source['onBeforeSourceLoad'] = undefined;
-  //   //     });
+    it(`executes multiple source lifecycle hooks in order if no error`, async () => {
+      loader.loaderSources = multipleRequiredOrderedSource;
+      jest.spyOn(console, 'log').mockImplementation(() => null);
+      jest.spyOn(loader, 'onBeforeSourceLoad').mockImplementation(() => console.log('onBeforeSourceLoad'));
+      jest.spyOn(loader, 'onBeforeSourceAdd').mockImplementation(() => console.log('onBeforeSourceAdd'));
+      jest.spyOn(loader, 'onAfterSourceAdd').mockImplementation(() => console.log('onAfterSourceAdd'));
+      jest.spyOn(loader, 'onAfterSourceError').mockImplementation(() => console.log('onAfterSourceError'));
+      jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => console.log('onAfterSourceComplete'));
+      await expect(loader.load()).toResolve();
+      expect(console.log).toHaveBeenNthCalledWith(1, 'onBeforeSourceLoad');
+      expect(console.log).toHaveBeenNthCalledWith(2, 'onBeforeSourceAdd');
+      expect(console.log).toHaveBeenNthCalledWith(3, 'onAfterSourceAdd');
+      expect(console.log).toHaveBeenNthCalledWith(4, 'onBeforeSourceAdd');
+      expect(console.log).toHaveBeenNthCalledWith(5, 'onAfterSourceAdd');
+      expect(console.log).toHaveBeenNthCalledWith(6, 'onBeforeSourceAdd');
+      expect(console.log).toHaveBeenNthCalledWith(7, 'onAfterSourceAdd');
+      expect(console.log).toHaveBeenNthCalledWith(8, 'onAfterSourceComplete');
+      expect(console.log).toHaveBeenCalledTimes(8);
+    });
 
-  //   //     it(`doesn't execute onBeforeSourceLoad(properties) if exists and error`, () => {
-  //   //       const source = new ErrorSource();
-  //   //       source['onBeforeSourceLoad'] = () => null;
-  //   //       jest.spyOn<any, any>(source, 'onBeforeSourceLoad');
-  //   //       jest.useFakeTimers();
-  //   //       loader.loadSubmodule('app', source).catch(() => null);
-  //   //       jest.runAllTimers();
-  //   //       expect(source['onBeforeSourceLoad']).not.toHaveBeenCalled();
-  //   //       source['onBeforeSourceLoad'] = undefined;
-  //   //     });
-  //   //   });
+    it(`executes source lifecycle hooks in order if error`, async () => {
+      loader.loaderSources = errorRequiredOrderedSource;
+      jest.spyOn(console, 'log').mockImplementation(() => null);
+      jest.spyOn(loader, 'onBeforeSourceLoad').mockImplementation(() => console.log('onBeforeSourceLoad'));
+      jest.spyOn(loader, 'onBeforeSourceAdd').mockImplementation(() => console.log('onBeforeSourceAdd'));
+      jest.spyOn(loader, 'onAfterSourceAdd').mockImplementation(() => console.log('onAfterSourceAdd'));
+      jest.spyOn(loader, 'onAfterSourceError').mockImplementation(() => console.log('onAfterSourceError'));
+      jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => console.log('onAfterSourceComplete'));
+      await expect(loader.load()).toReject();
+      expect(console.log).toHaveBeenNthCalledWith(1, 'onBeforeSourceLoad');
+      expect(console.log).toHaveBeenNthCalledWith(2, 'onAfterSourceError');
+      expect(console.log).toHaveBeenNthCalledWith(3, 'onAfterSourceComplete');
+      expect(console.log).toHaveBeenCalledTimes(3);
+    });
 
-  //   //   describe('OnAfterSourceLoad', () => {
-  //   //     it(`execute onAfterSourceLoad(properties) if exists after source load`, () => {
-  //   //       const source = new Source1();
-  //   //       source['onAfterSourceLoad'] = () => null;
-  //   //       jest.spyOn<any, any>(source, 'onAfterSourceLoad');
-  //   //       jest.useFakeTimers();
-  //   //       loader.loadSubmodule('app', source);
-  //   //       jest.runAllTimers();
-  //   //       expect(source['onAfterSourceLoad']).toHaveBeenNthCalledWith(1, { a: 0 });
-  //   //       expect(source['onAfterSourceLoad']).toHaveBeenCalledTimes(1);
-  //   //       source['onAfterSourceLoad'] = undefined;
-  //   //     });
+    it(`executes full lifecycle hooks in order if no error`, async () => {
+      loader.loaderSources = observableRequiredOrderedSource;
+      jest.spyOn(console, 'log').mockImplementation(() => null);
+      jest.spyOn(loader, 'onBeforeLoad').mockImplementation(() => console.log('onBeforeLoad'));
+      jest.spyOn(loader, 'onAfterComplete').mockImplementation(() => console.log('onAfterComplete'));
+      jest.spyOn(loader, 'onAfterLoad').mockImplementation(() => console.log('onAfterLoad'));
+      jest.spyOn(loader, 'onAfterError').mockImplementation(() => console.log('onAfterError'));
+      jest.spyOn(loader, 'onBeforeSourceLoad').mockImplementation(() => console.log('onBeforeSourceLoad'));
+      jest.spyOn(loader, 'onBeforeSourceAdd').mockImplementation(() => console.log('onBeforeSourceAdd'));
+      jest.spyOn(loader, 'onAfterSourceAdd').mockImplementation(() => console.log('onAfterSourceAdd'));
+      jest.spyOn(loader, 'onAfterSourceError').mockImplementation(() => console.log('onAfterSourceError'));
+      jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => console.log('onAfterSourceComplete'));
+      await expect(loader.load()).toResolve();
+      expect(console.log).toHaveBeenNthCalledWith(1, 'onBeforeLoad');
+      expect(console.log).toHaveBeenNthCalledWith(2, 'onBeforeSourceLoad');
+      expect(console.log).toHaveBeenNthCalledWith(3, 'onBeforeSourceAdd');
+      expect(console.log).toHaveBeenNthCalledWith(4, 'onAfterSourceAdd');
+      expect(console.log).toHaveBeenNthCalledWith(5, 'onAfterComplete');
+      expect(console.log).toHaveBeenNthCalledWith(6, 'onAfterSourceComplete');
+      expect(console.log).toHaveBeenNthCalledWith(7, 'onAfterLoad');
+      expect(console.log).toHaveBeenCalledTimes(7);
+    });
 
-  //   //     it(`doesn't execute onAfterSourceLoad(properties) if exists and error`, () => {
-  //   //       const source = new ErrorSource();
-  //   //       source['onAfterSourceLoad'] = () => null;
-  //   //       jest.spyOn<any, any>(source, 'onAfterSourceLoad');
-  //   //       jest.useFakeTimers();
-  //   //       loader.loadSubmodule('app', source).catch(() => null);
-  //   //       jest.runAllTimers();
-  //   //       expect(source['onAfterSourceLoad']).not.toHaveBeenCalled();
-  //   //       source['onAfterSourceLoad'] = undefined;
-  //   //     });
-  //   //   });
+    it(`executes full lifecycle hooks in order if error`, async () => {
+      loader.loaderSources = errorRequiredOrderedSource;
+      jest.spyOn(console, 'log').mockImplementation(() => null);
+      jest.spyOn(loader, 'onBeforeLoad').mockImplementation(() => console.log('onBeforeLoad'));
+      jest.spyOn(loader, 'onAfterComplete').mockImplementation(() => console.log('onAfterComplete'));
+      jest.spyOn(loader, 'onAfterLoad').mockImplementation(() => console.log('onAfterLoad'));
+      jest.spyOn(loader, 'onAfterError').mockImplementation(() => console.log('onAfterError'));
+      jest.spyOn(loader, 'onBeforeSourceLoad').mockImplementation(() => console.log('onBeforeSourceLoad'));
+      jest.spyOn(loader, 'onBeforeSourceAdd').mockImplementation(() => console.log('onBeforeSourceAdd'));
+      jest.spyOn(loader, 'onAfterSourceAdd').mockImplementation(() => console.log('onAfterSourceAdd'));
+      jest.spyOn(loader, 'onAfterSourceError').mockImplementation(() => console.log('onAfterSourceError'));
+      jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => console.log('onAfterSourceComplete'));
+      await expect(loader.load()).toReject();
+      expect(console.log).toHaveBeenNthCalledWith(1, 'onBeforeLoad');
+      expect(console.log).toHaveBeenNthCalledWith(2, 'onBeforeSourceLoad');
+      expect(console.log).toHaveBeenNthCalledWith(3, 'onAfterSourceError');
+      expect(console.log).toHaveBeenNthCalledWith(4, 'onAfterComplete');
+      expect(console.log).toHaveBeenNthCalledWith(5, 'onAfterSourceComplete');
+      expect(console.log).toHaveBeenNthCalledWith(6, 'onAfterError');
+      expect(console.log).toHaveBeenCalledTimes(6);
+    });
 
-  //   //   describe('OnAfterSourceError', () => {
-  //   //     it(`execute onAfterSourceError(error) if exists after source error that rejects`, () => {
-  //   //       const error = new Error('The Environment PropertiesSource "ErrorSource" failed to load');
-  //   //       const source = requiredErrorSource;
-  //   //       source['onAfterSourceError'] = () => null;
-  //   //       jest.spyOn<any, any>(source, 'onAfterSourceError');
-  //   //       jest.useFakeTimers();
-  //   //       loader.loadSubmodule('app', source).catch(() => null);
-  //   //       jest.runAllTimers();
-  //   //       expect(source['onAfterSourceError']).toHaveBeenNthCalledWith(1, error);
-  //   //       expect(source['onAfterSourceError']).toHaveBeenCalledTimes(1);
-  //   //       source['onAfterSourceError'] = undefined;
-  //   //     });
+    it(`onBeforeLoad() is called without args`, async () => {
+      loader.loaderSources = observableRequiredOrderedSource;
+      await expect(loader.load()).toResolve();
+      expect(loader.onBeforeLoad).toHaveBeenNthCalledWith(1);
+    });
 
-  //   //     it(`doesn't execute onAfterSourceError(error) if exists and error that doesn't reject`, () => {
-  //   //       const source = new ErrorSource();
-  //   //       source['onAfterSourceError'] = () => null;
-  //   //       jest.spyOn<any, any>(source, 'onAfterSourceError');
-  //   //       jest.useFakeTimers();
-  //   //       loader.loadSubmodule('app', source).catch(() => null);
-  //   //       jest.runAllTimers();
-  //   //       expect(source['onAfterSourceError']).not.toHaveBeenCalled();
-  //   //       source['onAfterSourceError'] = undefined;
-  //   //     });
+    it(`onAfterLoad() is called without args `, async () => {
+      loader.loaderSources = observableRequiredOrderedSource;
+      await expect(loader.load()).toResolve();
+      expect(loader.onAfterLoad).toHaveBeenNthCalledWith(1);
+    });
 
-  //   //     it(`doesn't execute onAfterSourceError(error) if exists and no error`, () => {
-  //   //       const source = new Source1();
-  //   //       source['onAfterSourceError'] = () => null;
-  //   //       jest.spyOn<any, any>(source, 'onAfterSourceError');
-  //   //       jest.useFakeTimers();
-  //   //       loader.loadSubmodule('app', source);
-  //   //       jest.runAllTimers();
-  //   //       expect(source['onAfterSourceError']).not.toHaveBeenCalled();
-  //   //       source['onAfterSourceError'] = undefined;
-  //   //     });
-  //   //   });
+    it(`onAfterError(error) is called with error`, async () => {
+      loader.loaderSources = errorRequiredOrderedSource;
+      await expect(loader.load()).toReject();
+      expect(loader.onAfterError).toHaveBeenNthCalledWith(
+        1,
+        new Error('The Environment PropertiesSource "ErrorRequiredOrderedSource" failed to load'),
+      );
+    });
 
-  //   //   describe('OnAfterSourceSoftError', () => {
-  //   //     it(`execute onAfterSourceSoftError(error) if exists after source error that doesn't reject`, () => {
-  //   //       const error = new Error('The Environment PropertiesSource "ErrorSource" failed to load');
-  //   //       const source = new ErrorSource();
-  //   //       source['onAfterSourceSoftError'] = () => null;
-  //   //       jest.spyOn<any, any>(source, 'onAfterSourceSoftError');
-  //   //       jest.useFakeTimers();
-  //   //       loader.loadSubmodule('app', source).catch(() => null);
-  //   //       jest.runAllTimers();
-  //   //       expect(source['onAfterSourceSoftError']).toHaveBeenNthCalledWith(1, error);
-  //   //       expect(source['onAfterSourceSoftError']).toHaveBeenCalledTimes(1);
-  //   //       source['onAfterSourceSoftError'] = undefined;
-  //   //     });
+    it(`onAfterComplete() is called without args `, async () => {
+      loader.loaderSources = observableRequiredOrderedSource;
+      await expect(loader.load()).toResolve();
+      expect(loader.onAfterComplete).toHaveBeenNthCalledWith(1);
+    });
 
-  //   //     it(`doesn't execute onAfterSourceSoftError(error) if exists and error that rejects`, () => {
-  //   //       const source = requiredErrorSource;
-  //   //       source['onAfterSourceSoftError'] = () => null;
-  //   //       jest.spyOn<any, any>(source, 'onAfterSourceSoftError');
-  //   //       jest.useFakeTimers();
-  //   //       loader.loadSubmodule('app', source).catch(() => null);
-  //   //       jest.runAllTimers();
-  //   //       expect(source['onAfterSourceSoftError']).not.toHaveBeenCalled();
-  //   //       source['onAfterSourceSoftError'] = undefined;
-  //   //     });
+    it(`onBeforeSourceLoad(source) is called with source`, async () => {
+      loader.loaderSources = observableRequiredOrderedSource;
+      await expect(loader.load()).toResolve();
+      expect(loader.onBeforeSourceLoad).toHaveBeenNthCalledWith(1, loader.loaderSources[0]);
+    });
 
-  //   //     it(`doesn't execute onAfterSourceSoftError(error) if exists and no error`, () => {
-  //   //       const source = new Source1();
-  //   //       source['onAfterSourceSoftError'] = () => null;
-  //   //       jest.spyOn<any, any>(source, 'onAfterSourceSoftError');
-  //   //       jest.useFakeTimers();
-  //   //       loader.loadSubmodule('app', source);
-  //   //       jest.runAllTimers();
-  //   //       expect(source['onAfterSourceSoftError']).not.toHaveBeenCalled();
-  //   //       source['onAfterSourceSoftError'] = undefined;
-  //   //     });
-  //   //   });
-  //   // });
-  // });
+    it(`onBeforeSourceAdd(properties, source) is called with properties and source`, async () => {
+      loader.loaderSources = observableRequiredOrderedSource;
+      await expect(loader.load()).toResolve();
+      expect(loader.onBeforeSourceAdd).toHaveBeenNthCalledWith(1, { observable: 0 }, loader.loaderSources[0]);
+    });
 
-  // describe('examples of use', () => {
-  //   // it(`completes after error`, () => {
-  //   //   jest.spyOn(service, 'add');
-  //   //   loader['onAfterLoadError'] = () => null;
-  //   //   jest
-  //   //     .spyOn<any, any>(loader, 'onAfterLoadError')
-  //   //     .mockImplementation((index: number) => loader['onDestroySources'](index));
-  //   //   jest.useFakeTimers();
-  //   //   (loader as unknown)['sources'] = [requiredOrderedSource1, requiredOrderedErrorSource, requiredOrderedSource2];
-  //   //   loader['load']().catch(() => null);
-  //   //   expect(service.merge).not.toHaveBeenCalled();
-  //   //   jest.runAllTimers();
-  //   //   expect(loader['onAfterLoadError']).toHaveBeenCalled();
-  //   //   expect(service.merge).toHaveBeenNthCalledWith(1, { a: 0 }, undefined);
-  //   //   expect(service.merge).toHaveBeenCalledTimes(1);
-  //   //   loader['onAfterLoadError'] = undefined;
-  //   // });
-  // });
+    it(`onAfterSourceAdd(properties, source) is called with properties and source`, async () => {
+      loader.loaderSources = observableRequiredOrderedSource;
+      await expect(loader.load()).toResolve();
+      expect(loader.onAfterSourceAdd).toHaveBeenNthCalledWith(1, { observable: 0 }, loader.loaderSources[0]);
+    });
 
-  // describe('lifecycle hooks', () => {
-  //   // no sources
+    it(`onAfterSourceError(error, source) is called with error and source`, async () => {
+      loader.loaderSources = errorRequiredOrderedSource;
+      await expect(loader.load()).toReject();
+      expect(loader.onAfterSourceError).toHaveBeenNthCalledWith(
+        1,
+        new Error('The Environment PropertiesSource "ErrorRequiredOrderedSource" failed to load'),
+        loader.loaderSources[0],
+      );
+    });
 
-  //   describe('OnBeforeLoad', () => {
-  //     it(`execute onBeforeLoad(index, name) if no sources`, () => {
-  //       loader['onBeforeLoad'] = () => null;
-  //       jest.spyOn<any, any>(loader, 'onBeforeLoad');
-  //       jest.useFakeTimers();
-  //       loader.loadSubmodule('app', []);
-  //       jest.runAllTimers();
-  //       expect(loader['onBeforeLoad']).toHaveBeenNthCalledWith(1, 0, 'app');
-  //       expect(loader['onBeforeLoad']).toHaveBeenCalledTimes(1);
-  //       loader['onBeforeLoad'] = undefined;
-  //     });
-  //   });
-
-  //   describe('OnAfterLoad', () => {
-  //     it(`execute onAfterLoad(index, name) if no sources`, () => {
-  //       loader['onAfterLoad'] = () => null;
-  //       jest.spyOn<any, any>(loader, 'onAfterLoad');
-  //       jest.useFakeTimers();
-  //       loader.loadSubmodule('app', []);
-  //       jest.runAllTimers();
-  //       expect(loader['onAfterLoad']).toHaveBeenNthCalledWith(1, 0, 'app');
-  //       expect(loader['onAfterLoad']).toHaveBeenCalledTimes(1);
-  //       loader['onAfterLoad'] = undefined;
-  //     });
-  //   });
-
-  //   describe('OnAfterLoadError', () => {
-  //     it(`doesn't execute onAfterLoadError(index, name, error) if no sources`, () => {
-  //       loader['onAfterLoadError'] = () => null;
-  //       jest.spyOn<any, any>(loader, 'onAfterLoadError');
-  //       jest.useFakeTimers();
-  //       loader.loadSubmodule('app', []);
-  //       jest.runAllTimers();
-  //       expect(loader['onAfterLoadError']).not.toHaveBeenCalled();
-  //       loader['onAfterLoadError'] = undefined;
-  //     });
-  //   });
-  // });
+    it(`onAfterSourceComplete(source) is called with source`, async () => {
+      loader.loaderSources = observableRequiredOrderedSource;
+      await expect(loader.load()).toResolve();
+      expect(loader.onAfterSourceComplete).toHaveBeenNthCalledWith(1, loader.loaderSources[0]);
+    });
+  });
 });

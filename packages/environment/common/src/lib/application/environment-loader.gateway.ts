@@ -1,5 +1,5 @@
 import { executeIfExists } from '@kaikokeke/common';
-import { isEqual } from 'lodash-es';
+import { isEqual, isString } from 'lodash-es';
 import { BehaviorSubject, concat, defer, merge, Observable, of, ReplaySubject } from 'rxjs';
 import { catchError, filter, finalize, take, takeUntil, tap } from 'rxjs/operators';
 
@@ -32,7 +32,16 @@ export abstract class EnvironmentLoader {
    * @returns A promise to load once the `requiredToLoad` sources are loaded.
    */
   async load(): Promise<void> {
-    return this._load$().toPromise();
+    return this._load$()
+      .toPromise()
+      .then(() => {
+        executeIfExists(this, 'onAfterLoad');
+        Promise.resolve();
+      })
+      .catch(<E>(error: E) => {
+        executeIfExists(this, 'onAfterError', error);
+        throw error;
+      });
   }
 
   protected _load$(): Observable<void> {
@@ -41,14 +50,7 @@ export abstract class EnvironmentLoader {
     this._watchRequiredToLoadSources();
     this._loadSources();
 
-    return this.onLoad$.pipe(
-      tap({
-        next: () => executeIfExists(this, 'onAfterLoad'),
-        error: (error: Error) => executeIfExists(this, 'onAfterError', error),
-      }),
-      take(1),
-      takeUntil(this.onCompleteSourcesLoad$),
-    );
+    return this.onLoad$.pipe(take(1), takeUntil(this.onCompleteSourcesLoad$));
   }
 
   protected _watchRequiredToLoadSources(): void {
@@ -69,7 +71,7 @@ export abstract class EnvironmentLoader {
   }
 
   protected _loadSources(): void {
-    merge(this._loadUnorderedSources(), this._loadOrderedSources())
+    merge(this._loadOrderedSources(), this._loadUnorderedSources())
       .pipe(finalize(() => executeIfExists(this, 'onAfterComplete')))
       .subscribe();
   }
@@ -101,15 +103,15 @@ export abstract class EnvironmentLoader {
       }).pipe(
         tap({
           next: (properties: Properties) => {
-            executeIfExists(this, 'onBeforeSourceEmit', properties, source);
+            executeIfExists(this, 'onBeforeSourceAdd', properties, source);
             this._saveSourceValueToStore(properties, source);
-            executeIfExists(this, 'onAfterSourceEmit', properties, source);
+            executeIfExists(this, 'onAfterSourceAdd', properties, source);
           },
         }),
-        catchError((error: Error) => this._checkSourceLoadError(error, source)),
+        catchError(<E>(error: E) => this._checkSourceLoadError(error, source)),
         finalize(() => {
-          this._checkRequiredToLoad(source);
           executeIfExists(this, 'onAfterSourceComplete', source);
+          this._checkRequiredToLoad(source);
         }),
       );
     });
@@ -123,19 +125,34 @@ export abstract class EnvironmentLoader {
     }
   }
 
-  protected _checkSourceLoadError(error: Error, source: LoaderPropertiesSource): Observable<Properties> {
-    const originalMessage: string = error.message ? `: ${error.message}` : '';
-    error.message = `The Environment PropertiesSource "${
+  protected _checkSourceLoadError<E>(error: E, source: LoaderPropertiesSource): Observable<Properties> {
+    const newError: Error = this._getError(error);
+    const originalMessage: string = newError.message ? `: ${newError.message}` : '';
+    newError.message = `The Environment PropertiesSource "${
       source.name ? source.name : source.id
     }" failed to load${originalMessage}`;
 
+    executeIfExists(this, 'onAfterSourceError', newError, source);
+
     if (source.requiredToLoad && !source.ignoreError && !this.onLoad$.isStopped) {
-      this.onLoad$.error(error);
+      this.rejectLoad(newError);
     }
 
-    executeIfExists(this, 'onAfterSourceError', error, source);
-
     return of({});
+  }
+
+  protected _getError<E>(error: E): Error {
+    if (error instanceof Error) {
+      return error;
+    }
+
+    const newError = new Error();
+
+    if (isString(error)) {
+      newError.message = String(error);
+    }
+
+    return newError;
   }
 
   protected _checkRequiredToLoad(source: LoaderPropertiesSource): void {
@@ -151,6 +168,13 @@ export abstract class EnvironmentLoader {
    */
   resolveLoad(): void {
     this.onLoad$.next();
+  }
+
+  /**
+   * Forces the load to reject.
+   */
+  rejectLoad<T>(error: T): void {
+    this.onLoad$.error(error);
   }
 
   /**
