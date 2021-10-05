@@ -439,6 +439,10 @@ export abstract class EnvironmentQuery {
       return substring;
     }
 
-    return typeof value === 'object' ? JSON.stringify(value) : String(value);
+    try {
+      return typeof value === 'object' ? JSON.stringify(value) : String(value);
+    } catch {
+      return String(value);
+    }
   }
 }

@@ -611,6 +611,17 @@ describe('EnvironmentQuery', () => {
     expect(query.getTranspiled('b')).toEqual('0');
   });
 
+  it(`getTranspiled(path) returns transpiled with invalid object`, () => {
+    const env = { a: { a: { a: 1 } }, b: '{{   a.a}}' };
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(env));
+    jest.spyOn(store, 'getAll').mockReturnValue(env);
+    jest.spyOn(JSON, 'stringify').mockImplementation(() => {
+      throw new Error();
+    });
+    (query as any)['config'].useEnvironmentToTranspile = true;
+    expect(query.getTranspiled('b')).toEqual('[object Object]');
+  });
+
   // getRequiredTranspiled
 
   it(
@@ -841,6 +852,17 @@ describe('EnvironmentQuery', () => {
     jest.spyOn(store, 'getAll').mockReturnValue(env);
     (query as any)['config'].useEnvironmentToTranspile = true;
     expect(query.getRequiredTranspiled('b', 2)).toEqual('0');
+  });
+
+  it(`getRequiredTranspiled(path) returns transpiled with invalid object`, () => {
+    const env = { a: { a: { a: 1 } }, b: '{{   a.a}}' };
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(env));
+    jest.spyOn(store, 'getAll').mockReturnValue(env);
+    jest.spyOn(JSON, 'stringify').mockImplementation(() => {
+      throw new Error();
+    });
+    (query as any)['config'].useEnvironmentToTranspile = true;
+    expect(query.getRequiredTranspiled('b')).toEqual('[object Object]');
   });
 
   describe('examples of use', () => {
