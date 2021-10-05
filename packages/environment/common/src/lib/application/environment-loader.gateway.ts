@@ -148,8 +148,8 @@ export abstract class EnvironmentLoader {
 
   protected _checkSourceLoadError<E>(error: E, source: LoaderPropertiesSource): Observable<Properties> {
     const newError: Error = this._getError(error);
-    const originalMessage: string = newError.message.length === 0 ? '' : `: ${newError.message}`;
     const sourceId: string = source.name ?? source.id;
+    const originalMessage: string = newError.message ? `: ${newError.message}` : '';
     newError.message = `The Environment PropertiesSource "${sourceId}" failed to load${originalMessage}`;
 
     executeIfExists(this, 'onAfterSourceError', newError, source);
