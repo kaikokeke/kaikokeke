@@ -28,27 +28,31 @@ Each interface defines the prototype for a single hook method, whose name is the
 
 You don't have to implement all (or any) of the lifecycle hooks, just the ones you need.
 
-### Load Lifecycle Hooks
+### `OnBeforeLoad`
 
-#### `OnBeforeLoad`
+### `OnAfterLoad`
 
-#### `OnAfterLoad`
+### `OnAfterError`
 
-#### `OnAfterError`
+### `OnAfterComplete`
 
-#### `OnAfterComplete`
+### `OnBeforeSourceLoad`
 
-### Source Lifecycle Hooks
+### `OnBeforeSourceAdd`
 
-#### `OnBeforeSourceLoad`
+### `OnAfterSourceAdd`
 
-#### `OnBeforeSourceAdd`
+### `OnAfterSourceError`
 
-#### `OnAfterSourceAdd`
+### `OnAfterSourceComplete`
 
-#### `OnAfterSourceError`
+## Source Middleware
 
-#### `OnAfterSourceComplete`
+It’s possible to define middleware functions
+
+### `preAddProperties(properties: Properties, source: LoaderPropertiesSource): Properties`
+
+The `preAddProperties()` middleware is called when we invoke the `EnvironmentService.add()` or `EnvironmentService.merge()` methods with the newly added properties, and gives you the possibility to modify it before inserting it into the environment.
 
 ## Examples of use
 

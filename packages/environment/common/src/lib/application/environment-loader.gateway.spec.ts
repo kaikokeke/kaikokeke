@@ -753,6 +753,24 @@ describe('EnvironmentLoader', () => {
     });
   });
 
+  describe('Middleware', () => {
+    it(`preAddProperties(properties, source) is called with properties and source`, async () => {
+      jest.spyOn(loader, 'preAddProperties').mockImplementation((p) => p);
+      loader.loaderSources = observableRequiredOrderedSource;
+      await expect(loader.load()).toResolve();
+      expect(loader.preAddProperties).toHaveBeenNthCalledWith(1, { observable: 0 }, loader.loaderSources[0]);
+      expect(service.add).toHaveBeenNthCalledWith(1, { observable: 0 }, undefined);
+    });
+
+    it(`preAddProperties(properties, source) modifies the properties`, async () => {
+      jest.spyOn(loader, 'preAddProperties').mockImplementation(() => ({ middleware: 0 }));
+      loader.loaderSources = observableRequiredOrderedSource;
+      await expect(loader.load()).toResolve();
+      expect(loader.preAddProperties).toHaveBeenNthCalledWith(1, { observable: 0 }, loader.loaderSources[0]);
+      expect(service.add).toHaveBeenNthCalledWith(1, { middleware: 0 }, undefined);
+    });
+  });
+
   describe('Lifecycle Hooks', () => {
     it(`executes load lifecycle hooks in order if no error`, async () => {
       loader.loaderSources = observableRequiredOrderedSource;

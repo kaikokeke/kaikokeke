@@ -113,8 +113,9 @@ export abstract class EnvironmentLoader {
         tap({
           next: (properties: Properties) => {
             executeIfExists(this, 'onBeforeSourceAdd', properties, source);
-            this._saveSourceValueToStore(properties, source);
-            executeIfExists(this, 'onAfterSourceAdd', properties, source);
+            const props: Properties = this.preAddProperties(properties, source);
+            this._saveSourceValueToStore(props, source);
+            executeIfExists(this, 'onAfterSourceAdd', props, source);
           },
         }),
         catchError(<E>(error: E) => this._checkSourceLoadError(error, source)),
@@ -126,6 +127,16 @@ export abstract class EnvironmentLoader {
         takeUntil(this.sourcesSubject$.get(source.id)),
       );
     });
+  }
+
+  /**
+   * Middleware function that gives the possibility to modify the source properties before inserting it into the environment.
+   * @param properties The source properties.
+   * @param source The environment properties source.
+   * @returns The modified source properties.
+   */
+  preAddProperties(properties: Properties, source: LoaderPropertiesSource): Properties {
+    return properties;
   }
 
   protected _saveSourceValueToStore(properties: Properties, source: LoaderPropertiesSource): void {
