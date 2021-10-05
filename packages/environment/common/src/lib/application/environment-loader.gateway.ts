@@ -16,7 +16,7 @@ export abstract class EnvironmentLoader {
   protected readonly completeAllSubject$: ReplaySubject<void> = new ReplaySubject();
   protected readonly requiredToLoadSubject$: BehaviorSubject<Set<string>> = new BehaviorSubject(new Set());
   protected readonly sourcesSubject$: Map<string, ReplaySubject<void>> = new Map();
-  protected readonly loaderSources: LoaderPropertiesSource[] = propertiesSourceFactory(this.sources);
+  protected readonly loaderSources: ReadonlyArray<LoaderPropertiesSource> = propertiesSourceFactory(this.sources);
 
   /**
    * Loads the environment properties from the provided asynchronous sources.
@@ -33,6 +33,10 @@ export abstract class EnvironmentLoader {
    * @returns A promise to load once the `requiredToLoad` sources are loaded.
    */
   async load(): Promise<void> {
+    this.loaderSources.forEach((source: LoaderPropertiesSource) => {
+      this.sourcesSubject$.set(source.id, new ReplaySubject());
+    });
+
     return this._load$()
       .toPromise()
       .then(() => {
@@ -122,8 +126,12 @@ export abstract class EnvironmentLoader {
   }
 
   protected _getSafeSourceSubject$(id: string): ReplaySubject<void> {
-    const subject: ReplaySubject<void> = new ReplaySubject();
-    this.sourcesSubject$.set(id, subject);
+    let subject: ReplaySubject<void> | undefined = this.sourcesSubject$.get(id);
+
+    if (subject === undefined) {
+      subject = new ReplaySubject();
+      this.sourcesSubject$.set(id, subject);
+    }
 
     return subject;
   }
