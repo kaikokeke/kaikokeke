@@ -125,17 +125,6 @@ export abstract class EnvironmentLoader {
     });
   }
 
-  protected _getSafeSourceSubject$(id: string): ReplaySubject<void> {
-    let subject: ReplaySubject<void> | undefined = this.sourcesSubject$.get(id);
-
-    if (subject === undefined) {
-      subject = new ReplaySubject();
-      this.sourcesSubject$.set(id, subject);
-    }
-
-    return subject;
-  }
-
   /**
    * Middleware function that gives the possibility to modify the source properties before inserting it into the environment.
    * @param properties The source properties.
@@ -186,6 +175,17 @@ export abstract class EnvironmentLoader {
 
       this.requiredToLoadSubject$.next(requiredToLoadLoaded);
     }
+  }
+
+  protected _getSafeSourceSubject$(id: string): ReplaySubject<void> {
+    let subject: ReplaySubject<void> | undefined = this.sourcesSubject$.get(id);
+
+    if (subject === undefined) {
+      subject = new ReplaySubject();
+      this.sourcesSubject$.set(id, subject);
+    }
+
+    return subject;
   }
 
   /**
