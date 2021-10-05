@@ -33,8 +33,6 @@ export abstract class EnvironmentLoader {
    * @returns A promise to load once the `requiredToLoad` sources are loaded.
    */
   async load(): Promise<void> {
-    this._setSourcesSubjects();
-
     return this._load$()
       .toPromise()
       .then(() => {
@@ -45,12 +43,6 @@ export abstract class EnvironmentLoader {
         executeIfExists(this, 'onAfterError', error);
         throw error;
       });
-  }
-
-  protected _setSourcesSubjects(): void {
-    this.loaderSources.forEach((source: LoaderPropertiesSource) =>
-      this.sourcesSubject$.set(source.id, new ReplaySubject()),
-    );
   }
 
   protected _load$(): Observable<void> {
@@ -124,9 +116,16 @@ export abstract class EnvironmentLoader {
           this._checkRequiredToLoad(source);
         }),
         takeUntil(this.completeAllSubject$),
-        takeUntil(this.sourcesSubject$.get(source.id)),
+        takeUntil(this._getSafeSourceSubject$(source.id)),
       );
     });
+  }
+
+  protected _getSafeSourceSubject$(id: string): ReplaySubject<void> {
+    const subject: ReplaySubject<void> = new ReplaySubject();
+    this.sourcesSubject$.set(id, subject);
+
+    return subject;
   }
 
   /**

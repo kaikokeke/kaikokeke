@@ -330,7 +330,7 @@ describe('EnvironmentLoader', () => {
       expect(service.add).toHaveBeenCalledTimes(2);
     });
 
-    it(`stops all ongoing source loads`, () => {
+    it(`stops the source load`, () => {
       jest
         .spyOn(loader, 'onAfterSourceComplete')
         .mockImplementation(() => loader.completeSource(multipleRequiredOrderedSource[0].id));
@@ -345,6 +345,22 @@ describe('EnvironmentLoader', () => {
 
     it(`does nothing if the id doesn't exist`, () => {
       jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => loader.completeSource(''));
+      jest.useFakeTimers();
+      loader.loaderSources = completeSources;
+      loader.load();
+      jest.runAllTimers();
+      expect(service.add).toHaveBeenNthCalledWith(1, { observable: 0 }, undefined);
+      expect(service.add).toHaveBeenNthCalledWith(2, { multiple: 0 }, undefined);
+      expect(service.add).toHaveBeenNthCalledWith(3, { multiple: 1 }, undefined);
+      expect(service.add).toHaveBeenNthCalledWith(4, { multiple: 2 }, undefined);
+      expect(service.add).toHaveBeenNthCalledWith(5, { observable: 0 }, undefined);
+      expect(service.add).toHaveBeenCalledTimes(5);
+    });
+
+    it(`doesn't throw error if source subject is not setted`, () => {
+      const id = multipleRequiredOrderedSource[0].id;
+      jest.spyOn(loader['sourcesSubject$'], 'get').mockImplementation(() => undefined);
+      jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => loader.completeSource(id));
       jest.useFakeTimers();
       loader.loaderSources = completeSources;
       loader.load();
@@ -409,6 +425,22 @@ describe('EnvironmentLoader', () => {
       expect(loader['requiredToLoadSubject$'].isStopped).toBeFalse();
       loader.onDestroy();
       expect(loader['requiredToLoadSubject$'].isStopped).toBeTrue();
+    });
+
+    it(`completes the sources subjects`, () => {
+      jest.useFakeTimers();
+      const id1 = observableRequiredOrderedSource[0].id;
+      const id2 = observableRequiredOrderedSource2[0].id;
+      loader.loaderSources = onDestroySources;
+      loader.load();
+      expect(loader['sourcesSubject$'].get(id1).isStopped).toBeFalse();
+      expect(loader['sourcesSubject$'].get(id2).isStopped).toBeFalse();
+      jest.advanceTimersByTime(5);
+      expect(loader['sourcesSubject$'].get(id1).isStopped).toBeFalse();
+      expect(loader['sourcesSubject$'].get(id2).isStopped).toBeFalse();
+      loader.onDestroy();
+      expect(loader['sourcesSubject$'].get(id1).isStopped).toBeTrue();
+      expect(loader['sourcesSubject$'].get(id2).isStopped).toBeTrue();
     });
   });
 
