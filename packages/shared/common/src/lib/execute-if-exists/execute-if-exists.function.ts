@@ -1,13 +1,12 @@
-// eslint-disable @typescript-eslint/no-explicit-any
-
 /**
- * Execute a method if exists.
- * @param obj The object of the method to execute.
+ * Executes an object method if it exists.
+ * @param obj The source object.
  * @param method The method to execute.
- * @param params The params for the method to execute.
+ * @param args The arguments for the method to execute.
+ * @returns The method's return value if exists, `undefined` otherwise.
  */
-export function executeIfExists(obj: any, method: string, ...params: unknown[]): void {
+export function executeIfExists<T, R>(obj: T, method: string, ...args: unknown[]): R {
   if (typeof obj[method] === 'function') {
-    obj[method](...params);
+    return obj[method](...args);
   }
 }
