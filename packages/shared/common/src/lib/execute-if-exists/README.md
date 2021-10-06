@@ -3,7 +3,7 @@
 Executes an object method if it exists.
 
 ```ts
-export function executeIfExists<T, R>(obj: T, method: string, ...args: unknown[]): R;
+export function executeIfExists<R>(obj: any, method: string, ...args: unknown[]): R | undefined;
 ```
 
 Returns the method's return value if exist, `undefined` otherwise.
