@@ -16,7 +16,7 @@ export abstract class EnvironmentLoader {
   protected readonly completeAllSubject$: ReplaySubject<void> = new ReplaySubject();
   protected readonly requiredToLoadSubject$: BehaviorSubject<Set<string>> = new BehaviorSubject(new Set());
   protected readonly sourcesSubject$: Map<string, ReplaySubject<void>> = new Map();
-  protected readonly loaderSources: ReadonlyArray<LoaderPropertiesSource> = propertiesSourceFactory(this.sources);
+  protected readonly loaderSources: ReadonlyArray<LoaderPropertiesSource>;
 
   /**
    * Loads the environment properties from the provided asynchronous sources.
@@ -26,17 +26,18 @@ export abstract class EnvironmentLoader {
   constructor(
     protected readonly service: EnvironmentService,
     protected readonly sources?: PropertiesSource | PropertiesSource[],
-  ) {}
+  ) {
+    this.loaderSources = propertiesSourceFactory(this.sources);
+    this.loaderSources.forEach((source: LoaderPropertiesSource) => {
+      this.sourcesSubject$.set(source.id, new ReplaySubject());
+    });
+  }
 
   /**
    * Loads the environment properties from the provided asynchronous sources.
    * @returns A promise to load once the `requiredToLoad` sources are loaded.
    */
   async load(): Promise<void> {
-    this.loaderSources.forEach((source: LoaderPropertiesSource) => {
-      this.sourcesSubject$.set(source.id, new ReplaySubject());
-    });
-
     return this._load$()
       .toPromise()
       .then(() => {
@@ -109,9 +110,9 @@ export abstract class EnvironmentLoader {
         tap({
           next: (properties: Properties) => {
             executeIfExists(this, 'onBeforeSourceAdd', properties, source);
-            const props: Properties = this.preAddProperties(properties, source);
-            this._saveSourceValueToStore(props, source);
-            executeIfExists(this, 'onAfterSourceAdd', props, source);
+            const modifiedProperties: Properties = this.preAddProperties(properties, source);
+            this._saveSourceValueToStore(modifiedProperties, source);
+            executeIfExists(this, 'onAfterSourceAdd', modifiedProperties, source);
           },
         }),
         catchError(<E>(error: E) => this._checkSourceLoadError(error, source)),

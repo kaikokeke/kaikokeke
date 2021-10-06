@@ -1,8 +1,9 @@
 import { delayThrow } from '@kaikokeke/common';
+import { omit } from 'lodash-es';
 import { BehaviorSubject, interval, Observable, of, ReplaySubject, throwError } from 'rxjs';
 import { delay, map, take } from 'rxjs/operators';
 
-import { Properties } from '../types';
+import { LoaderPropertiesSource, Properties } from '../types';
 import { EnvironmentLoader } from './environment-loader.gateway';
 import { EnvironmentService } from './environment-service.gateway';
 import { EnvironmentStore } from './environment-store.gateway';
@@ -34,10 +35,10 @@ class TestLoader extends EnvironmentLoader {
   loadSubject$: ReplaySubject<void> = new ReplaySubject();
   completeAllSubject$: ReplaySubject<void> = new ReplaySubject();
   requiredToLoadSubject$: BehaviorSubject<Set<string>> = new BehaviorSubject(new Set());
-  loaderSources = propertiesSourceFactory(this.sources);
+  loaderSources: ReadonlyArray<LoaderPropertiesSource>;
 
-  constructor(protected service: EnvironmentService) {
-    super(service, []);
+  constructor(protected service: EnvironmentService, protected sources?: any) {
+    super(service, sources);
   }
 
   onBeforeLoad() {}
@@ -52,6 +53,7 @@ class TestLoader extends EnvironmentLoader {
 }
 
 class ObservableSource extends PropertiesSource {
+  name = 'ObservableSource';
   load(): Observable<Properties> {
     return of({ observable: 0 }).pipe(delay(5));
   }
@@ -81,6 +83,7 @@ observableMergePathSource[0].mergeProperties = true;
 observableMergePathSource[0].path = 'a.a';
 
 class PromiseSource extends PropertiesSource {
+  name = 'PromiseSource';
   async load(): Promise<Properties> {
     return Promise.resolve({ promise: 0 });
   }
@@ -206,9 +209,29 @@ describe('EnvironmentLoader', () => {
   });
 
   afterEach(() => {
+    loader = null;
     jest.restoreAllMocks();
     jest.clearAllTimers();
     jest.useRealTimers();
+  });
+
+  it(`.loaderSources is set on constructor`, async () => {
+    loader = new TestLoader(service, [new ObservableSource(), new PromiseSource()]);
+    const source0 = observableSource[0];
+    const source1 = promiseSource[0];
+    expect(loader.loaderSources).toBeArrayOfSize(2);
+    expect(loader.loaderSources[0]).toEqual(expect.objectContaining(omit(source0, 'id')));
+    expect(loader.loaderSources[1]).toEqual(expect.objectContaining(omit(source1, 'id')));
+    await expect(loader.load()).toResolve();
+  });
+
+  it(`.sourcesSubject$ is set on constructor`, async () => {
+    loader = new TestLoader(service, [new ObservableSource(), new PromiseSource()]);
+    const source0 = loader.loaderSources[0];
+    const source1 = loader.loaderSources[1];
+    expect(loader['sourcesSubject$'].size).toEqual(2);
+    expect([...loader['sourcesSubject$'].keys()]).toEqual([source0.id, source1.id]);
+    await expect(loader.load()).toResolve();
   });
 
   describe('.load()', () => {
@@ -359,18 +382,15 @@ describe('EnvironmentLoader', () => {
 
     it(`doesn't throw error if source subject is not setted`, () => {
       const id = multipleRequiredOrderedSource[0].id;
-      jest.spyOn(loader['sourcesSubject$'], 'get').mockImplementation(() => undefined);
       jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => loader.completeSource(id));
       jest.useFakeTimers();
       loader.loaderSources = completeSources;
+      (loader as any)['sourcesSubject$'] = new Map();
       loader.load();
       jest.runAllTimers();
       expect(service.add).toHaveBeenNthCalledWith(1, { observable: 0 }, undefined);
-      expect(service.add).toHaveBeenNthCalledWith(2, { multiple: 0 }, undefined);
-      expect(service.add).toHaveBeenNthCalledWith(3, { multiple: 1 }, undefined);
-      expect(service.add).toHaveBeenNthCalledWith(4, { multiple: 2 }, undefined);
-      expect(service.add).toHaveBeenNthCalledWith(5, { observable: 0 }, undefined);
-      expect(service.add).toHaveBeenCalledTimes(5);
+      expect(service.add).toHaveBeenNthCalledWith(2, { observable: 0 }, undefined);
+      expect(service.add).toHaveBeenCalledTimes(2);
     });
   });
 
