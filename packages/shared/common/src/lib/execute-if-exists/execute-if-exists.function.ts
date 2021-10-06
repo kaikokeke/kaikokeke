@@ -5,8 +5,10 @@
  * @param args The arguments for the method to execute.
  * @returns The method's return value if exists, `undefined` otherwise.
  */
-export function executeIfExists<T, R>(obj: T, method: string, ...args: unknown[]): R {
+export function executeIfExists<R>(obj: any, method: string, ...args: unknown[]): R | undefined {
   if (typeof obj[method] === 'function') {
     return obj[method](...args);
   }
+
+  return undefined;
 }
