@@ -1,0 +1,23 @@
+{
+  "projectType": "library",
+  "root": "packages/apps/angular-module",
+  "sourceRoot": "packages/apps/angular-module/src",
+  "prefix": "kaikokeke",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/packages/apps/angular-module"],
+      "options": {
+        "jestConfig": "packages/apps/angular-module/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["packages/apps/angular-module/src/**/*.ts", "packages/apps/angular-module/src/**/*.html"]
+      }
+    }
+  },
+  "tags": []
+}

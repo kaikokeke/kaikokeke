@@ -16,6 +16,8 @@
     "baseUrl": ".",
     "paths": {
       "@kaikokeke/angular": ["packages/shared/angular/src/index.ts"],
+      "@kaikokeke/apps/angular-module": ["packages/apps/angular-module/src/index.ts"],
+      "@kaikokeke/apps/angular-shared": ["packages/apps/angular-shared/src/index.ts"],
       "@kaikokeke/common": ["packages/shared/common/src/index.ts"],
       "@kaikokeke/devtools": ["packages/shared/devtools/src/index.ts"],
       "@kaikokeke/environment": ["packages/environment/common/src/index.ts"],

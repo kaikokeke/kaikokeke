@@ -1,0 +1,23 @@
+{
+  "projectType": "library",
+  "root": "packages/apps/angular-shared",
+  "sourceRoot": "packages/apps/angular-shared/src",
+  "prefix": "kaikokeke",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/packages/apps/angular-shared"],
+      "options": {
+        "jestConfig": "packages/apps/angular-shared/jest.config.js",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["packages/apps/angular-shared/src/**/*.ts", "packages/apps/angular-shared/src/**/*.html"]
+      }
+    }
+  },
+  "tags": []
+}

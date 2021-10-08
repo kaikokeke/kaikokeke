@@ -6,6 +6,18 @@ import { ENVIRONMENT_SOURCES } from '@kaikokeke/environment-angular';
 import { combineLatest, Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
+import { environment } from '../../environments/environment';
+
+@Injectable({ providedIn: 'root' })
+export class AngularEnvironmentSource extends PropertiesSource {
+  readonly name = 'AngularEnvironmentSource';
+  readonly requiredToLoad = true;
+
+  load(): Properties[] {
+    return [environment];
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class LocalJsonSource extends PropertiesSource {
   readonly name = 'LocalJsonSource';
@@ -75,6 +87,7 @@ export class UserSource extends PropertiesSource {
 }
 
 export const PROPERTIES_SOURCE_PROVIDERS: Provider[] = [
+  { provide: ENVIRONMENT_SOURCES, useClass: AngularEnvironmentSource, multi: true },
   { provide: ENVIRONMENT_SOURCES, useClass: LocalJsonSource, multi: true },
   { provide: ENVIRONMENT_SOURCES, useClass: PostSource, multi: true },
   { provide: ENVIRONMENT_SOURCES, useClass: UserSource, multi: true },

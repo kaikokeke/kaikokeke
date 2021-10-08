@@ -1,9 +1,15 @@
-<header class="flex">
-  <h1>Welcome to {{ title }}!</h1>
+<header>
+  <h1>Welcome to Kaikokeke</h1>
 </header>
-<main>
-  <dl>
-    <dt>Store</dt>
-    <dd id="#store">{{ env.getAll$() | async | json }}</dd>
-  </dl>
-</main>
+<nav>
+  <ul>
+    <li><a routerLink="/">Home</a></li>
+    <li><a routerLink="module">Module</a></li>
+  </ul>
+</nav>
+<p *ngIf="loading$ | async; else noLoading">loading...</p>
+<ng-template #noLoading>
+  <main>
+    <router-outlet></router-outlet>
+  </main>
+</ng-template>

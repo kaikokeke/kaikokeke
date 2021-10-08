@@ -13,12 +13,12 @@
     },
     "@nrwl/angular:library": {
       "linter": "eslint",
+      "unitTestRunner": "jest",
       "buildable": true,
       "publishable": true,
       "simpleModuleName": true,
       "standaloneConfig": true,
-      "strict": true,
-      "unitTestRunner": "jest"
+      "strict": true
     },
     "@nrwl/node:library": {
       "buildable": true,
@@ -35,8 +35,10 @@
     }
   },
   "projects": {
-    "angular": "apps/angular",
-    "environment-angular": "packages/environment\\angular",
+    "apps-angular": "apps/angular",
+    "apps-angular-module": "packages/apps/angular-module",
+    "apps-angular-shared": "packages/apps/angular-shared",
+    "environment-angular": "packages/environment/angular",
     "environment-common": "packages/environment/common",
     "shared-angular": "packages/shared/angular",
     "shared-common": "packages/shared/common",
