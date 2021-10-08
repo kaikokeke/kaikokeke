@@ -4,7 +4,7 @@ import { EnvironmentConfig, EnvironmentLoader, EnvironmentQuery, EnvironmentServ
 import { AngularEnvironmentLoader, AngularEnvironmentQuery, AngularEnvironmentService } from './application';
 import { ENVIRONMENT_CONFIG } from './tokens';
 
-export function environmentModuleForRoot(loader: EnvironmentLoader): () => Promise<void> {
+export function environmentModuleLoad(loader: EnvironmentLoader): () => Promise<void> {
   return () => loader.load();
 }
 
@@ -16,7 +16,7 @@ export class EnvironmentModule {
       providers: [
         {
           provide: APP_INITIALIZER,
-          useFactory: environmentModuleForRoot,
+          useFactory: environmentModuleLoad,
           deps: [EnvironmentLoader],
           multi: true,
         },
@@ -25,6 +25,13 @@ export class EnvironmentModule {
         { provide: EnvironmentQuery, useClass: AngularEnvironmentQuery },
         config ? { provide: ENVIRONMENT_CONFIG, useValue: config } : [],
       ],
+    };
+  }
+
+  static forChild(): ModuleWithProviders<EnvironmentModule> {
+    return {
+      ngModule: EnvironmentModule,
+      providers: [{ provide: EnvironmentLoader, useClass: AngularEnvironmentLoader }],
     };
   }
 }
