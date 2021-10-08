@@ -3,9 +3,9 @@ import { isEqual } from 'lodash-es';
 import { BehaviorSubject, concat, defer, merge, Observable, of, ReplaySubject } from 'rxjs';
 import { catchError, filter, finalize, take, takeUntil, tap } from 'rxjs/operators';
 
+import { propertiesSourceFactory } from '../helpers';
 import { LoaderPropertiesSource, Properties } from '../types';
 import { EnvironmentService } from './environment-service.gateway';
-import { propertiesSourceFactory } from './properties-source-factory.function';
 import { PropertiesSource } from './properties-source.gateway';
 
 /**

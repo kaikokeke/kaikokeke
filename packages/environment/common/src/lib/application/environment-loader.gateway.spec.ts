@@ -3,11 +3,11 @@ import { omit } from 'lodash-es';
 import { BehaviorSubject, interval, Observable, of, ReplaySubject, throwError } from 'rxjs';
 import { delay, map, take } from 'rxjs/operators';
 
+import { propertiesSourceFactory } from '../helpers';
 import { LoaderPropertiesSource, Properties } from '../types';
 import { EnvironmentLoader } from './environment-loader.gateway';
 import { EnvironmentService } from './environment-service.gateway';
 import { EnvironmentStore } from './environment-store.gateway';
-import { propertiesSourceFactory } from './properties-source-factory.function';
 import { PropertiesSource } from './properties-source.gateway';
 
 class TestStore extends EnvironmentStore {

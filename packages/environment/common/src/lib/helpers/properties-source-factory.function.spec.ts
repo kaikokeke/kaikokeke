@@ -1,9 +1,9 @@
 import { ObservableInput } from 'rxjs';
 import { validate } from 'uuid';
 
+import { PropertiesSource } from '../application';
 import { LoaderPropertiesSource, Properties } from '../types';
 import { propertiesSourceFactory } from './properties-source-factory.function';
-import { PropertiesSource } from './properties-source.gateway';
 
 class ExtendsPropertiesSource extends PropertiesSource {
   name = 'ExtendsPropertiesSource';

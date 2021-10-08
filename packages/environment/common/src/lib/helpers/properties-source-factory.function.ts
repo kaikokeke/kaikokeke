@@ -1,8 +1,8 @@
 import { assignInWith } from 'lodash-es';
 import { v4 } from 'uuid';
 
+import { PropertiesSource } from '../application';
 import { LoaderPropertiesSource } from '../types';
-import { PropertiesSource } from './properties-source.gateway';
 
 /**
  * Returns the properties sources with all the default values to be used by the EnvironmentLoader.
@@ -14,9 +14,15 @@ export function propertiesSourceFactory(sources?: PropertiesSource | PropertiesS
     return [];
   }
 
-  return (Array.isArray(sources) ? sources : [sources])
+  const sourcesArray: PropertiesSource[] = coerceArray(sources);
+
+  return sourcesArray
     .filter((source: PropertiesSource) => source != null)
     .map((source: PropertiesSource) => loaderPropertiesSourceFactory(source));
+}
+
+function coerceArray(sources: PropertiesSource | PropertiesSource[]): PropertiesSource[] {
+  return Array.isArray(sources) ? sources : [sources];
 }
 
 function loaderPropertiesSourceFactory(source: PropertiesSource): LoaderPropertiesSource {
@@ -28,7 +34,7 @@ function loaderPropertiesSourceFactory(source: PropertiesSource): LoaderProperti
     ignoreError: false,
   };
 
-  return assignInWith(source, defaultValues, (sourceValue: unknown, defaultValue: unknown) =>
+  return assignInWith(source, defaultValues, <T>(sourceValue: T | undefined, defaultValue: T) =>
     sourceValue === undefined ? defaultValue : sourceValue,
   ) as LoaderPropertiesSource;
 }
