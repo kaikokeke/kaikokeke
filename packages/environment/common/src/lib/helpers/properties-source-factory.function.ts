@@ -14,15 +14,11 @@ export function propertiesSourceFactory(sources?: PropertiesSource | PropertiesS
     return [];
   }
 
-  const sourcesArray: PropertiesSource[] = coerceArray(sources);
+  const sourcesArray: PropertiesSource[] = Array.isArray(sources) ? sources : [sources];
 
   return sourcesArray
     .filter((source: PropertiesSource) => source != null)
     .map((source: PropertiesSource) => loaderPropertiesSourceFactory(source));
-}
-
-function coerceArray(sources: PropertiesSource | PropertiesSource[]): PropertiesSource[] {
-  return Array.isArray(sources) ? sources : [sources];
 }
 
 function loaderPropertiesSourceFactory(source: PropertiesSource): LoaderPropertiesSource {
