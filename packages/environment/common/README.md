@@ -16,15 +16,30 @@ The common way to manage properties in JavaScript frameworks is to define enviro
 - Manage the loading lifecycle with hooks
 - Implement a middleware to intercept the added properties
 
-To achieve this behavior, a series of gateways must first be implemented:
+## Getting Started
 
-- [EnvironmentStore](./src/lib/application/environment-store.gateway.md): The store that manages the environment properties. It is a simple interface that must be implemented to adapt to the store system used in the application.
+To make this library work, there are some gateways to implement. Each gateway documentation will further describe the API and examples for the most common use cases.
+
+- [EnvironmentStore](./src/lib/application/environment-store.gateway.md): The store that manages the environment properties. It's a simple interface that must be implemented to adapt to the store system used in the application.
+- [EnvironmentService](./src/lib/application/environment-service.gateway.md): A service to manage the environment properties. It can be used simply by extending from the abstract class.
+- [EnvironmentQuery](./src/lib/application/environment-query.gateway.md): Gets the properties from the environment. It can be used simply by extending from the abstract class.
+- [PropertiesSource](./src/lib/application/properties-source.gateway.md): Definition of the source from which to get environment properties asynchronously.
+- [EnvironmentLoader](./src/lib/application/environment-loader.gateway.md): Loads the environment properties from the provided asynchronous sources. It can be used simply by extending from the abstract class.
+
+A simple implementation and use in TypeScript could be something like the following code.
 
 ```ts
-import { EnvironmentStore, Properties } from '@kaikokeke/environment';
+import {
+  EnvironmentLoader,
+  EnvironmentQuery,
+  EnvironmentService,
+  EnvironmentStore,
+  PropertiesSource,
+  Properties,
+} from '@kaikokeke/environment';
 import { BehaviorSubject, Observable } from 'rxjs';
 
-export class SimpleEnvironmentStore implements EnvironmentStore {
+class SimpleEnvironmentStore implements EnvironmentStore {
   private readonly _properties: BehaviorSubject<Properties> = new BehaviorSubject({});
 
   getAll(): Properties {
@@ -43,48 +58,34 @@ export class SimpleEnvironmentStore implements EnvironmentStore {
     this._properties.next({});
   }
 }
-```
 
-- [EnvironmentService](./src/lib/application/environment-service.gateway.md): A service to manage the environment properties. It can be used simply by extending from the abstract class.
-
-```ts
-import { EnvironmentService, EnvironmentStore } from '@kaikokeke/environment';
-
-export class SimpleEnvironmentService extends EnvironmentService {
+class SimpleEnvironmentService extends EnvironmentService {
   constructor(protected readonly store: EnvironmentStore) {
     super(store);
   }
 }
-```
-
-- [EnvironmentQuery](./src/lib/application/environment-query.gateway.md): Gets the properties from the environment. It can be used simply by extending from the abstract class.
-
-```ts
-import { EnvironmentQuery, EnvironmentStore } from '@kaikokeke/environment';
 
 class SimpleEnvironmentQuery extends EnvironmentQuery {
   constructor(protected readonly store: EnvironmentStore) {
     super(store);
   }
 }
-```
 
-- [PropertiesSource](./src/lib/application/properties-source.gateway.md): Definition of the source from which to get environment properties asynchronously.
+class EnvironmentSource implements PropertiesSource {
+  requiredToLoad = true;
 
-```ts
-import { PropertiesSource, Properties } from '@kaikokeke/environment';
-
-export class SimpleEnvironmentSource implements PropertiesSource {
   load(): Properties[] {
     return [{ name: 'John Doe' }];
   }
 }
-```
 
-- [EnvironmentLoader](./src/lib/application/environment-loader.gateway.md): Loads the environment properties from the provided asynchronous sources. It can be used simply by extending from the abstract class.
+class FetchEnvironmentSource implements PropertiesSource {
+  requiredToLoad = true;
 
-```ts
-import { EnvironmentLoader, EnvironmentService, PropertiesSource } from '@kaikokeke/environment';
+  async load(): Promise<Properties> {
+    return fetch('assets/environment.json'); // { userName: 'JohnDoe01' }
+  }
+}
 
 class SimpleEnvironmentLoader extends EnvironmentLoader {
   constructor(
@@ -94,30 +95,23 @@ class SimpleEnvironmentLoader extends EnvironmentLoader {
     super(service, sources);
   }
 }
-```
 
-The simplest implementation and use in TypeScript would be:
+const environmentStore: EnvironmentStore = new SimpleEnvironmentStore();
+const environmentSource: PropertiesSource = new EnvironmentSource();
+const fetchEnvironmentSource: PropertiesSource = new FetchEnvironmentSource();
 
-```ts
-import { SimpleEnvironmentStore } from './simple-environment.store';
-import { SimpleEnvironmentService } from './simple-environment.service';
-import { SimpleEnvironmentQuery } from './simple-environment.query';
-import { SimpleEnvironmentSource } from './simple-environment.sources';
-import { SimpleEnvironmentLoader } from './simple-environment.loader';
-
-export const environmentStore: EnvironmentStore = new SimpleEnvironmentStore();
 export const environmentService: EnvironmentService = new SimpleEnvironmentService(environmentStore);
 export const environmentQuery: EnvironmentQuery = new SimpleEnvironmentQuery(environmentStore);
-export const environmentSource: PropertiesSource = new SimpleEnvironmentSource();
-export const environmentLoader: SimpleEnvironmentLoader = new SimpleEnvironmentLoader(
-  environmentService,
+export const environmentLoader: SimpleEnvironmentLoader = new SimpleEnvironmentLoader(environmentService, [
   environmentSource,
-);
+  fetchEnvironmentSource,
+]);
 
-environmentLoader.load();
+environmentLoader.load().then(() => {
+  console.log(environmentQuery.getAll());
+  // { name: 'John Doe', userName: 'JohnDoe01' }
+});
 ```
-
-Each gateway documentation will further describe the API and implemented examples for the most common use cases.
 
 ## Library structure
 
