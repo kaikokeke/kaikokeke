@@ -18,7 +18,7 @@ The Loader Lifecycle Hooks.
 The Loader Properties Sources Lifecycle Hooks.
 
 - [OnBeforeSourceLoad](./on-before-source-load.interface.ts): A lifecycle hook that is called before a source starts to load the properties.
-- [OnBeforeSourceAdd](./on-before-source-add.interface.ts): A lifecycle hook that is called before a source properties are added to the environment. This hook is executed before the `preAddProperties()` middleware method.
+- [OnBeforeSourceAdd](./on-before-source-add.interface.ts): A lifecycle hook that is called before a source properties are added to the environment.
 - [OnAfterSourceAdd](./on-after-source-add.interface.ts): A lifecycle hook that is called after a source properties are added to the environment.
 - [OnAfterSourceComplete](./on-after-source-complete.interface.ts): A lifecycle hook that is called after a source complete.
 - [OnAfterSourceError](./on-after-source-error.interface.ts): A lifecycle hook that is called after a source is rejected.
