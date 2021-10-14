@@ -1,6 +1,6 @@
 # Environment Types
 
-The types used in the environment module.
+The types used in the environment library.
 
 - [Property](./property.type.ts): An environment property value.
 - [Properties](./properties.type.ts): A set of environment properties required to run the application.
