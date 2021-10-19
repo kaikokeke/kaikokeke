@@ -146,7 +146,7 @@ class AkitaEvironmentStore extends EnvironmentStore {
 
 ```ts
 import { EnvironmentStore, Properties } from '@kaikokeke/environment';
-import { Action, createStore, Reducer, Store, Unsubscribe } from 'redux';
+import { Action, createStore, Reducer, Store } from 'redux';
 import { Observable, Subscriber } from 'rxjs';
 
 interface EnvironmentAction extends Action<string> {
