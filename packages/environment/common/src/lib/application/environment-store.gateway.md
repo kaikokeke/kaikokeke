@@ -190,3 +190,43 @@ class ReduxEvironmentStore extends EnvironmentStore {
   }
 }
 ```
+
+### Using LocalStorage
+
+The RxJS implementation can be extended by storing environment properties in localStorage (or any other browser storage), so that previously loaded properties are available right when the loader is instantiated.
+
+```ts
+import { EnvironmentStore, Properties } from '@kaikokeke/environment';
+import { BehaviorSubject, Observable } from 'rxjs';
+
+class LocalStorageEvironmentStore extends EnvironmentStore {
+  private readonly _key = 'env';
+  private readonly _resetValue: Properties = {};
+  private readonly _properties: BehaviorSubject<Properties> = new BehaviorSubject(this._resetValue);
+
+  constructor() {
+    super();
+    const localEnvironment: Properties = this.getAll();
+    this._properties.next(localEnvironment);
+  }
+
+  getAll$(): Observable<Properties> {
+    return this._properties.asObservable();
+  }
+
+  getAll(): Properties {
+    const properties: string = localStorage.getItem(this._key) ?? JSON.stringify(this._resetValue);
+
+    return JSON.parse(properties);
+  }
+
+  reset(): void {
+    this.update(this._resetValue);
+  }
+
+  update(properties: Properties): void {
+    localStorage.setItem(this._key, JSON.stringify(properties));
+    this._properties.next(properties);
+  }
+}
+```
