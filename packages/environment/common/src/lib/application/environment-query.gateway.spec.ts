@@ -1,5 +1,6 @@
 import { Observable, of, Subject } from 'rxjs';
 import { marbles } from 'rxjs-marbles/jest';
+import { delay } from 'rxjs/operators';
 
 import { asMutable, mapAsMutable } from '../helpers';
 import { Properties } from '../types';
@@ -70,6 +71,16 @@ describe('EnvironmentQuery', () => {
     expect(console.log).toHaveBeenNthCalledWith(2, value);
   });
 
+  it(`getAllAsync() returns the first non empty set of environment properties as Promise`, async () => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(null, undefined, {}, envA1).pipe(delay(5)));
+    await expect(query.getAllAsync()).resolves.toEqual(envA1);
+  });
+
+  it(`getAll(path) returns all the environment properties`, () => {
+    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+    expect(query.getAll()).toEqual(envA1);
+  });
+
   // get
 
   it(
@@ -93,6 +104,16 @@ describe('EnvironmentQuery', () => {
     expect(console.log).toHaveBeenNthCalledWith(1, value.a);
     prop.subscribe({ next: (v) => console.log(v) });
     expect(console.log).toHaveBeenNthCalledWith(2, value.a);
+  });
+
+  it(`getAsync(path) returns the non nil environment property at path`, async () => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(null, {}, { a: 0 }, envA1).pipe(delay(5)));
+    await expect(query.getAsync('a.a')).resolves.toEqual(0);
+  });
+
+  it(`get(path) returns the environment property at path.`, () => {
+    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+    expect(query.get('a.a')).toEqual(0);
   });
 
   it(`get(path) returns undefined if the path cannot be resolved`, () => {
@@ -125,6 +146,11 @@ describe('EnvironmentQuery', () => {
     expect(console.log).toHaveBeenNthCalledWith(2, true);
   });
 
+  it(`containsAsync(path) returns true as Promise when the environment property path exists`, async () => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(null, {}, { a: 0 }, envA1).pipe(delay(5)));
+    await expect(query.containsAsync('a.a')).resolves.toBeTrue();
+  });
+
   it(`contains(path) returns true if the environment property path exists`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue(envB1);
     expect(query.contains('a.c')).toBeTrue();
@@ -139,16 +165,6 @@ describe('EnvironmentQuery', () => {
   // containsAll
 
   it(
-    `containsAll$(path) returns if the distinct environment property path is available for resolution as Observable`,
-    marbles((m) => {
-      const source = m.cold('-a-b-c-d-a-|', { a: envA1, b: envA2, c: envB1, d: envB2 });
-      const expected = m.cold('-t---f---t-|', { t: true, f: false });
-      jest.spyOn(store, 'getAll$').mockReturnValue(source);
-      m.expect(query.containsAll$('a.a')).toBeObservable(expected);
-    }),
-  );
-
-  it(
     `containsAll$(...paths) returns if all the distinct environment property paths are available for resolution as Observable`,
     marbles((m) => {
       const source = m.cold('-a-b-c-d-a-|', { a: envA1, b: envA2, c: envB1, d: envB2 });
@@ -158,7 +174,7 @@ describe('EnvironmentQuery', () => {
     }),
   );
 
-  it(`containsAll$(path) returns always the last value`, () => {
+  it(`containsAll$(...paths) returns always the last value`, () => {
     const sub = new Subject<Properties>();
     const value = { a: 0 };
     jest.spyOn(console, 'log').mockImplementation(() => null);
@@ -171,21 +187,15 @@ describe('EnvironmentQuery', () => {
     expect(console.log).toHaveBeenNthCalledWith(2, true);
   });
 
-  it(`containsAll(path) returns true if the environment property path exists`, () => {
-    jest.spyOn(store, 'getAll').mockReturnValue(envB1);
-    expect(query.containsAll('a.c')).toBeTrue();
-    expect(query.containsAll(['a', 'c'])).toBeTrue();
+  it(`containsAllAsync(...paths) returns true as Promise when all environment property paths exists`, async () => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(null, {}, { a: 0 }, envB1).pipe(delay(5)));
+    await expect(query.containsAllAsync('a.c', 'b')).resolves.toBeTrue();
   });
 
   it(`containsAll(...paths) returns true if all the environment property paths exists`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue(envB1);
     expect(query.containsAll('a.c', 'b')).toBeTrue();
     expect(query.containsAll(['a', 'c'], 'b')).toBeTrue();
-  });
-
-  it(`containsAll(path) returns false if the environment property path doesn't exist`, () => {
-    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
-    expect(query.containsAll('z')).toBeFalse();
   });
 
   it(`containsAll(...paths) returns false if an environment property path doesn't exist`, () => {
@@ -196,17 +206,7 @@ describe('EnvironmentQuery', () => {
   // containsSome
 
   it(
-    `containsSome$(path) returns if the distinct environment property path is available for resolution as Observable`,
-    marbles((m) => {
-      const source = m.cold('-a-b-c-d-a-|', { a: envA1, b: envA2, c: envB1, d: envB2 });
-      const expected = m.cold('-t---f---t-|', { t: true, f: false });
-      jest.spyOn(store, 'getAll$').mockReturnValue(source);
-      m.expect(query.containsSome$('a.a')).toBeObservable(expected);
-    }),
-  );
-
-  it(
-    `containsSome$(path, ...paths) returns if some distinct environment property paths are available for resolution as Observable`,
+    `containsSome$(...paths) returns if some distinct environment property paths are available for resolution as Observable`,
     marbles((m) => {
       const source = m.cold('-a-b-c-d-a-|', { a: envA1, b: envA2, c: envB1, d: envB2 });
       const expected = m.cold('-t---f---t-|', { t: true, f: false });
@@ -215,7 +215,7 @@ describe('EnvironmentQuery', () => {
     }),
   );
 
-  it(`containsSome$(path) returns always the last value`, () => {
+  it(`containsSome$(...paths) returns always the last value`, () => {
     const sub = new Subject<Properties>();
     const value = { a: 0 };
     jest.spyOn(console, 'log').mockImplementation(() => null);
@@ -228,22 +228,17 @@ describe('EnvironmentQuery', () => {
     expect(console.log).toHaveBeenNthCalledWith(2, true);
   });
 
-  it(`containsSome(path) returns true if the environment property path exists`, () => {
-    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
-    expect(query.containsSome('a.a')).toBeTrue();
+  it(`containsSomeAsync(...paths) returns true as Promise when some environment property paths exists`, async () => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(null, {}, { a: 0 }, envA1).pipe(delay(5)));
+    await expect(query.containsSomeAsync('a.a', 'z')).resolves.toBeTrue();
   });
 
-  it(`containsSome(path, ...paths) returns true if some environment property paths exists`, () => {
+  it(`containsSome(...paths) returns true if some environment property paths exists`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue(envA1);
     expect(query.containsSome('a.a', 'z')).toBeTrue();
   });
 
-  it(`containsSome(path) returns false if the environment property path doesn't exist`, () => {
-    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
-    expect(query.containsSome('z')).toBeFalse();
-  });
-
-  it(`containsSome(path, ...paths) returns false if all the environment property paths doesn't exist`, () => {
+  it(`containsSome(...paths) returns false if all the environment property paths doesn't exist`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue(envA1);
     expect(query.containsSome('a.z', 'z')).toBeFalse();
   });
@@ -332,6 +327,16 @@ describe('EnvironmentQuery', () => {
     expect(console.log).toHaveBeenNthCalledWith(1, value.a);
     prop.subscribe({ next: (v) => console.log(v) });
     expect(console.log).toHaveBeenNthCalledWith(2, value.a);
+  });
+
+  it(`getTypedAsync(path, targetType) returns the environment property at path converted to the targetType as Promise`, async () => {
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(null, {}, { a: 1 }, envA1).pipe(delay(5)));
+    await expect(query.getTypedAsync('a.a', String)).resolves.toEqual('0');
+  });
+
+  it(`getTyped(path, targetType) returns the environment property at path converted to the targetType`, () => {
+    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+    expect(query.getTyped('a.a', String)).toEqual('0');
   });
 
   it(`getTyped(path, targetType) returns undefined if the path cannot be resolved`, () => {
@@ -525,6 +530,22 @@ describe('EnvironmentQuery', () => {
     });
   });
 
+  it(`getTranspiledAsync(path) returns the transpiled environment property at path as Promise`, async () => {
+    const env = { a: { a: 0 }, b: '{{ a }}' };
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(null, {}, { a: 1 }, env).pipe(delay(5)));
+    jest.spyOn(store, 'getAll').mockReturnValue(env);
+    (query as any)['config'].useEnvironmentToTranspile = true;
+    await expect(query.getTranspiledAsync('b')).resolves.toEqual('{"a":0}');
+  });
+
+  it(`getTranspiled(path) returns transpiled object`, () => {
+    const env = { a: { a: 0 }, b: '{{ a }}' };
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(env));
+    jest.spyOn(store, 'getAll').mockReturnValue(env);
+    (query as any)['config'].useEnvironmentToTranspile = true;
+    expect(query.getTranspiled('b')).toEqual('{"a":0}');
+  });
+
   it(`getTranspiled$(path) returns transpiled with weird space interpolation`, (done) => {
     const env = { a: { a: 0 }, b: '{{    a.a}}' };
     jest.spyOn(store, 'getAll$').mockReturnValue(of(env));
@@ -576,14 +597,6 @@ describe('EnvironmentQuery', () => {
     jest.spyOn(store, 'getAll').mockReturnValue(envA1);
     (query as any)['config'].useEnvironmentToTranspile = false;
     expect(query.getTranspiled('b', {}, { useEnvironmentToTranspile: true })).toEqual('0');
-  });
-
-  it(`getTranspiled(path) returns transpiled object`, () => {
-    const env = { a: { a: 0 }, b: '{{ a }}' };
-    jest.spyOn(store, 'getAll$').mockReturnValue(of(env));
-    jest.spyOn(store, 'getAll').mockReturnValue(env);
-    (query as any)['config'].useEnvironmentToTranspile = true;
-    expect(query.getTranspiled('b')).toEqual('{"a":0}');
   });
 
   it(`getTranspiled(path) returns transpiled with custom interpolation`, () => {

@@ -1,7 +1,7 @@
-import { AtLeastOne, deepMerge } from '@kaikokeke/common';
+import { AtLeastOne, deepMerge, filterNil, firstNonNil } from '@kaikokeke/common';
 import { get, isEqual, isString } from 'lodash-es';
-import { combineLatest, Observable } from 'rxjs';
-import { distinctUntilChanged, map, shareReplay } from 'rxjs/operators';
+import { combineLatest, MonoTypeOperatorFunction, Observable } from 'rxjs';
+import { distinctUntilChanged, filter, map, shareReplay, take } from 'rxjs/operators';
 
 import { environmentConfigFactory } from '../helpers';
 import { EnvironmentConfig, Path, Properties, Property } from '../types';
@@ -33,6 +33,20 @@ export abstract class EnvironmentQuery {
 
   /**
    * Gets all the environment properties.
+   * @returns The first non empty set of environment properties as Promise.
+   */
+  async getAllAsync(): Promise<Properties> {
+    return this.getAll$()
+      .pipe(
+        filterNil(),
+        filter((environment: Properties) => Object.keys(environment).length > 0),
+        take(1),
+      )
+      .toPromise();
+  }
+
+  /**
+   * Gets all the environment properties.
    * @returns All the environment properties.
    */
   getAll(): Properties {
@@ -50,6 +64,16 @@ export abstract class EnvironmentQuery {
       map((environment: Properties): P | undefined => this._getProperty(environment, path)),
       distinctUntilChanged(isEqual),
     );
+  }
+
+  /**
+   * Gets the environment property at path.
+   * @param path The property path to resolve.
+   * @returns The non nil environment property at path as Promise.
+   * @see Path
+   */
+  getAsync<P extends Property>(path: Path): Promise<P> {
+    return this.get$<P>(path).pipe(firstNonNil()).toPromise();
   }
 
   /**
@@ -79,6 +103,16 @@ export abstract class EnvironmentQuery {
       map((property?: Property) => this._contains(property)),
       distinctUntilChanged(),
     );
+  }
+
+  /**
+   * Checks if the environment property path is available for resolution.
+   * @param paths The property path to resolve.
+   * @returns `true` as Promise when the environment property path exists.
+   * @see Path
+   */
+  containsAsync(path: Path): Promise<boolean> {
+    return this.contains$(path).pipe(this._containsAsyncOperator()).toPromise();
   }
 
   /**
@@ -114,6 +148,18 @@ export abstract class EnvironmentQuery {
 
   /**
    * Checks if all the environment property paths are available for resolution.
+   * @param paths The property path to resolve.
+   * @returns `true` as Promise when all environment property paths exists.
+   * @see Path
+   */
+  containsAllAsync(...paths: AtLeastOne<Path>): Promise<boolean> {
+    return this.containsAll$(...paths)
+      .pipe(this._containsAsyncOperator())
+      .toPromise();
+  }
+
+  /**
+   * Checks if all the environment property paths are available for resolution.
    * @param paths The list of property paths to resolve.
    * @returns `true` if all the environment property paths exists, otherwise `false`.
    * @see Path
@@ -145,6 +191,18 @@ export abstract class EnvironmentQuery {
 
   /**
    * Checks if some environment property paths are available for resolution.
+   * @param paths The property path to resolve.
+   * @returns `true` as Promise when some environment property paths exists.
+   * @see Path
+   */
+  containsSomeAsync(...paths: AtLeastOne<Path>): Promise<boolean> {
+    return this.containsSome$(...paths)
+      .pipe(this._containsAsyncOperator())
+      .toPromise();
+  }
+
+  /**
+   * Checks if some environment property paths are available for resolution.
    * @param paths The list of property paths to resolve.
    * @returns `true` if some environment property paths exists, otherwise `false`.
    * @see Path
@@ -157,6 +215,14 @@ export abstract class EnvironmentQuery {
 
   protected _containsSome(containsList: Array<boolean>): boolean {
     return containsList.some((contains: boolean) => contains);
+  }
+
+  protected _containsAsyncOperator(): MonoTypeOperatorFunction<boolean> {
+    return (observable: Observable<boolean>) =>
+      observable.pipe(
+        filter((property: boolean) => property === true),
+        take(1),
+      );
   }
 
   /**
@@ -215,6 +281,17 @@ export abstract class EnvironmentQuery {
       map((property?: P) => this._getTyped(targetType, property)),
       distinctUntilChanged(isEqual),
     );
+  }
+
+  /**
+   * Gets the typed environment property at path.
+   * @param path The property path to resolve.
+   * @param targetType The expected type converter function.
+   * @returns The non nil environment property at path converted to the `targetType` as Promise.
+   * @see Path
+   */
+  getTypedAsync<P extends Property, T>(path: Path, targetType: (value: P) => T): Promise<T> {
+    return this.getTyped$(path, targetType).pipe(firstNonNil()).toPromise();
   }
 
   /**
@@ -300,11 +377,27 @@ export abstract class EnvironmentQuery {
     path: Path,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
-  ): Observable<P | string | undefined> {
+  ): Observable<P | undefined> {
     return this.get$<P>(path).pipe(
       map((property?: P) => this._getTranspiled(property, properties, config)),
       distinctUntilChanged(isEqual),
     );
+  }
+
+  /**
+   * Gets the transpiled environment property at path.
+   * @param path The property path to resolve.
+   * @param properties The properties to resolve the interpolation.
+   * @param config The custom environment config for the transpile.
+   * @returns The non nil transpiled environment property at path as Promise.
+   * @see Path
+   */
+  getTranspiledAsync<P extends Property>(
+    path: Path,
+    properties?: Properties,
+    config?: Partial<EnvironmentConfig>,
+  ): Promise<P> {
+    return this.getTranspiled$<P>(path, properties, config).pipe(firstNonNil()).toPromise();
   }
 
   /**
@@ -319,7 +412,7 @@ export abstract class EnvironmentQuery {
     path: Path,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
-  ): P | string | undefined {
+  ): P | undefined {
     const property: P | undefined = this.get<P>(path);
 
     return this._getTranspiled(property, properties, config);
@@ -329,7 +422,7 @@ export abstract class EnvironmentQuery {
     property?: P,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
-  ): P | string | undefined {
+  ): P | undefined {
     if (property === undefined) {
       return;
     }
@@ -353,7 +446,7 @@ export abstract class EnvironmentQuery {
     defaultValue?: D,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
-  ): Observable<P | D | string> {
+  ): Observable<P | D> {
     return this.getRequired$<P, D>(path, defaultValue).pipe(
       map((property: P | D) => this._getRequiredTranspiled(property, properties, config)),
       distinctUntilChanged(isEqual),
@@ -376,7 +469,7 @@ export abstract class EnvironmentQuery {
     defaultValue?: D,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
-  ): P | D | string {
+  ): P | D {
     const property: P | D = this.getRequired<P, D>(path, defaultValue);
 
     return this._getRequiredTranspiled(property, properties, config);
@@ -386,15 +479,15 @@ export abstract class EnvironmentQuery {
     property: P,
     properties?: Properties,
     config?: Partial<EnvironmentConfig>,
-  ): P | string {
+  ): P {
     return this.transpile(property, properties, config);
   }
 
-  protected transpile<T extends Property>(
-    value: T,
+  protected transpile<P extends Property>(
+    value: P,
     properties: Properties = {},
     config: Partial<EnvironmentConfig> = {},
-  ): T | string {
+  ): P {
     const transpileConfig: EnvironmentConfig = { ...this.config, ...config };
 
     if (isString(value)) {
@@ -404,7 +497,7 @@ export abstract class EnvironmentQuery {
         const transpileProperties: Properties = this.getTranspileProperties(properties, transpileConfig);
 
         return this.replacer(substring, match, transpileProperties);
-      });
+      }) as P;
     }
 
     return value;
