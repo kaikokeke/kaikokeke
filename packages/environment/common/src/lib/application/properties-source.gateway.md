@@ -372,56 +372,6 @@ loader.load(); // resolves immediately
 
 ## Examples of use
 
-### Max load time
-
-In this use case is necessary to set a maximum wait time before loading the application, regardless of whether the required source values ​​are loaded.
-
-```ts
-import { PropertiesSource, Properties } from '@kaikokeke/environment';
-import { Observable, timer } from 'rxjs';
-import { map, take } from 'rxjs/operators';
-
-export class MaxLoadTimeSource extends PropertiesSource {
-  name = 'MaxLoadTimeSource';
-  maxTime = 10000;
-
-  load(): Observable<Properties> {
-    return timer(this.maxTime).pipe(
-      map(() => throw new Error(`Timeout in ${Math.round(this.maxTime / 1000)} s`),
-      take(1)
-    ));
-  }
-}
-```
-
-### Load on required properties available
-
-Sometimes we want to load the app as soon as a set of required properties are available.
-
-```ts
-import { AtLeastOne } from '@kaikokeke/commons';
-import { EnvironmentQuery, Path, PropertiesSource, Properties } from '@kaikokeke/environment';
-import { Observable } from 'rxjs';
-import { filter, map, take } from 'rxjs/operators';
-
-export class RequiredPropertiesAvailableSource extends PropertiesSource {
-  name = 'RequiredPropertiesAvailableSource';
-  requiredKeys: AtLeastOne<Path> = ['user.name', 'basePath'];
-
-  constructor(protected readonly query: EnvironmentQuery) {
-    super();
-  }
-
-  load(): Observable<Properties> {
-    return this.query.containsAll(...requiredKeys).pipe(
-      filter((contains: boolean) => contains),
-      map(() => ({})),
-      take(1),
-    );
-  }
-}
-```
-
 ### Fallback sources
 
 Sometimes is needed to provide a fallback source if the first one fails. This can be done easily in the original properties source with the `catchError` function. This condition can be chained as many times as necessary.

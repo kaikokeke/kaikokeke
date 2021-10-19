@@ -62,9 +62,9 @@ Is a common requirement to complete all sources after application load error and
 It's easy to do by implementing `OnAfterLoadError`.
 
 ```ts
-import { AfterLoadError, EnvironmentLoader, EnvironmentService, PropertiesSource } from '@kaikokeke/environment';
+import { EnvironmentLoader, EnvironmentService, OnAfterError, PropertiesSource } from '@kaikokeke/environment';
 
-export class CustomEnvironmentLoader extends EnvironmentLoader implements OnAfterLoadError {
+export class AfterErrorEnvironmentLoader extends EnvironmentLoader implements OnAfterError {
   constructor(
     protected readonly service: EnvironmentService,
     protected readonly sources?: PropertiesSource | PropertiesSource[],
@@ -72,8 +72,8 @@ export class CustomEnvironmentLoader extends EnvironmentLoader implements OnAfte
     super(service, sources);
   }
 
-  protected onAfterLoadError(index: number, name: string, error: Error): void {
-    this.onDestroySources(index);
+  protected onAfterError(): void {
+    this.onDestroy();
     this.service.reset();
   }
 }
@@ -86,3 +86,7 @@ If the application must stop loading all the rest of sources after load.
 ### Load immediately
 
 ### Multiple sources ignore error until X error
+
+### Max load time
+
+### Load on required properties available
