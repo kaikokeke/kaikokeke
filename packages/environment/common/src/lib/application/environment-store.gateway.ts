@@ -4,6 +4,9 @@ import { Properties } from '../types';
 
 /**
  * Manages the environment store.
+ *
+ * This stores all the environment properties that the system needs, functioning as the only point of truth for them.
+ * It can be adapted to use any store system that is already using the application or implement your own.
  */
 export abstract class EnvironmentStore {
   /**

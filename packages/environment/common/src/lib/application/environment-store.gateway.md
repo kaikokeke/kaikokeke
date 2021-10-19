@@ -2,9 +2,21 @@
 
 Manages the environment store.
 
+This stores all the environment properties that the system needs, functioning as the only point of truth for them. It can be adapted to use any store system that is already using the application or implement your own.
+
 ## Getting Started
 
 You can create an environment store class extending from `EnvironmentStore` and implementing the required methods as described in the API and examples.
+
+```ts
+import { EnvironmentStore } from '@kaikokeke/environment';
+
+class SimpleEnvironmentStore extends EnvironmentStore {
+  // implement methods
+}
+
+export const environmentStore: EnvironmentStore = new SimpleEnvironmentStore();
+```
 
 ## API
 
@@ -15,7 +27,7 @@ You can create an environment store class extending from `EnvironmentStore` and 
 Gets all properties from the environment store.
 
 ```ts
-store.getAll$(); // Observable { a: 0 } ... { a: 0, b: 0 }
+store.getAll$(); // -{a:0}--{a:0}--{a:0,b:0}-
 ```
 
 Returns the environment properties as Observable that emits on every environment change.
@@ -25,7 +37,7 @@ Returns the environment properties as Observable that emits on every environment
 Gets all properties from the environment store.
 
 ```ts
-store.getAll(); // { a: 0 }
+store.getAll(); // {a:0}
 ```
 
 Returns the environment properties.
@@ -37,21 +49,21 @@ Updates the properties in the environment store.
 ```ts
 store.getAll(); // {}
 store.update({ a: 0 });
-store.getAll(); // { a: 0 }
+store.getAll(); // {a:0}
 ```
 
 It is important to ensure that **the store update is an overwrite and not partial update**, as the service will manage the entire environment in the implementation, and a partial update can cause inconsistencies.
 
 ```ts
-// Store overwrite
-store.getAll(); // { a: 0 }
+// overwrite
+store.getAll(); // {a:0}
 store.update({ b: 0 });
-store.getAll(); // { b: 0 }
+store.getAll(); // {b:0}
 
-// Partial update
-store.getAll(); // { a: 0 }
+// partial update
+store.getAll(); // {a:0}
 store.update({ b: 0 });
-store.getAll(); // { a: 0, b: 0 }
+store.getAll(); // {a:0,b:0}
 ```
 
 #### `reset(): void`
@@ -59,7 +71,7 @@ store.getAll(); // { a: 0, b: 0 }
 Resets the environment store to the initial state.
 
 ```ts
-store.getAll(); // { a: 0 }
+store.getAll(); // {a:0}
 store.reset();
 store.getAll(); // {}
 ```
@@ -130,11 +142,7 @@ class AkitaEvironmentStore extends EnvironmentStore {
 
 ### Using Redux State Container
 
-[Redux](https://redux.js.org/) is a predictable state container for JavaScript apps.
-
-It helps you write applications that behave consistently, run in different environments (client, server, and native), and are easy to test. On top of that, it provides a great developer experience, such as live code editing combined with a time traveling debugger.
-
-You can use Redux together with React, or with any other view library. It is tiny (2kB, including dependencies), but has a large ecosystem of addons available.
+[Redux](https://redux.js.org/) is a predictable state container for JavaScript apps. It helps you write applications that behave consistently, run in different environments (client, server, and native), and are easy to test. You can use Redux together with React, or with any other view library.
 
 ```ts
 import { EnvironmentStore, Properties } from '@kaikokeke/environment';
