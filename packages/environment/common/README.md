@@ -20,7 +20,7 @@ The common way to manage properties in JavaScript frameworks is to define enviro
 
 To make this library work, there are some gateways to implement. Each gateway documentation will further describe the API and examples for the most common use cases.
 
-- [EnvironmentStore](./src/lib/application/environment-store.gateway.md): The store that manages the environment properties. It's a simple interface that must be implemented to adapt to the store system used in the application.
+- [EnvironmentStore](./src/lib/application/environment-store.gateway.md): The store that manages the environment properties.
 - [EnvironmentService](./src/lib/application/environment-service.gateway.md): A service to manage the environment properties. It can be used simply by extending from the abstract class.
 - [EnvironmentQuery](./src/lib/application/environment-query.gateway.md): Gets the properties from the environment. It can be used simply by extending from the abstract class.
 - [PropertiesSource](./src/lib/application/properties-source.gateway.md): Definition of the source from which to get environment properties asynchronously.
