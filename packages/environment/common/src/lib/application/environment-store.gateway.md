@@ -169,13 +169,11 @@ const store: Store<Properties> = createStore(environmentReducer);
 class ReduxEvironmentStore extends EnvironmentStore {
   getAll$(): Observable<Properties> {
     return new Observable((observer: Subscriber<Properties>) => {
-      observer.next(reduxStore.getState());
+      observer.next(store.getState());
 
-      const unsubscribe: Unsubscribe = reduxStore.subscribe(() => {
-        observer.next(reduxStore.getState());
+      return store.subscribe(() => {
+        observer.next(store.getState());
       });
-
-      return unsubscribe;
     });
   }
 

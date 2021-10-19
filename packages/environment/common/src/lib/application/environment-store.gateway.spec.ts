@@ -1,5 +1,5 @@
 import { createStore as createAkitaStore, isDev, setAction, Store as AkitaStore } from '@datorama/akita';
-import { Action, createStore as createReduxStore, Reducer, Store as ReduxStore, Unsubscribe } from 'redux';
+import { Action, createStore as createReduxStore, Reducer, Store as ReduxStore } from 'redux';
 import { BehaviorSubject, Observable, Subscriber } from 'rxjs';
 
 import { Properties } from '../types';
@@ -81,11 +81,9 @@ class ReduxEvironmentStore extends EnvironmentStore {
     return new Observable((observer: Subscriber<Properties>) => {
       observer.next(reduxStore.getState());
 
-      const unsubscribe: Unsubscribe = reduxStore.subscribe(() => {
+      return reduxStore.subscribe(() => {
         observer.next(reduxStore.getState());
       });
-
-      return unsubscribe;
     });
   }
 
