@@ -25,7 +25,6 @@
     "appsDir": "apps",
     "libsDir": "packages"
   },
-  "projects": {},
   "targetDependencies": {
     "build": [
       {
@@ -33,5 +32,39 @@
         "projects": "dependencies"
       }
     ]
+  },
+  "cli": {
+    "defaultCollection": "@nrwl/angular"
+  },
+  "generators": {
+    "@nrwl/angular:application": {
+      "style": "scss",
+      "linter": "eslint",
+      "unitTestRunner": "jest",
+      "e2eTestRunner": "none",
+      "standaloneConfig": true
+    },
+    "@nrwl/angular:library": {
+      "linter": "eslint",
+      "unitTestRunner": "jest",
+      "buildable": true,
+      "publishable": true,
+      "simpleModuleName": true,
+      "standaloneConfig": true,
+      "strict": true
+    },
+    "@nrwl/node:library": {
+      "buildable": true,
+      "linter": "eslint",
+      "publishable": true,
+      "simpleModuleName": true,
+      "standaloneConfig": true,
+      "strict": true,
+      "testEnvironment": "jsdom",
+      "unitTestRunner": "jest"
+    },
+    "@nrwl/angular:component": {
+      "style": "scss"
+    }
   }
 }
