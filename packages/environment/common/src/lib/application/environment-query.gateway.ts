@@ -1,10 +1,10 @@
-import { AtLeastOne, deepMerge, filterNil, firstNonNil } from '@kaikokeke/common';
+import { AtLeastOne, deepMerge, filterNil, firstNonNil, Path } from '@kaikokeke/common';
 import { get, isEqual, isString } from 'lodash-es';
 import { combineLatest, MonoTypeOperatorFunction, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, shareReplay, take } from 'rxjs/operators';
 
 import { environmentConfigFactory } from '../helpers';
-import { EnvironmentConfig, Path, Properties, Property } from '../types';
+import { EnvironmentConfig, Properties, Property } from '../types';
 import { EnvironmentStore } from './environment-store.gateway';
 
 /**

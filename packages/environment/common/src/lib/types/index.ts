@@ -9,6 +9,5 @@ export * from './on-after-source-error.interface';
 export * from './on-before-load.interface';
 export * from './on-before-source-add.interface';
 export * from './on-before-source-load.interface';
-export * from './path.type';
 export * from './properties.type';
 export * from './property.type';

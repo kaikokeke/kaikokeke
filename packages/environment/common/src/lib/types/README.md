@@ -4,7 +4,6 @@ The types used in the environment library.
 
 - [Property](./property.type.ts): An environment property value.
 - [Properties](./properties.type.ts): A set of environment properties required to run the application.
-- [Path](./path.type.ts): Represents the property path of an object.
 - [EnvironmentConfig](./environment-config.interface.ts): Configuration parameters for the Environment module.
 - [LoaderPropertiesSource](./loader-properties-source.type.ts): A properties source with all the default values to be used by the EnvironmentLoader.
 

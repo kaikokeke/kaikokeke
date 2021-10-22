@@ -1,6 +1,7 @@
+import { Path } from '@kaikokeke/common';
 import { ObservableInput } from 'rxjs';
 
-import { Path, Properties } from '../types';
+import { Properties } from '../types';
 
 /**
  * Definition of the source from which to get environment properties asynchronously.
