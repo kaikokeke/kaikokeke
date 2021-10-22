@@ -1,6 +1,6 @@
 import { AnyMap } from '@kaikokeke/devtools';
 
-import { InvalidPathError, isPath } from './path.type';
+import { isPath } from './is-path.function';
 
 describe('isPath(value)', () => {
   it(`returns true for non empty string`, () => {
@@ -23,6 +23,10 @@ describe('isPath(value)', () => {
     expect(isPath([0, 'a'])).toBeFalse();
   });
 
+  it(`returns false for Array with invalid strings`, () => {
+    expect(isPath(['', 'a'])).toBeFalse();
+  });
+
   it(`returns false for any other type of value`, () => {
     new AnyMap()
       .excludes('string')
@@ -31,19 +35,5 @@ describe('isPath(value)', () => {
       .forEach((v) => {
         expect(isPath(v)).toBeFalse();
       });
-  });
-});
-
-describe('InvalidPathError', () => {
-  it(`throws a InvalidPathError type`, () => {
-    expect(() => {
-      throw new InvalidPathError('');
-    }).toThrow(InvalidPathError);
-  });
-
-  it(`throws with a custom message`, () => {
-    expect(() => {
-      throw new InvalidPathError('');
-    }).toThrow('The path "" is invalid');
   });
 });

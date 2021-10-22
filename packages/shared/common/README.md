@@ -19,6 +19,7 @@ yarn add @kaikokeke/common
 - [firstNonNil](./src/lib/first-non-nil/README.md): Emits only the first not null or undefined value emitted by the source Observable.
 - [SafeRxJS](./src/lib/safe-rxjs/README.md): Manages safe RxJS subscriptions.
 - [SafeSubscription](./src/lib/safe-subscription/README.md): Safely store disposable resources, such as the execution of an Observable.
+- [Path](./src/lib/path/README.md): Represents the property path of an object.
 
 ## Types
 
