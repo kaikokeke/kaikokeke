@@ -1,8 +1,8 @@
-import { deepMerge } from '@kaikokeke/common';
+import { deepMerge, InvalidPathError, isPath, Path } from '@kaikokeke/common';
 import { get, set } from 'lodash-es';
 
 import { asMutable } from '../helpers';
-import { InvalidPathError, isPath, Path, Properties, Property } from '../types';
+import { Properties, Property } from '../types';
 import { EnvironmentStore } from './environment-store.gateway';
 
 /**
@@ -27,16 +27,20 @@ export abstract class EnvironmentService {
    * Ignores the action if the property exists.
    * @param path The path of the property to create.
    * @param value The value of the property.
+   * @returns `true` if the property is created, otherwise `false`.
    * @throws If the path is invalid.
    */
-  create(path: Path, value: Property): void {
+  create(path: Path, value: Property): boolean {
     if (isPath(path)) {
       const environment: Properties = this.store.getAll();
       const property: Property | undefined = get(environment, path);
 
       if (property === undefined) {
         this._upsertStore(environment, path, value);
+        return true;
       }
+
+      return false;
     } else {
       throw new InvalidPathError(path);
     }
@@ -47,16 +51,20 @@ export abstract class EnvironmentService {
    * Ignores the action if the property doesn't exist.
    * @param path The path of the property to update.
    * @param value The value of the property.
+   * @returns `true` if tthe property is updated, otherwise `false`.
    * @throws If the path is invalid.
    */
-  update(path: Path, value: Property): void {
+  update(path: Path, value: Property): boolean {
     if (isPath(path)) {
       const environment: Properties = this.store.getAll();
       const property: Property | undefined = get(environment, path);
 
       if (property !== undefined) {
         this._upsertStore(environment, path, value);
+        return true;
       }
+
+      return false;
     } else {
       throw new InvalidPathError(path);
     }
@@ -81,13 +89,20 @@ export abstract class EnvironmentService {
   /**
    * Deletes a property from the environment.
    * @param path The path of the property to delete.
+   * @returns `true` if the property is deleted, otherwise `false`.
    * @throws If the path is invalid.
    */
-  delete(path: Path): void {
+  delete(path: Path): boolean {
     if (isPath(path)) {
       const environment: Properties = this.store.getAll();
+      const property: Property | undefined = get(environment, path);
 
-      return this._upsertStore(environment, path);
+      if (property !== undefined) {
+        this._upsertStore(environment, path);
+        return true;
+      }
+
+      return false;
     } else {
       throw new InvalidPathError(path);
     }
@@ -104,8 +119,13 @@ export abstract class EnvironmentService {
    * Adds properties to the environment.
    * @param properties The properties to add.
    * @param path The path of the properties to add.
+   * @throws If the path is invalid.
    */
   add(properties: Properties, path?: Path): void {
+    if (path != null && !isPath(path)) {
+      throw new InvalidPathError(path);
+    }
+
     const environment: Properties = this.store.getAll();
     const mutableEnvionment: Properties = asMutable(environment);
     const newEnvironment: Properties = isPath(path)
@@ -119,8 +139,13 @@ export abstract class EnvironmentService {
    * Adds properties to the environment using the deep merge strategy.
    * @param properties The properties to merge.
    * @param path The path of the properties to merge.
+   * @throws If the path is invalid.
    */
   merge(properties: Properties, path?: Path): void {
+    if (path != null && !isPath(path)) {
+      throw new InvalidPathError(path);
+    }
+
     const environment: Properties = this.store.getAll();
     const mutableEnvionment: Properties = asMutable(environment);
     const propertiesAtPath: Properties = isPath(path) ? set({}, path, properties) : properties;

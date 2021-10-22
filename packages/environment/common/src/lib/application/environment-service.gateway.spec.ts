@@ -49,13 +49,25 @@ describe('EnvironmentService', () => {
     expect(store.reset).toHaveBeenCalledTimes(1);
   });
 
-  it(`create(path, value) creates a new property in the environment and sets the value.`, () => {
+  it(`create(path, value) returns true if the property is created`, () => {
+    jest.spyOn(store, 'getAll').mockReturnValue({ a: { b: 0 }, b: 0 });
+    jest.spyOn(store, 'update').mockImplementation(() => null);
+    expect(service.create('a.a', 1)).toBeTrue();
+  });
+
+  it(`create(path, value) creates a new property in the environment and sets the value`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue({ a: { b: 0 }, b: 0 });
     jest.spyOn(store, 'update').mockImplementation(() => null);
     expect(store.update).not.toHaveBeenCalled();
     service.create('a.a', 1);
     expect(store.update).toHaveBeenNthCalledWith(1, { a: { a: 1, b: 0 }, b: 0 });
     expect(store.update).toHaveBeenCalledTimes(1);
+  });
+
+  it(`create(path, value) returns false if the property exists`, () => {
+    jest.spyOn(store, 'getAll').mockReturnValue({ a: null });
+    jest.spyOn(store, 'update').mockImplementation(() => null);
+    expect(service.create('a', 1)).toBeFalse();
   });
 
   it(`create(path, value) ignores the action if the property exists`, () => {
@@ -70,6 +82,12 @@ describe('EnvironmentService', () => {
     expect(() => service.create('', 1)).toThrowError('The path "" is invalid');
   });
 
+  it(`update(path, value) returns true if the property is updated`, () => {
+    jest.spyOn(store, 'getAll').mockReturnValue({ a: { b: null }, b: 0 });
+    jest.spyOn(store, 'update').mockImplementation(() => null);
+    expect(service.update('a.b', 1)).toBeTrue();
+  });
+
   it(`update(path, value) updates the value of a property in the environment`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue({ a: { b: null }, b: 0 });
     jest.spyOn(store, 'update').mockImplementation(() => null);
@@ -77,6 +95,12 @@ describe('EnvironmentService', () => {
     service.update('a.b', 1);
     expect(store.update).toHaveBeenNthCalledWith(1, { a: { b: 1 }, b: 0 });
     expect(store.update).toHaveBeenCalledTimes(1);
+  });
+
+  it(`update(path, value) returns false if the property doesn't exist`, () => {
+    jest.spyOn(store, 'getAll').mockReturnValue({ a: null });
+    jest.spyOn(store, 'update').mockImplementation(() => null);
+    expect(service.update('a.b', 1)).toBeFalse();
   });
 
   it(`update(path, value) ignores the action if the property doesn't exist`, () => {
@@ -113,6 +137,12 @@ describe('EnvironmentService', () => {
     expect(() => service.upsert('', 1)).toThrowError('The path "" is invalid');
   });
 
+  it(`delete(path, value) returns true if the property is deleted`, () => {
+    jest.spyOn(store, 'getAll').mockReturnValue({ a: { b: null }, b: 0 });
+    jest.spyOn(store, 'update').mockImplementation(() => null);
+    expect(service.delete('a.b')).toBeTrue();
+  });
+
   it(`delete(path) deletes a property from the environment.`, () => {
     jest.spyOn(store, 'getAll').mockReturnValue({ a: { b: null }, b: 0 });
     jest.spyOn(store, 'update').mockImplementation(() => null);
@@ -120,6 +150,12 @@ describe('EnvironmentService', () => {
     service.delete('a.b');
     expect(store.update).toHaveBeenNthCalledWith(1, { a: {}, b: 0 });
     expect(store.update).toHaveBeenCalledTimes(1);
+  });
+
+  it(`delete(path, value) returns false if the property doesn't exist`, () => {
+    jest.spyOn(store, 'getAll').mockReturnValue({ a: { b: null }, b: 0 });
+    jest.spyOn(store, 'update').mockImplementation(() => null);
+    expect(service.delete('a.c')).toBeFalse();
   });
 
   it(`delete(path) throws if the path is invalid`, () => {
@@ -144,13 +180,8 @@ describe('EnvironmentService', () => {
     expect(store.update).toHaveBeenCalledTimes(1);
   });
 
-  it(`add(properties, path) adds properties to the environment if invalid path`, () => {
-    jest.spyOn(store, 'getAll').mockReturnValue({ a: { b: 0 } });
-    jest.spyOn(store, 'update').mockImplementation(() => null);
-    expect(store.update).not.toHaveBeenCalled();
-    service.add({ a: { a: 0 } }, '');
-    expect(store.update).toHaveBeenNthCalledWith(1, { a: { a: 0 } });
-    expect(store.update).toHaveBeenCalledTimes(1);
+  it(`add(properties, path) throws if the path is invalid`, () => {
+    expect(() => service.add({ a: { a: 0 } }, '')).toThrowError('The path "" is invalid');
   });
 
   it(`merge(properties) adds properties to the environment using the deep merge strategy`, () => {
@@ -171,12 +202,7 @@ describe('EnvironmentService', () => {
     expect(store.update).toHaveBeenCalledTimes(1);
   });
 
-  it(`merge(properties, path) adds properties to the environment using the deep merge strategy if invalid path`, () => {
-    jest.spyOn(store, 'getAll').mockReturnValue({ a: { b: 0 } });
-    jest.spyOn(store, 'update').mockImplementation(() => null);
-    expect(store.update).not.toHaveBeenCalled();
-    service.merge({ a: { a: 0 } }, '');
-    expect(store.update).toHaveBeenNthCalledWith(1, { a: { a: 0, b: 0 } });
-    expect(store.update).toHaveBeenCalledTimes(1);
+  it(`merge(properties, path) throws if the path is invalid`, () => {
+    expect(() => service.merge({ a: { a: 0 } }, '')).toThrowError('The path "" is invalid');
   });
 });
