@@ -63,7 +63,7 @@ service.create('a', 1); // false
 store.getAll(); // {a:0}
 ```
 
-Throws if the path is invalid.
+Throws `InvalidPathError` if the path is invalid.
 
 #### `update(path: Path, value: Property): boolean`
 
@@ -89,7 +89,7 @@ service.update('b', 1); // false
 store.getAll(); // {a:0}
 ```
 
-Throws if the path is invalid.
+Throws `InvalidPathError` if the path is invalid.
 
 #### `upsert(path: Path, value: Property): void`
 
@@ -107,7 +107,7 @@ service.upsert('b', 0);
 store.getAll(); // {a:0,b:0}
 ```
 
-Throws if the path is invalid.
+Throws `InvalidPathError` if the path is invalid.
 
 #### `delete(path: Path): boolean`
 
@@ -131,7 +131,7 @@ service.delete('b'); // false
 store.getAll(); // {a:0}
 ```
 
-Throws if the path is invalid.
+Throws `InvalidPathError` if the path is invalid.
 
 #### `add(properties: Properties, path?: Path): void`
 
@@ -157,7 +157,7 @@ service.add({ a: 0 }, 'a');
 store.getAll(); // {a:{a:0}}
 ```
 
-Throws if the path is invalid.
+Throws `InvalidPathError` if the path is invalid.
 
 #### `merge(properties: Properties, path?: Path): void`
 
@@ -192,7 +192,7 @@ service.merge({ a: [1] });
 store.getAll(); // {a:[0,1]}
 ```
 
-Throws if the path is invalid.
+Throws `InvalidPathError` if the path is invalid.
 
 ## Examples of use
 
