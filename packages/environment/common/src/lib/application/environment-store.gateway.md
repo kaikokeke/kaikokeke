@@ -6,7 +6,7 @@ This stores all the environment properties that the system needs, functioning as
 
 ## Getting Started
 
-You can create an environment store class extending from `EnvironmentStore` and implementing the required methods as described in the API and examples.
+You can create an environment store class by extending from `EnvironmentStore` and implementing the required methods as described in the API and examples.
 
 ```ts
 import { EnvironmentStore } from '@kaikokeke/environment';
@@ -15,7 +15,7 @@ class SimpleEnvironmentStore extends EnvironmentStore {
   // implement methods
 }
 
-export const environmentStore: EnvironmentStore = new SimpleEnvironmentStore();
+export const store: EnvironmentStore = new SimpleEnvironmentStore();
 ```
 
 ## API
