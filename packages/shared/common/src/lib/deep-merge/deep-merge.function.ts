@@ -1,5 +1,7 @@
 import { mergeWith } from 'lodash-es';
 
+import { AtLeastOne } from '../types';
+
 /**
  * Recursively merges own and inherited enumerable string keyed properties of source objects.
  *
@@ -7,20 +9,15 @@ import { mergeWith } from 'lodash-es';
  * Other objects and value types are overridden by assignment.
  * Source objects are applied from left to right.
  * Iterable sources, except strings, are merged with previous sources.
- * @param source1 The first required source object.
- * @param source2 The second required source object.
- * @param otherSources The optional source objects.
+ * @param sources The source objects.
  * @returns An object with merged own and inherited enumerable string keyed properties.
  */
-export function deepMerge<T extends Record<PropertyKey, unknown>>(
-  source1: Record<PropertyKey, unknown>,
-  source2: Record<PropertyKey, unknown>,
-  ...otherSources: Record<PropertyKey, unknown>[]
-): T {
-  return mergeWith({}, ...[source1, source2, ...otherSources], customizer);
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function deepMerge<T extends Record<string, unknown>>(...sources: AtLeastOne<object>): T {
+  return mergeWith({}, ...sources, customizer);
 }
 
-function customizer(obj: any, source: any): any {
+function customizer(obj: unknown, source: unknown): unknown {
   if (Array.isArray(obj) && Array.isArray(source)) {
     return obj.concat(source);
   }
