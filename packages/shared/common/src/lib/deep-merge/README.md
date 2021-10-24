@@ -113,5 +113,5 @@ const b: Record<string, unknown> = { a: { a: [1] }, b: 0, c: { a: 0 } };
 const c: Record<string, unknown> = { a: { a: [1] }, b: undefined, c: { b: 1 } };
 const e: E = new E();
 
-deepMerge(a, b, c, d); // {a:{a:[0,1,1]},b:0,c:{a:0,b:1},d:0,e:0}
+deepMerge(a, b, c, e); // {a:{a:[0,1,1]},b:0,c:{a:0,b:1},d:0,e:0}
 ```
