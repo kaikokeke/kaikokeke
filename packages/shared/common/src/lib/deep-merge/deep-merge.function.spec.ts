@@ -10,6 +10,8 @@ class B {
 
 class C extends A {
   c = 0;
+
+  test(): void {}
 }
 
 class D {
@@ -18,6 +20,8 @@ class D {
 
 class E extends D {
   e = 0;
+
+  test(): void {}
 }
 
 describe('deepMerge(...sources)', () => {
