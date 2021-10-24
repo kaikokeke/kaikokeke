@@ -20,9 +20,4 @@ yarn add @kaikokeke/common
 - [SafeRxJS](./src/lib/safe-rxjs/README.md): Manages safe RxJS subscriptions.
 - [SafeSubscription](./src/lib/safe-subscription/README.md): Safely store disposable resources, such as the execution of an Observable.
 - [Path](./src/lib/path/README.md): Represents the property path of an object.
-
-## Types
-
-- [AtLeastOne](./src/lib/types/at-least-one.type.ts): Type to ensure that an array has at least one element.
-- [JSONValue](./src/lib/types/json-value.type.ts): A valid JavaScript Object Notation (JSON) value type.
-- [ParsedJSON](./src/lib/types/parsed-json.type.ts): A native JavaScript object literal resulting from the parse of a JavaScript Object Notation (JSON).
+- [Types](./src/lib/types/README.md): Common types used in the library.
