@@ -1,4 +1,4 @@
-import { deepMerge, InvalidPathError, isPath, Path } from '@kaikokeke/common';
+import { deepMerge, InvalidPathError, isValidPath, Path } from '@kaikokeke/common';
 import { get, set } from 'lodash-es';
 
 import { asMutable } from '../helpers';
@@ -31,7 +31,7 @@ export abstract class EnvironmentService {
    * @throws If the path is invalid.
    */
   create(path: Path, value: Property): boolean {
-    if (isPath(path)) {
+    if (isValidPath(path)) {
       const environment: Properties = this.store.getAll();
       const property: Property | undefined = get(environment, path);
 
@@ -55,7 +55,7 @@ export abstract class EnvironmentService {
    * @throws If the path is invalid.
    */
   update(path: Path, value: Property): boolean {
-    if (isPath(path)) {
+    if (isValidPath(path)) {
       const environment: Properties = this.store.getAll();
       const property: Property | undefined = get(environment, path);
 
@@ -77,7 +77,7 @@ export abstract class EnvironmentService {
    * @throws If the path is invalid.
    */
   upsert(path: Path, value: Property): void {
-    if (isPath(path)) {
+    if (isValidPath(path)) {
       const environment: Properties = this.store.getAll();
 
       return this._upsertStore(environment, path, value);
@@ -93,7 +93,7 @@ export abstract class EnvironmentService {
    * @throws If the path is invalid.
    */
   delete(path: Path): boolean {
-    if (isPath(path)) {
+    if (isValidPath(path)) {
       const environment: Properties = this.store.getAll();
       const property: Property | undefined = get(environment, path);
 
@@ -122,13 +122,13 @@ export abstract class EnvironmentService {
    * @throws If the path is invalid.
    */
   add(properties: Properties, path?: Path): void {
-    if (path != null && !isPath(path)) {
+    if (path != null && !isValidPath(path)) {
       throw new InvalidPathError(path);
     }
 
     const environment: Properties = this.store.getAll();
     const mutableEnvionment: Properties = asMutable(environment);
-    const newEnvironment: Properties = isPath(path)
+    const newEnvironment: Properties = isValidPath(path)
       ? set(mutableEnvionment, path, properties)
       : { ...mutableEnvionment, ...properties };
 
@@ -142,13 +142,13 @@ export abstract class EnvironmentService {
    * @throws If the path is invalid.
    */
   merge(properties: Properties, path?: Path): void {
-    if (path != null && !isPath(path)) {
+    if (path != null && !isValidPath(path)) {
       throw new InvalidPathError(path);
     }
 
     const environment: Properties = this.store.getAll();
     const mutableEnvionment: Properties = asMutable(environment);
-    const propertiesAtPath: Properties = isPath(path) ? set({}, path, properties) : properties;
+    const propertiesAtPath: Properties = isValidPath(path) ? set({}, path, properties) : properties;
     const newEnvironment: Properties = deepMerge(mutableEnvionment, propertiesAtPath);
 
     this.store.update(newEnvironment);

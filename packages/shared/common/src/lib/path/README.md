@@ -16,21 +16,21 @@ export type Path = string | string[];
 
 ### Functions
 
-#### `isPath(value: unknown): value is Path`
+#### `isValidPath(value: unknown): value is Path`
 
 Checks if the value is a valid path.
 
 ```ts
-isPath('a');
+isValidPath('a');
 ```
 
 Returns `true` if the value is a valid path, `false` otherwise.
 A valid path is a non empty string or Array of non empty strings.
 
 ```ts
-isPath(''); // false
-isPath('a.a'); // true
-isPath(['a', 'a']); // true
+isValidPath(''); // false
+isValidPath('a.a'); // true
+isValidPath(['a', 'a']); // true
 ```
 
 #### `pathAsArray(path: Path): Path`
