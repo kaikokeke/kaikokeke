@@ -2,15 +2,46 @@
 
 Emits only the first not null or undefined value emitted by the source Observable.
 
+## Getting started
+
+Import from `@kaikokeke/common` and use as described in the API.
+
 ```ts
-export function firstNonNil<T>(due?: number | Date): OperatorFunction<T, NonNullable<T>>;
+import { firstNonNil } from '@kaikokeke/common';
+import { of } from 'rxjs';
+
+of(null, undefined, 0, 1, 2).pipe(firstNonNil());
 ```
 
-Param `due` ia a number specifying period within which Observable must emit the value or Date specifying before when Observable should complete.
+## API
+
+### Function
+
+#### `firstNonNil<T>(due?: number | Date): OperatorFunction<T, NonNullable<T>>`
+
+Emits only the first not null or undefined value emitted by the source Observable.
+
+```ts
+of(null, undefined, 0, 1, 2).pipe(firstNonNil());
+```
+
+Due is a number specifying period in miliseconds within which Observable must emit the value or Date specifying before when Observable should complete.
+
+```ts
+of(null, undefined, 0, 1, 2).pipe(firstNonNil(10));
+```
 
 Returns the first not null or undefined value emitted by the source Observable.
 
-Throws if `due` is setted and the Observable does not emit a value in given time span.
+```ts
+of(null, undefined, 0, 1, 2).pipe(firstNonNil()); // --(0|)
+```
+
+Throws `TimeoutError` if `due` is setted and the Observable does not emit a value in given time span.
+
+```ts
+of(null, undefined, 0, 1, 2).pipe(firstNonNil(1)); // throws TimeoutError
+```
 
 ```
 // See in https://swirly.dev/
@@ -35,33 +66,4 @@ c := 0
 
 ---#
 title = (3)
-```
-
-## Examples of use
-
-```ts
-import { firstNonNil } from '@kaikokeke/common';
-import { of } from 'rxjs';
-import { delay } from 'rxjs/operators';
-
-of(null, undefined, 0, 1, 2)
-  .pipe(firstNonNil())
-  .subscribe({
-    next: (value) => console.log(value), // 0
-    error: (error) => console.error(error), // never
-  });
-
-of(0, 1, 2)
-  .pipe(delay(50), firstNonNil(10))
-  .subscribe({
-    next: (value) => console.log(value), // never
-    error: (error) => console.error(error), // TimeoutError
-  });
-
-of(0, 1, 2)
-  .pipe(delay(10), firstNonNil(50))
-  .subscribe({
-    next: (value) => console.log(value), // 0
-    error: (error) => console.error(error), // never
-  });
 ```

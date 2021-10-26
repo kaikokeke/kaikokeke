@@ -5,7 +5,8 @@ import { filterNil } from '../filter-nil';
 
 /**
  * Emits only the first not null or undefined value emitted by the source Observable.
- * @param due Number specifying period within which Observable must emit the value or Date specifying before when Observable should complete.
+ * @param due Number specifying period in miliseconds within which Observable must emit the value
+ * or Date specifying before when Observable should complete.
  * @returns The first not null or undefined value emitted by the source Observable.
  * @throws If `due` is setted and the Observable does not emit a value in given time span.
  * @see Observable
