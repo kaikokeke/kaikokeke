@@ -1,6 +1,7 @@
+import { Path, pathAsString, prefixPath } from '@kaikokeke/common';
 import { Observable } from 'rxjs';
 
-import { Properties } from '../types';
+import { Properties, Property } from '../types';
 import { EnvironmentService } from './environment-service.gateway';
 import { EnvironmentStore } from './environment-store.gateway';
 
@@ -204,5 +205,164 @@ describe('EnvironmentService', () => {
 
   it(`merge(properties, path) throws if the path is invalid`, () => {
     expect(() => service.merge({ a: { a: 0 } }, '')).toThrowError('The path "" is invalid');
+  });
+
+  describe('examples of use', () => {
+    class SubmoduleEnvironmentService extends EnvironmentService {
+      private readonly _pathPrefix = 'submodule';
+
+      constructor(protected store: EnvironmentStore) {
+        super(store);
+      }
+
+      create(path: Path, value: Property): boolean {
+        return super.create(prefixPath(path, this._pathPrefix), value);
+      }
+
+      update(path: Path, value: Property): boolean {
+        console.log(this._getPath(path));
+        return super.update(this._getPath(path), value);
+      }
+
+      upsert(path: Path, value: Property): void {
+        super.upsert(this._getPath(path), value);
+      }
+
+      delete(path: Path): boolean {
+        return super.delete(this._getPath(path));
+      }
+
+      add(properties: Properties, path?: Path): void {
+        super.add(properties, this._getPath(path));
+      }
+
+      merge(properties: Properties, path?: Path): void {
+        super.merge(properties, this._getPath(path));
+      }
+
+      protected _getPath(path?: Path): Path {
+        return path != null ? prefixPath(path, this._pathPrefix) : this._pathPrefix;
+      }
+    }
+
+    it(`add all properties under an specific path`, () => {
+      const submoduleService: EnvironmentService = new SubmoduleEnvironmentService(store);
+      jest
+        .spyOn(store, 'getAll')
+        .mockReturnValueOnce({})
+        .mockReturnValueOnce({ submodule: { a: { a: 1 } } })
+        .mockReturnValueOnce({ submodule: { a: { a: 0 } } })
+        .mockReturnValueOnce({ submodule: { a: { a: 2 } } })
+        .mockReturnValueOnce({ submodule: { a: {} } })
+        .mockReturnValueOnce({ submodule: { a: { a: 0 } } });
+      jest.spyOn(store, 'update').mockImplementation(() => null);
+      expect(submoduleService.create('a.a', 1)).toBeTrue();
+      expect(store.update).toHaveBeenNthCalledWith(1, { submodule: { a: { a: 1 } } });
+      expect(submoduleService.update('a.a', 0)).toBeTrue();
+      expect(store.update).toHaveBeenNthCalledWith(2, { submodule: { a: { a: 0 } } });
+      submoduleService.upsert('a.a', 2);
+      expect(store.update).toHaveBeenNthCalledWith(3, { submodule: { a: { a: 2 } } });
+      expect(submoduleService.delete('a.a')).toBeTrue();
+      expect(store.update).toHaveBeenNthCalledWith(4, { submodule: { a: {} } });
+      submoduleService.add({ a: { a: 0 } });
+      expect(store.update).toHaveBeenNthCalledWith(5, { submodule: { a: { a: 0 } } });
+      submoduleService.merge({ a: { b: 0 } });
+      expect(store.update).toHaveBeenNthCalledWith(6, { submodule: { a: { a: 0, b: 0 } } });
+    });
+
+    class LoggedEnvironmentService extends EnvironmentService {
+      constructor(protected store: EnvironmentStore) {
+        super(store);
+      }
+
+      reset(): void {
+        this._log('reset');
+        super.reset();
+      }
+
+      create(path: Path, value: Property): boolean {
+        const result: boolean = super.create(path, value);
+
+        if (result) {
+          this._log('create', path, value);
+        } else {
+          console.info(`environment create: the path "${pathAsString(path)}" constains a value`);
+        }
+
+        return result;
+      }
+
+      update(path: Path, value: Property): boolean {
+        const result: boolean = super.update(path, value);
+
+        if (result) {
+          this._log('update', path, value);
+        } else {
+          console.info(`environment update: the path "${pathAsString(path)}" doesn't constain a value`);
+        }
+
+        return result;
+      }
+
+      upsert(path: Path, value: Property): void {
+        this._log('upsert', path, value);
+        super.upsert(path, value);
+      }
+
+      delete(path: Path): boolean {
+        const result: boolean = super.delete(path);
+
+        if (result) {
+          this._log('delete', path);
+        } else {
+          console.info(`environment delete: the path "${pathAsString(path)}" doesn't constain a value`);
+        }
+
+        return result;
+      }
+
+      add(properties: Properties, path?: Path): void {
+        this._log('add', properties, path);
+        super.add(properties, path);
+      }
+
+      merge(properties: Properties, path?: Path): void {
+        this._log('merge', properties, path);
+        super.merge(properties, path);
+      }
+
+      protected _log(method: string, ...args: unknown[]): void {
+        console.log(`environment ${method}`, ...args);
+      }
+    }
+
+    it(`add logs to operations`, () => {
+      const loggedService: EnvironmentService = new LoggedEnvironmentService(store);
+      jest.spyOn(store, 'getAll').mockReturnValue({ a: 0 });
+      jest.spyOn(store, 'reset').mockImplementation(() => null);
+      jest.spyOn(store, 'update').mockImplementation(() => null);
+      jest.spyOn(console, 'log').mockImplementation(() => null);
+      jest.spyOn(console, 'info').mockImplementation(() => null);
+      loggedService.reset();
+      expect(console.log).toHaveBeenNthCalledWith(1, 'environment reset');
+      loggedService.create('b', 1);
+      expect(console.log).toHaveBeenNthCalledWith(2, 'environment create', 'b', 1);
+      loggedService.create('a', 1);
+      expect(console.info).toHaveBeenNthCalledWith(1, 'environment create: the path "a" constains a value');
+      loggedService.update('a', 1);
+      expect(console.log).toHaveBeenNthCalledWith(3, 'environment update', 'a', 1);
+      loggedService.update('b', 1);
+      expect(console.info).toHaveBeenNthCalledWith(2, `environment update: the path "b" doesn't constain a value`);
+      loggedService.upsert('a', 2);
+      expect(console.log).toHaveBeenNthCalledWith(4, 'environment upsert', 'a', 2);
+      loggedService.delete('a');
+      expect(console.log).toHaveBeenNthCalledWith(5, 'environment delete', 'a');
+      loggedService.delete('b');
+      expect(console.info).toHaveBeenNthCalledWith(3, `environment delete: the path "b" doesn't constain a value`);
+      loggedService.add({ a: 0 }, 'a');
+      expect(console.log).toHaveBeenNthCalledWith(6, 'environment add', { a: 0 }, 'a');
+      loggedService.merge({ a: 0 }, 'a');
+      expect(console.log).toHaveBeenNthCalledWith(7, 'environment merge', { a: 0 }, 'a');
+    });
   });
 });

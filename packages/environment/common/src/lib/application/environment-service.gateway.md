@@ -198,22 +198,145 @@ Throws `InvalidPathError` if the path is invalid.
 
 ### Add all properties under an specific path
 
-You can overwrite all methods to add a default value for a module or subapplication.
+You can overwrite all methods to add a default base path for a module or subapplication.
 
 ```ts
-import { EnvironmentService, EnvironmentStore } from '@kaikokeke/environment';
+import { Path, prefixPath } from '@environment/common';
+import { EnvironmentService, EnvironmentStore, Properties, Property } from '@kaikokeke/environment';
+import { store } from './simple-environment.store';
 
 class SubmoduleEnvironmentService extends EnvironmentService {
-  provate readonly _pathPrefix = 'submodule';
+  private readonly _pathPrefix = 'submodule';
 
   constructor(protected store: EnvironmentStore) {
     super(store);
   }
+
+  create(path: Path, value: Property): boolean {
+    return super.create(prefixPath(path, this._pathPrefix), value);
+  }
+
+  update(path: Path, value: Property): boolean {
+    console.log(this._getPath(path));
+    return super.update(this._getPath(path), value);
+  }
+
+  upsert(path: Path, value: Property): void {
+    super.upsert(this._getPath(path), value);
+  }
+
+  delete(path: Path): boolean {
+    return super.delete(this._getPath(path));
+  }
+
+  add(properties: Properties, path?: Path): void {
+    super.add(properties, this._getPath(path));
+  }
+
+  merge(properties: Properties, path?: Path): void {
+    super.merge(properties, this._getPath(path));
+  }
+
+  protected _getPath(path?: Path): Path {
+    return path != null ? prefixPath(path, this._pathPrefix) : this._pathPrefix;
+  }
 }
+
+const service: EnvironmentService = new SubmoduleEnvironmentService(store);
+
+service.create('a.a', 1); // {submodule:{a:{a:1}}}
+service.update('a.a', 0); // {submodule:{a:{a:0}}}
+service.upsert('a.a', 2); // {submodule:{a:{a:2}}}
+service.delete('a.a'); // {submodule:{a:{}}}
+service.add({ a: { a: 0 } }); // {submodule:{a:{a:0}}}
+service.merge({ a: { b: 0 } }); // {submodule:{a:{a:0,b:0}}}
 ```
 
-### Add logs if an operation fails
+### Add logs to operations
+
+Sometimes is needed to add logs for the different operations.
 
 ```ts
+import { Path, pathAsString } from '@environment/common';
+import { EnvironmentService, EnvironmentStore, Properties, Property } from '@kaikokeke/environment';
+import { store } from './simple-environment.store';
 
+class LoggedEnvironmentService extends EnvironmentService {
+  constructor(protected store: EnvironmentStore) {
+    super(store);
+  }
+
+  reset(): void {
+    this._log('reset');
+    super.reset();
+  }
+
+  create(path: Path, value: Property): boolean {
+    const result: boolean = super.create(path, value);
+
+    if (result) {
+      this._log('create', path, value);
+    } else {
+      console.info(`environment create: the path "${pathAsString(path)}" constains a value`);
+    }
+
+    return result;
+  }
+
+  update(path: Path, value: Property): boolean {
+    const result: boolean = super.update(path, value);
+
+    if (result) {
+      this._log('update', path, value);
+    } else {
+      console.info(`environment update: the path "${pathAsString(path)}" doesn't constain a value`);
+    }
+
+    return result;
+  }
+
+  upsert(path: Path, value: Property): void {
+    this._log('upsert', path, value);
+    super.upsert(path, value);
+  }
+
+  delete(path: Path): boolean {
+    const result: boolean = super.delete(path);
+
+    if (result) {
+      this._log('delete', path);
+    } else {
+      console.info(`environment delete: the path "${pathAsString(path)}" doesn't constain a value`);
+    }
+
+    return result;
+  }
+
+  add(properties: Properties, path?: Path): void {
+    this._log('add', properties, path);
+    super.add(properties, path);
+  }
+
+  merge(properties: Properties, path?: Path): void {
+    this._log('merge', properties, path);
+    super.merge(properties, path);
+  }
+
+  protected _log(method: string, ...args: unknown[]): void {
+    console.log(`environment ${method}`, ...args);
+  }
+}
+
+const service: EnvironmentService = new LoggedEnvironmentService(store);
+
+service.reset(); // Log 'environment reset'
+service.create('b', 1); // Log 'environment create', 'b', 1
+service.create('b', 0); // Info 'environment create: the path "b" constains a value'
+service.update('b', 0); // Log 'environment update', 'b', 0
+service.update('a', 0); // Info `environment update: the path "a" doesn't constain a value`
+service.upsert('b', 2); // Log 'environment upsert', 'b', 2
+service.delete('b'); // Log 'environment delete', 'b'
+service.delete('a'); // Info `environment delete: the path "a" doesn't constain a value`
+service.add({ a: 0 }, 'a'); // Log 'environment add', { a: 0 }, 'a'
+service.merge({ a: 0 }, 'a'); // Log 'environment merge', { a: 0 }, 'a'
 ```
