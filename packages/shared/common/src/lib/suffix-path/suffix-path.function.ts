@@ -1,6 +1,6 @@
+import { pathAsArray } from '../path-as-array';
+import { pathAsString } from '../path-as-string';
 import { Path } from '../types';
-import { pathAsArray } from './path-as-array.function';
-import { pathAsString } from './path-as-string.function';
 
 /**
  * Adds a suffix to a path.

@@ -2,6 +2,10 @@
 
 Safely store disposable resources, such as the execution of an Observable.
 
+## Getting started
+
+Import from `@kaikokeke/common` and use as described in the API.
+
 ```ts
 import { SafeSubscription } from '@kaikokeke/common';
 
@@ -10,6 +14,14 @@ const safeSubscription: SafeSubscription = new SafeSubscription();
 
 ## API
 
+```ts
+class SafeSubscription {
+  add(key: string, subscriptionFn: SubscriptionFn, ...args: any[]): void;
+  get(key: string): Subscription | undefined;
+  unsubscribe(...keys: string[]): void;
+}
+```
+
 ### Exposed Types
 
 #### `SubscriptionFn`
@@ -17,7 +29,7 @@ const safeSubscription: SafeSubscription = new SafeSubscription();
 A function that returns a Subscription.
 
 ```ts
-export type SubscriptionFn = () => Subscription;
+type SubscriptionFn = () => Subscription;
 ```
 
 ### Exposed Methods

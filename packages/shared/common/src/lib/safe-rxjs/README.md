@@ -2,13 +2,26 @@
 
 Manages safe RxJS subscriptions.
 
+## Getting started
+
+Import from `@kaikokeke/common` and use as described in the API.
+
 ```ts
+import { SafeRxJS } from '@kaikokeke/common';
+
 const safeRxJS: SafeRxJS = new SafeRxJS();
 ```
 
-This class is intended to avoid memory leaks and race conditions when using Observable subscriptions.
-
 ## API
+
+```ts
+class SafeRxJS {
+  readonly destroy$: Subject<void>;
+  readonly safeSubscription: SafeSubscription;
+  takeUntilDestroy<T>(): MonoTypeOperatorFunction<T>;
+  onDestroy(): void;
+}
+```
 
 ### Exposed Properties
 
@@ -48,21 +61,24 @@ safeRxJS.onDestroy();
 
 ## Examples of use
 
+### Avoid memory leaks and race conditions
+
+This class is intended to avoid memory leaks and race conditions when using Observable subscriptions.
+
 ```ts
-import { HttpClient } from '@angular/common/http';
-import { OnDestroy, OnInit } from '@angular/core';
 import { SafeRxJS, SubscriptionFn } from '@kaikokeke/common';
 import { fromEvent, Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
+import { HttpClient } from '...';
 
-class TestClass implements OnInit, OnDestroy {
+class TestClass {
   readonly safeRxJS: SafeRxJS = new SafeRxJS();
 
   constructor(protected readonly http: HttpClient) {}
 
-  ngOnInit(): void {
+  watchClick(): void {
     fromEvent(document, 'click')
-      .pipe(take(5), safeRxJS.takeUntilDestroy())
+      .pipe(safeRxJS.takeUntilDestroy())
       .subscribe({
         next: (value: Event) => {
           // do something
@@ -84,7 +100,7 @@ class TestClass implements OnInit, OnDestroy {
     safeRxJS.safeSubscription.add('loadFn', loadFn, options);
   }
 
-  ngOnDestroy(): void {
+  onDestroy(): void {
     safeRxJS.onDestroy();
   }
 }

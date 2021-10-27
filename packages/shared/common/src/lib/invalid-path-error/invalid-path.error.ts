@@ -1,4 +1,4 @@
-import { pathAsString } from '../path';
+import { pathAsString } from '../path-as-string';
 import { Path } from '../types';
 
 /**
