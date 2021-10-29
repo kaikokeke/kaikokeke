@@ -23,6 +23,18 @@ export const service: EnvironmentService = new SimpleEnvironmentService(store);
 
 ## API
 
+```ts
+abstract class EnvironmentService {
+  reset(): void;
+  create(path: Path, value: Property): boolean;
+  update(path: Path, value: Property): boolean;
+  upsert(path: Path, value: Property): void;
+  delete(path: Path): boolean;
+  add(properties: Properties, path?: Path): void;
+  merge(properties: Properties, path?: Path): void;
+}
+```
+
 ### Exposed Methods
 
 #### `reset(): void`

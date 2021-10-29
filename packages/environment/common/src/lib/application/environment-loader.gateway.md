@@ -2,21 +2,42 @@
 
 Loads the environment properties from the provided asynchronous sources.
 
+## Getting Started
+
+You can create an environment loader class extending from `EnvironmentLoader`.
+
+```ts
+import { EnvironmentLoader, EnvironmentService, PropertiesSource } from '@kaikokeke/environment';
+import { environmentService } from './environment.service.ts';
+import { environmentSources } from './environment.sources.ts';
+
+class SimpleEnvironmentLoader extends EnvironmentLoader {
+  constructor(
+    protected readonly service: EnvironmentService,
+    protected readonly sources?: PropertiesSource | PropertiesSource[],
+  ) {
+    super(service, surces);
+  }
+}
+
+export const environmentQuery: EnvironmentLoader = new SimpleEnvironmentLoader(environmentService, environmentSources);
+```
+
 ## API
+
+```ts
+abstract class EnvironmentLoader {
+  load(): Promise<void>;
+}
+```
 
 ### Exposed Methods
 
 #### `async load(): Promise<void>`
 
-Loads the application environment properties from the provided asynchronous sources.
+Loads the environment properties from the provided asynchronous sources.
 
-Returns a promise to load the application once the required properties are loaded.
-
-#### `async loadSubmodule(name: string, sources: PropertiesSource | PropertiesSource[]): Promise<void>`
-
-Loads the submodule environment properties from the provided asynchronous sources.
-
-Returns a promise to load the submodule once the required properties are loaded.
+Returns a promise to load once the `requiredToLoad` sources are loaded.
 
 ## Lifecycle Hooks
 
@@ -48,7 +69,7 @@ You don't have to implement all (or any) of the lifecycle hooks, just the ones y
 
 ## Source Middleware
 
-It’s possible to define middleware functions
+It’s possible to define a middleware function to manage how properties before they are added to the environment.
 
 ### `preAddProperties(properties: Properties, source: LoaderPropertiesSource): Properties`
 

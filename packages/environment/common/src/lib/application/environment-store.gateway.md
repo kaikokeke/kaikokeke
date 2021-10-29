@@ -20,6 +20,15 @@ export const store: EnvironmentStore = new SimpleEnvironmentStore();
 
 ## API
 
+```ts
+abstract class EnvironmentStore {
+  getAll$(): Observable<Properties>;
+  getAll(): Properties;
+  update(properties: Properties): void;
+  reset(): void;
+}
+```
+
 ### Exposed Methods
 
 #### `getAll$(): Observable<Properties>`

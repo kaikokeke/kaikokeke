@@ -2,18 +2,6 @@
 
 Definition of the source from which to get environment properties asynchronously.
 
-```ts
-interface PropertiesSource {
-  name?: string;
-  requiredToLoad?: boolean;
-  loadInOrder?: boolean;
-  mergeProperties?: boolean;
-  ignoreError?: boolean;
-  path?: Path;
-  load(): ObservableInput<Properties>;
-}
-```
-
 ## Getting Started
 
 The property source can be used by extending from the abstract class or implemented as an interface.
@@ -39,6 +27,18 @@ const source: PropertiesSource = new ExtendsSource();
 This minimal implementation can be extended by setting properties as described in the API and examples below.
 
 ## API
+
+```ts
+abstract class PropertiesSource {
+  name?: string;
+  requiredToLoad?: boolean;
+  loadInOrder?: boolean;
+  mergeProperties?: boolean;
+  ignoreError?: boolean;
+  path?: Path;
+  abstract load(): ObservableInput<Properties>;
+}
+```
 
 ### Exposed Properties
 
