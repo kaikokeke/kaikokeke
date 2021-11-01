@@ -24,8 +24,8 @@ export abstract class EnvironmentQuery {
   ) {}
 
   /**
-   * Gets all the distinct environment properties.
-   * @returns All the environment properties as Observable.
+   * Gets all the environment properties.
+   * @returns All the distinct environment properties as Observable.
    */
   getAll$(): Observable<Properties> {
     return this.store.getAll$().pipe(distinctUntilChanged(isEqual), shareReplay(1));
@@ -54,9 +54,9 @@ export abstract class EnvironmentQuery {
   }
 
   /**
-   * Gets the distinct environment property at path.
+   * Gets the environment property at path.
    * @param path The property path to resolve.
-   * @returns The environment property at path as Observable or `undefined` if the path cannot be resolved.
+   * @returns The distinct environment property at path as Observable or `undefined` if the path cannot be resolved.
    * @see Path
    */
   get$<P extends Property>(path: Path): Observable<P | undefined> {
@@ -93,9 +93,9 @@ export abstract class EnvironmentQuery {
   }
 
   /**
-   * Checks if the distinct environment property path is available for resolution.
+   * Checks if the environment property path is available for resolution.
    * @param paths The property path to resolve.
-   * @returns `true` as Observable if the environment property path exists, otherwise `false`.
+   * @returns distinct `true` as Observable if the environment property path exists, otherwise `false`.
    * @see Path
    */
   contains$(path: Path): Observable<boolean> {
