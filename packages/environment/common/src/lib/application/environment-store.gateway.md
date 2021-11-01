@@ -22,10 +22,10 @@ export const store: EnvironmentStore = new SimpleEnvironmentStore();
 
 ```ts
 abstract class EnvironmentStore {
-  getAll$(): Observable<Properties>;
-  getAll(): Properties;
-  update(properties: Properties): void;
-  reset(): void;
+  abstract getAll$(): Observable<Properties>;
+  abstract getAll(): Properties;
+  abstract update(properties: Properties): void;
+  abstract reset(): void;
 }
 ```
 
