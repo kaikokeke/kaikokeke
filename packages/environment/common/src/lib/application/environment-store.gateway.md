@@ -36,21 +36,10 @@ If you want to create a pure `JavaScript` implementation you must create a plain
 
 ```js
 const environmentStore = {
-  getAll$ = () => {
-    // implementation
-  },
-
-  getAll = () => {
-    // implementation
-  },
-
-  update = (properties) => {
-    // implementation
-  },
-
-  reset = () => {
-    // implementation
-  },
+  getAll$ = () => { return },
+  getAll = () => { return },
+  update = (properties) => {},
+  reset = () => {},
 }
 ```
 
