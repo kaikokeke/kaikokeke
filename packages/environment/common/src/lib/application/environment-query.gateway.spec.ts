@@ -4,7 +4,7 @@ import { delay } from 'rxjs/operators';
 
 import { asMutable, mapAsMutable } from '../helpers';
 import { Properties } from '../types';
-import { EnvironmentQuery } from './environment-query.gateway';
+import { createEnvironmentQuery, EnvironmentQuery } from './environment-query.gateway';
 import { EnvironmentStore } from './environment-store.gateway';
 
 class TestStore extends EnvironmentStore {
@@ -899,5 +899,25 @@ describe('EnvironmentQuery', () => {
           },
         });
     });
+  });
+});
+
+describe('createEnvironmentQuery(store, partialConfig?)', () => {
+  let store: EnvironmentStore;
+
+  beforeEach(() => {
+    store = new TestStore();
+  });
+
+  it(`(store) returns an EnvironmentQuery`, () => {
+    expect(createEnvironmentQuery(store)).toBeInstanceOf(EnvironmentQuery);
+  });
+
+  it(`(store, partialConfig) returns and EnvironmentQuery with custom config`, () => {
+    const query = createEnvironmentQuery(store, { interpolation: ['[<', '>]'], useEnvironmentToTranspile: true });
+    const env = { a: { a: 0 }, b: '[< a.a >]' };
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(env));
+    jest.spyOn(store, 'getAll').mockReturnValue(env);
+    expect(query.getTranspiled('b', {})).toEqual('0');
   });
 });

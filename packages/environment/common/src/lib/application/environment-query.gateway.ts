@@ -539,3 +539,25 @@ export abstract class EnvironmentQuery {
     }
   }
 }
+
+class EnvironmentQueryImpl extends EnvironmentQuery {
+  constructor(
+    protected readonly store: EnvironmentStore,
+    protected readonly partialConfig?: Partial<EnvironmentConfig>,
+  ) {
+    super(store, partialConfig);
+  }
+}
+
+/**
+ * Creates an environment query service.
+ * @param store Manages the environment store.
+ * @param partialConfig Optional partial configuration parameters for the Environment module.
+ * @returns A basic EnvironmentQuery instance.
+ */
+export function createEnvironmentQuery(
+  store: EnvironmentStore,
+  partialConfig?: Partial<EnvironmentConfig>,
+): EnvironmentQuery {
+  return new EnvironmentQueryImpl(store, partialConfig);
+}

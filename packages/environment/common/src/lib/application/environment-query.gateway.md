@@ -2,27 +2,50 @@
 
 Gets the properties from the environment.
 
+This service provides different ways to get the environment properties.
+
 ## Getting Started
 
-You can create an environment query class extending from `EnvironmentQuery`.
+You can create an environment query with `TypeScript` by extending from `EnvironmentQuery`. This option is ideal to change or extends the service behavior, as described in the API and examples.
 
 ```ts
-import { EnvironmentQuery, EnvironmentStore } from '@kaikokeke/environment';
+import { EnvironmentConfig, EnvironmentQuery, EnvironmentStore } from '@kaikokeke/environment';
 import { environmentStore } from './environment.store.ts';
 
 class SimpleEnvironmentQuery extends EnvironmentQuery {
-  constructor(protected readonly store: EnvironmentStore) {
-    super(store);
+  constructor(
+    protected readonly store: EnvironmentStore,
+    protected readonly partialConfig?: Partial<EnvironmentConfig>,
+  ) {
+    super(store, partialConfig);
   }
 }
 
-export const query: EnvironmentQuery = new SimpleEnvironmentQuery(environmentStore);
+export const environmentQuery: EnvironmentQuery = new SimpleEnvironmentQuery(environmentStore);
+```
+
+If you want to create a pure `JavaScript` implementation you can use the `createEnvironmentQuery(store, partialConfig)` function.
+
+```js
+import { createEnvironmentQuery } from '@kaikokeke/environment';
+import { environmentStore } from './environment.store';
+
+const environmentQuery = createEnvironmentQuery(environmentStore);
 ```
 
 ## API
 
 ```ts
+function createEnvironmentQuery(store: EnvironmentStore, partialConfig?: Partial<EnvironmentConfig>): EnvironmentQuery;
+```
+
+```ts
 abstract class EnvironmentQuery {
+  constructor(
+    protected readonly store: EnvironmentStore,
+    protected readonly partialConfig?: Partial<EnvironmentConfig>,
+  );
+
   getAll$(): Observable<Properties>;
   getAllAsync(): Promise<Properties>;
   getAll(): Properties;
@@ -90,6 +113,30 @@ abstract class EnvironmentQuery {
     config?: Partial<EnvironmentConfig>,
   ): P | D;
 }
+```
+
+### Function
+
+#### `createEnvironmentQuery(store: EnvironmentStore, partialConfig?: Partial<EnvironmentConfig>): EnvironmentQuery`
+
+Creates an environment query service.
+
+```ts
+createEnvironmentQuery(environmentStore);
+```
+
+Returns a basic EnvironmentQuery instance.
+
+```ts
+const environmentQuery: EnvironmentQuery = createEnvironmentQuery(environmentStore);
+```
+
+You can also pass an optional partial configuration parameters for the Environment module.
+
+```ts
+const environmentQuery: EnvironmentQuery = createEnvironmentQuery(environmentStore, {
+  useEnvironmentToTranspile: true,
+});
 ```
 
 ### Exposed Methods
@@ -310,7 +357,7 @@ class CustomEnvironmentQuery extends EnvironmentQuery {
   }
 }
 
-export const query: EnvironmentQuery = new CustomEnvironmentQuery(store);
+export const environmentQuery: EnvironmentQuery = new CustomEnvironmentQuery(store);
 
 const address$: Observable<Property> = query.get$('user.address').pipe(mapAsMutable());
 const address: Property = query.getTyped('user.address', asMutable);
