@@ -2,7 +2,7 @@ import { Path, pathAsString, prefixPath } from '@kaikokeke/common';
 import { Observable } from 'rxjs';
 
 import { Properties, Property } from '../types';
-import { EnvironmentService } from './environment-service.gateway';
+import { createEnvironmentService, EnvironmentService } from './environment-service.gateway';
 import { EnvironmentStore } from './environment-store.gateway';
 
 class TestStore extends EnvironmentStore {
@@ -220,7 +220,6 @@ describe('EnvironmentService', () => {
       }
 
       update(path: Path, value: Property): boolean {
-        console.log(this._getPath(path));
         return super.update(this._getPath(path), value);
       }
 
@@ -364,5 +363,17 @@ describe('EnvironmentService', () => {
       loggedService.merge({ a: 0 }, 'a');
       expect(console.log).toHaveBeenNthCalledWith(7, 'environment merge', { a: 0 }, 'a');
     });
+  });
+});
+
+describe('createEnvironmentService(store)', () => {
+  let store: EnvironmentStore;
+
+  beforeEach(() => {
+    store = new TestStore();
+  });
+
+  it(`returns an EnvironmentService`, () => {
+    expect(createEnvironmentService(store)).toBeInstanceOf(EnvironmentService);
   });
 });

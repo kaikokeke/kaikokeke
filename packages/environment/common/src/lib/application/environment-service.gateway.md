@@ -6,19 +6,28 @@ This service manages how to add, update or delete properties in the environment.
 
 ## Getting Started
 
-You can create an environment service class by extending from `EnvironmentService`.
+You can create an environment service with `TypeScript` by extending from `EnvironmentService`. This option is ideal to change or extends the service behavior, as described in the API and examples.
 
 ```ts
 import { EnvironmentService, EnvironmentStore } from '@kaikokeke/environment';
-import { store } from './simple-environment.store';
+import { environmentStore } from './environment.store';
 
 class SimpleEnvironmentService extends EnvironmentService {
-  constructor(protected store: EnvironmentStore) {
+  constructor(protected readonly store: EnvironmentStore) {
     super(store);
   }
 }
 
-export const service: EnvironmentService = new SimpleEnvironmentService(store);
+const environmentService: EnvironmentService = new SimpleEnvironmentService(environmentStore);
+```
+
+If you want to create a pure `JavaScript` implementation you can use the `createEnvironmentService(store)` function.
+
+```js
+import { createEnvironmentService } from '@kaikokeke/environment';
+import { environmentStore } from './environment.store';
+
+const environmentService = createEnvironmentService(environmentStore);
 ```
 
 ## API
@@ -33,6 +42,26 @@ abstract class EnvironmentService {
   add(properties: Properties, path?: Path): void;
   merge(properties: Properties, path?: Path): void;
 }
+```
+
+```ts
+function createEnvironmentService(store: EnvironmentStore): EnvironmentService;
+```
+
+### Function
+
+#### `createEnvironmentService(store: EnvironmentStore): EnvironmentService`
+
+Creates an environment service.
+
+```ts
+createEnvironmentService(store);
+```
+
+Returns a basic EnvironmentService instance.
+
+```ts
+const environmentService: EnvironmentService = createEnvironmentService(environmentStore);
 ```
 
 ### Exposed Methods

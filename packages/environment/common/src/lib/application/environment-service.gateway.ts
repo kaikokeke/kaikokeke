@@ -154,3 +154,18 @@ export abstract class EnvironmentService {
     this.store.update(newEnvironment);
   }
 }
+
+class EnvironmentServiceImpl extends EnvironmentService {
+  constructor(protected readonly store: EnvironmentStore) {
+    super(store);
+  }
+}
+
+/**
+ * Creates an environment service.
+ * @param store Manages the environment store.
+ * @returns A basic EnvironmentService instance.
+ */
+export function createEnvironmentService(store: EnvironmentStore): EnvironmentService {
+  return new EnvironmentServiceImpl(store);
+}
