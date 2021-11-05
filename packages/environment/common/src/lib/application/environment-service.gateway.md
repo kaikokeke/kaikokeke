@@ -38,6 +38,7 @@ function createEnvironmentService(store: EnvironmentStore): EnvironmentService;
 
 ```ts
 abstract class EnvironmentService {
+  constructor(protected readonly store: EnvironmentStore);
   reset(): void;
   create(path: Path, value: Property): boolean;
   update(path: Path, value: Property): boolean;
@@ -55,7 +56,7 @@ abstract class EnvironmentService {
 Creates an environment environmentService.
 
 ```ts
-createEnvironmentService(store);
+createEnvironmentService(environmentStore);
 ```
 
 Returns a basic EnvironmentService instance.
