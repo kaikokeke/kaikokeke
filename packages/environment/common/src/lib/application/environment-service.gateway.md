@@ -33,6 +33,10 @@ const environmentService = createEnvironmentService(environmentStore);
 ## API
 
 ```ts
+function createEnvironmentService(store: EnvironmentStore): EnvironmentService;
+```
+
+```ts
 abstract class EnvironmentService {
   reset(): void;
   create(path: Path, value: Property): boolean;
@@ -44,15 +48,11 @@ abstract class EnvironmentService {
 }
 ```
 
-```ts
-function createEnvironmentService(store: EnvironmentStore): EnvironmentService;
-```
-
 ### Function
 
 #### `createEnvironmentService(store: EnvironmentStore): EnvironmentService`
 
-Creates an environment service.
+Creates an environment environmentService.
 
 ```ts
 createEnvironmentService(store);
@@ -71,13 +71,13 @@ const environmentService: EnvironmentService = createEnvironmentService(environm
 Resets the environment to the initial state.
 
 ```ts
-service.reset();
+environmentService.reset();
 ```
 
 ```ts
-store.getAll(); // {a:0,b:1}
-service.reset();
-store.getAll(); // {}
+environmentStore.getAll(); // {a:0,b:1}
+environmentService.reset();
+environmentStore.getAll(); // {}
 ```
 
 #### `create(path: Path, value: Property): boolean`
@@ -85,23 +85,23 @@ store.getAll(); // {}
 Creates a new property in the environment and sets the value.
 
 ```ts
-service.create('a', 0);
+environmentService.create('a', 0);
 ```
 
 Returns `true` if the property is created.
 
 ```ts
-store.getAll(); // {a:0}
-service.create('b', 1); // true
-store.getAll(); // {a:0,b:1}
+environmentStore.getAll(); // {a:0}
+environmentService.create('b', 1); // true
+environmentStore.getAll(); // {a:0,b:1}
 ```
 
 Returns `false` and ignores the action if the property exists.
 
 ```ts
-store.getAll(); // {a:0}
-service.create('a', 1); // false
-store.getAll(); // {a:0}
+environmentStore.getAll(); // {a:0}
+environmentService.create('a', 1); // false
+environmentStore.getAll(); // {a:0}
 ```
 
 Throws `InvalidPathError` if the path is invalid.
@@ -111,23 +111,23 @@ Throws `InvalidPathError` if the path is invalid.
 Updates the value of a property in the environment.
 
 ```ts
-service.update('a', 0);
+environmentService.update('a', 0);
 ```
 
 Returns `true` if the property is updated.
 
 ```ts
-store.getAll(); // {a:0}
-service.update('a', 1); // true
-store.getAll(); // {a:1}
+environmentStore.getAll(); // {a:0}
+environmentService.update('a', 1); // true
+environmentStore.getAll(); // {a:1}
 ```
 
 Returns `false` and ignores the action if the property doesn't exist.
 
 ```ts
-store.getAll(); // {a:0}
-service.update('b', 1); // false
-store.getAll(); // {a:0}
+environmentStore.getAll(); // {a:0}
+environmentService.update('b', 1); // false
+environmentStore.getAll(); // {a:0}
 ```
 
 Throws `InvalidPathError` if the path is invalid.
@@ -137,15 +137,15 @@ Throws `InvalidPathError` if the path is invalid.
 Updates or creates the value of a property in the environment.
 
 ```ts
-service.upsert('a', 0);
+environmentService.upsert('a', 0);
 ```
 
 ```ts
-store.getAll(); // {a:0}
-service.upsert('b', 1);
-store.getAll(); // {a:0,b:1}
-service.upsert('b', 0);
-store.getAll(); // {a:0,b:0}
+environmentStore.getAll(); // {a:0}
+environmentService.upsert('b', 1);
+environmentStore.getAll(); // {a:0,b:1}
+environmentService.upsert('b', 0);
+environmentStore.getAll(); // {a:0,b:0}
 ```
 
 Throws `InvalidPathError` if the path is invalid.
@@ -153,23 +153,23 @@ Throws `InvalidPathError` if the path is invalid.
 #### `delete(path: Path): boolean`
 
 ```ts
-service.delete('a');
+environmentService.delete('a');
 ```
 
 Returns `true` if the property is deleted.
 
 ```ts
-store.getAll(); // {a:0,b:1}
-service.delete('b'); // true
-store.getAll(); // {a:0}
+environmentStore.getAll(); // {a:0,b:1}
+environmentService.delete('b'); // true
+environmentStore.getAll(); // {a:0}
 ```
 
 Returns `false` and ignores the action if the property doesn't exist.
 
 ```ts
-store.getAll(); // {a:0}
-service.delete('b'); // false
-store.getAll(); // {a:0}
+environmentStore.getAll(); // {a:0}
+environmentService.delete('b'); // false
+environmentStore.getAll(); // {a:0}
 ```
 
 Throws `InvalidPathError` if the path is invalid.
@@ -179,23 +179,23 @@ Throws `InvalidPathError` if the path is invalid.
 Adds properties to the environment.
 
 ```ts
-service.add({ a: 0 });
+environmentService.add({ a: 0 });
 ```
 
 If a path is not provided, the properties will be added at the root by overwriting the existing properties.
 
 ```ts
-store.getAll(); // {a:{b:1}}
-service.add({ a: { a: 0 } });
-store.getAll(); // {a:{a:0}}
+environmentStore.getAll(); // {a:{b:1}}
+environmentService.add({ a: { a: 0 } });
+environmentStore.getAll(); // {a:{a:0}}
 ```
 
 If a path is provided will be used to overwrite the existing properties.
 
 ```ts
-store.getAll(); // {a:{b:1}}
-service.add({ a: 0 }, 'a');
-store.getAll(); // {a:{a:0}}
+environmentStore.getAll(); // {a:{b:1}}
+environmentService.add({ a: 0 }, 'a');
+environmentStore.getAll(); // {a:{a:0}}
 ```
 
 Throws `InvalidPathError` if the path is invalid.
@@ -205,32 +205,32 @@ Throws `InvalidPathError` if the path is invalid.
 Adds properties to the environment using the deep merge strategy.
 
 ```ts
-service.merge({ a: 0 });
+environmentService.merge({ a: 0 });
 ```
 
 If a path is not provided, the properties will be added at the root by merging the existing properties.
 
 ```ts
-store.getAll(); // {a:{b:1}}
-service.merge({ a: { a: 0 } });
-store.getAll(); // {a:{a:0,b:1}}
+environmentStore.getAll(); // {a:{b:1}}
+environmentService.merge({ a: { a: 0 } });
+environmentStore.getAll(); // {a:{a:0,b:1}}
 ```
 
 If a path is provided will be used to merge the existing properties.
 
 ```ts
-store.getAll(); // {a:{b:1}}
-service.merge({ a: 0 }, 'a');
-store.getAll(); // {a:{a:0,b:1}}
+environmentStore.getAll(); // {a:{b:1}}
+environmentService.merge({ a: 0 }, 'a');
+environmentStore.getAll(); // {a:{a:0,b:1}}
 ```
 
 The deepMerge strategy also merges Array values.
 See `deepMerge()` from `@kaikokeke/common`.
 
 ```ts
-store.getAll(); // {a:[0]}
-service.merge({ a: [1] });
-store.getAll(); // {a:[0,1]}
+environmentStore.getAll(); // {a:[0]}
+environmentService.merge({ a: [1] });
+environmentStore.getAll(); // {a:[0,1]}
 ```
 
 Throws `InvalidPathError` if the path is invalid.
@@ -244,12 +244,12 @@ You can overwrite all methods to add a default base path for a module or subappl
 ```ts
 import { Path, prefixPath } from '@environment/common';
 import { EnvironmentService, EnvironmentStore, Properties, Property } from '@kaikokeke/environment';
-import { store } from './simple-environment.store';
+import { environmentStore } from './environment.store';
 
 class SubmoduleEnvironmentService extends EnvironmentService {
   private readonly _pathPrefix = 'submodule';
 
-  constructor(protected store: EnvironmentStore) {
+  constructor(protected readonly store: EnvironmentStore) {
     super(store);
   }
 
@@ -283,14 +283,14 @@ class SubmoduleEnvironmentService extends EnvironmentService {
   }
 }
 
-const service: EnvironmentService = new SubmoduleEnvironmentService(store);
+const environmentService: EnvironmentService = new SubmoduleEnvironmentService(environmentStore);
 
-service.create('a.a', 1); // {submodule:{a:{a:1}}}
-service.update('a.a', 0); // {submodule:{a:{a:0}}}
-service.upsert('a.a', 2); // {submodule:{a:{a:2}}}
-service.delete('a.a'); // {submodule:{a:{}}}
-service.add({ a: { a: 0 } }); // {submodule:{a:{a:0}}}
-service.merge({ a: { b: 0 } }); // {submodule:{a:{a:0,b:0}}}
+environmentService.create('a.a', 1); // {submodule:{a:{a:1}}}
+environmentService.update('a.a', 0); // {submodule:{a:{a:0}}}
+environmentService.upsert('a.a', 2); // {submodule:{a:{a:2}}}
+environmentService.delete('a.a'); // {submodule:{a:{}}}
+environmentService.add({ a: { a: 0 } }); // {submodule:{a:{a:0}}}
+environmentService.merge({ a: { b: 0 } }); // {submodule:{a:{a:0,b:0}}}
 ```
 
 ### Add logs to operations
@@ -300,10 +300,10 @@ Sometimes is needed to add logs for the different operations.
 ```ts
 import { Path, pathAsString } from '@environment/common';
 import { EnvironmentService, EnvironmentStore, Properties, Property } from '@kaikokeke/environment';
-import { store } from './simple-environment.store';
+import { environmentStore } from './environment.store';
 
 class LoggedEnvironmentService extends EnvironmentService {
-  constructor(protected store: EnvironmentStore) {
+  constructor(protected readonly store: EnvironmentStore) {
     super(store);
   }
 
@@ -368,16 +368,16 @@ class LoggedEnvironmentService extends EnvironmentService {
   }
 }
 
-const service: EnvironmentService = new LoggedEnvironmentService(store);
+const environmentService: EnvironmentService = new LoggedEnvironmentService(environmentStore);
 
-service.reset(); // Log 'environment reset'
-service.create('b', 1); // Log 'environment create', 'b', 1
-service.create('b', 0); // Info 'environment create: the path "b" constains a value'
-service.update('b', 0); // Log 'environment update', 'b', 0
-service.update('a', 0); // Info `environment update: the path "a" doesn't constain a value`
-service.upsert('b', 2); // Log 'environment upsert', 'b', 2
-service.delete('b'); // Log 'environment delete', 'b'
-service.delete('a'); // Info `environment delete: the path "a" doesn't constain a value`
-service.add({ a: 0 }, 'a'); // Log 'environment add', { a: 0 }, 'a'
-service.merge({ a: 0 }, 'a'); // Log 'environment merge', { a: 0 }, 'a'
+environmentService.reset(); // Log 'environment reset'
+environmentService.create('b', 1); // Log 'environment create', 'b', 1
+environmentService.create('b', 0); // Info 'environment create: the path "b" constains a value'
+environmentService.update('b', 0); // Log 'environment update', 'b', 0
+environmentService.update('a', 0); // Info `environment update: the path "a" doesn't constain a value`
+environmentService.upsert('b', 2); // Log 'environment upsert', 'b', 2
+environmentService.delete('b'); // Log 'environment delete', 'b'
+environmentService.delete('a'); // Info `environment delete: the path "a" doesn't constain a value`
+environmentService.add({ a: 0 }, 'a'); // Log 'environment add', { a: 0 }, 'a'
+environmentService.merge({ a: 0 }, 'a'); // Log 'environment merge', { a: 0 }, 'a'
 ```
