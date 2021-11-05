@@ -1,6 +1,6 @@
 import { createStore as createAkitaStore, isDev, setAction, Store as AkitaStore } from '@datorama/akita';
 import { Action, createStore as createReduxStore, Reducer, Store as ReduxStore } from 'redux';
-import { BehaviorSubject, Observable, Subscriber } from 'rxjs';
+import { BehaviorSubject, from, Observable, ObservableInput } from 'rxjs';
 
 import { Properties } from '../types';
 import { EnvironmentStore } from './environment-store.gateway';
@@ -20,7 +20,7 @@ class TestEvironmentStore extends EnvironmentStore {
   }
 }
 
-export class RxjsEnvironmentStore extends EnvironmentStore {
+class RxjsEnvironmentStore extends EnvironmentStore {
   private readonly _properties: BehaviorSubject<Properties> = new BehaviorSubject({});
 
   getAll(): Properties {
@@ -40,10 +40,21 @@ export class RxjsEnvironmentStore extends EnvironmentStore {
   }
 }
 
+let _rxjsProperties = new BehaviorSubject({});
+const rxjsEnvironmentStore = {
+  getAll: () => _rxjsProperties.getValue(),
+  getAll$: () => _rxjsProperties.asObservable(),
+  update: (properties) => {
+    _rxjsProperties.next(properties);
+  },
+  reset: () => {
+    _rxjsProperties.next({});
+  },
+};
+
 const akitaStore: AkitaStore<Properties> = createAkitaStore({}, { name: 'environment', resettable: true });
 
 class AkitaEvironmentStore extends EnvironmentStore {
-  private readonly;
   getAll$(): Observable<Properties> {
     return akitaStore._select((state: Properties) => state);
   }
@@ -74,60 +85,23 @@ const environmentReducer: Reducer = (state: Properties = {}, action: Environment
   }
 };
 
-const reduxStore: ReduxStore<Properties> = createReduxStore(environmentReducer);
-
 class ReduxEvironmentStore extends EnvironmentStore {
-  getAll$(): Observable<Properties> {
-    return new Observable((observer: Subscriber<Properties>) => {
-      observer.next(reduxStore.getState());
+  private readonly reduxStore: ReduxStore<Properties> = createReduxStore(environmentReducer);
 
-      return reduxStore.subscribe(() => {
-        observer.next(reduxStore.getState());
-      });
-    });
+  getAll$(): Observable<Properties> {
+    return from(this.reduxStore as ObservableInput<Properties>);
   }
 
   getAll(): Properties {
-    return reduxStore.getState();
+    return this.reduxStore.getState();
   }
 
   update(properties: Properties): void {
-    reduxStore.dispatch({ type: 'UPDATE', properties });
+    this.reduxStore.dispatch({ type: 'UPDATE', properties });
   }
 
   reset(): void {
-    reduxStore.dispatch({ type: 'RESET' });
-  }
-}
-
-class LocalStorageEvironmentStore extends EnvironmentStore {
-  private readonly _key = 'env';
-  private readonly _resetValue: Properties = {};
-  private readonly _properties: BehaviorSubject<Properties> = new BehaviorSubject(this._resetValue);
-
-  constructor() {
-    super();
-    const localEnvironment: Properties = this.getAll();
-    this._properties.next(localEnvironment);
-  }
-
-  getAll$(): Observable<Properties> {
-    return this._properties.asObservable();
-  }
-
-  getAll(): Properties {
-    const properties: string = localStorage.getItem(this._key) ?? JSON.stringify(this._resetValue);
-
-    return JSON.parse(properties);
-  }
-
-  reset(): void {
-    this.update(this._resetValue);
-  }
-
-  update(properties: Properties): void {
-    localStorage.setItem(this._key, JSON.stringify(properties));
-    this._properties.next(properties);
+    this.reduxStore.dispatch({ type: 'RESET' });
   }
 }
 
@@ -197,9 +171,18 @@ describe('EnvironmentStore', () => {
       });
     };
 
-    describe(`using a basic RxJS State Manager`, () => {
+    describe(`using a TypeScript basic RxJS State Manager`, () => {
       beforeEach(() => {
         store = new RxjsEnvironmentStore();
+      });
+
+      testExampleImplementation();
+    });
+
+    describe(`using a JavaScript basic RxJS State Manager`, () => {
+      beforeEach(() => {
+        _rxjsProperties = new BehaviorSubject({});
+        store = rxjsEnvironmentStore;
       });
 
       testExampleImplementation();
@@ -217,16 +200,6 @@ describe('EnvironmentStore', () => {
     describe(`using Redux State Container`, () => {
       beforeEach(() => {
         store = new ReduxEvironmentStore();
-        reduxStore.dispatch({ type: 'RESET' });
-      });
-
-      testExampleImplementation();
-    });
-
-    describe(`using LocalStorage`, () => {
-      beforeEach(() => {
-        store = new LocalStorageEvironmentStore();
-        localStorage.clear();
       });
 
       testExampleImplementation();
