@@ -146,14 +146,14 @@ const environmentQuery: EnvironmentQuery = createEnvironmentQuery(environmentSto
 Gets all the environment properties.
 
 ```ts
-query.getAll$();
+environmentQuery.getAll$();
 ```
 
 Returns all the distinct environment properties as Observable.
 
 ```ts
 // -{}-{}-{a:0}-{a:0}-{a:1}-
-query.getAll$(); // -{}---{a:0}---{a:1}-
+environmentQuery.getAll$(); // -{}---{a:0}---{a:1}-
 ```
 
 ```
@@ -182,14 +182,14 @@ c := {a:1}
 Gets all the environment properties.
 
 ```ts
-query.getAllAsync();
+environmentQuery.getAllAsync();
 ```
 
 Returns the first non empty set of environment properties as Promise.
 
 ```ts
 // -null-undefined-{}-{}-{a:1}-
-query.getAllAsync(); // resolves {a:1}
+environmentQuery.getAllAsync(); // resolves {a:1}
 ```
 
 #### `getAll(): Properties`
@@ -197,14 +197,14 @@ query.getAllAsync(); // resolves {a:1}
 Gets all the environment properties.
 
 ```ts
-query.getAll();
+environmentQuery.getAll();
 ```
 
 Returns all the environment properties.
 
 ```ts
 // {a:1}
-query.getAll(); // {a:1}
+environmentQuery.getAll(); // {a:1}
 ```
 
 #### `get$<P extends Property>(path: Path): Observable<P | undefined>`
@@ -212,14 +212,14 @@ query.getAll(); // {a:1}
 Gets the environment property at path.
 
 ```ts
-query.get$('a');
+environmentQuery.get$('a');
 ```
 
 Returns the distinct environment property at path as Observable or `undefined` if the path cannot be resolved.
 
 ```ts
 // -{}-{}-{a:0}-{a:0}-{a:1}-
-query.get$('a'); // -undefined---0---1-
+environmentQuery.get$('a'); // -undefined---0---1-
 ```
 
 ```
@@ -248,14 +248,14 @@ c := 1
 Gets the environment property at path.
 
 ```ts
-query.getAsync('a');
+environmentQuery.getAsync('a');
 ```
 
 Returns the non nil environment property at path as Promise.
 
 ```ts
 // -null-undefined-{}-{a:0}-{a:1}-
-query.getAsync('a'); // resolves 0
+environmentQuery.getAsync('a'); // resolves 0
 ```
 
 #### `get<P extends Property>(path: Path): P | undefined`
@@ -263,15 +263,15 @@ query.getAsync('a'); // resolves 0
 Gets the environment property at path.
 
 ```ts
-query.get('a');
+environmentQuery.get('a');
 ```
 
 Returns the environment property at path or `undefined` if the path cannot be resolved.
 
 ```ts
 // {a:1}
-query.get('a'); // 1
-query.get('b'); // undefined
+environmentQuery.get('a'); // 1
+environmentQuery.get('b'); // undefined
 ```
 
 #### `contains$(path: Path): Observable<boolean>`
@@ -279,14 +279,14 @@ query.get('b'); // undefined
 Checks if the environment property path is available for resolution.
 
 ```ts
-query.contains$('a');
+environmentQuery.contains$('a');
 ```
 
 Returns distinct `true` as Observable if the environment property path exists, otherwise `false`.
 
 ```ts
 // -{}-{}-{a:0}-{a:0}-{b:0}-
-query.contains$('a'); // -false---true---false-
+environmentQuery.contains$('a'); // -false---true---false-
 ```
 
 ```
@@ -314,14 +314,14 @@ b := true
 Checks if the environment property path is available for resolution.
 
 ```ts
-query.containsAsync('a');
+environmentQuery.containsAsync('a');
 ```
 
 Returns `true` as Promise when the environment property path exists.
 
 ```ts
 // -{}-{}-{a:0}-{a:0}-{b:0}-
-query.containsAsync('a'); // resolves true
+environmentQuery.containsAsync('a'); // resolves true
 ```
 
 #### `contains(path: Path): boolean`
@@ -329,15 +329,148 @@ query.containsAsync('a'); // resolves true
 Checks if the environment property path is available for resolution.
 
 ```ts
-query.contains('a');
+environmentQuery.contains('a');
 ```
 
 Returns `true` if the environment property path exists, otherwise `false`.
 
 ```ts
 // {a:0}
-query.contains('a'); // true
-query.contains('b'); // false
+environmentQuery.contains('a'); // true
+environmentQuery.contains('b'); // false
+```
+
+#### `containsAll$(...paths: AtLeastOne<Path>): Observable<boolean>`
+
+Checks if all the environment property paths are available for resolution.
+
+```ts
+environmentQuery.containsAll$('a', 'b');
+```
+
+Returns distinct `true` as Observable if all the environment property paths exists, otherwise `false`.
+
+```ts
+// -{}-{}-{a:0,b:0}-{a:0,b:0}-{b:0}-
+environmentQuery.containsAll$('a', 'b'); // -false---true---false-
+```
+
+```
+// See in https://swirly.dev/
+
+[styles]
+event_radius = 40
+frame_width = 50
+
+-a-b-c-d-e-
+a := {}
+b := {}
+c := {a:0,b:0}
+d := {a:0,b:0}
+e := {b:0}
+
+> containsAll$('a', 'b')
+
+-a---b---a-
+a := false
+b := true
+```
+
+#### `containsAllAsync(...paths: AtLeastOne<Path>): Promise<boolean>`
+
+Checks if all the environment property paths are available for resolution.
+
+```ts
+environmentQuery.containsAllAsync('a', 'b');
+```
+
+Returns `true` as Promise when all environment property paths exists.
+
+```ts
+// -{}-{}-{a:0,b:0}-{a:0,b:0}-{b:0}-
+environmentQuery.containsAllAsync('a', 'b'); // resolves true
+```
+
+#### `containsAll(...paths: AtLeastOne<Path>): boolean`
+
+Checks if all the environment property paths are available for resolution.
+
+```ts
+environmentQuery.containsAll('a');
+```
+
+Returns `true` if all the environment property paths exists, otherwise `false`.
+
+```ts
+// {a:0,b:0}
+environmentQuery.containsAll('a', 'b'); // true
+environmentQuery.containsAll('a', 'c'); // false
+```
+
+#### `containsSome$(...paths: AtLeastOne<Path>): Observable<boolean>`
+
+Checks if some environment property paths are available for resolution.
+
+```ts
+environmentQuery.containsSome$('a', 'b');
+```
+
+Returns distinct `true` as Observable if some environment property paths exists, otherwise `false`.
+
+```ts
+// -{}-{}-{a:0}-{b:0}-{c:0}-
+environmentQuery.containsSome$('a', 'b'); // -false---true---false-
+```
+
+```
+// See in https://swirly.dev/
+
+[styles]
+event_radius = 25
+
+-a-b-c-d-e-
+a := {}
+b := {}
+c := {a:0}
+d := {b:0}
+e := {c:0}
+
+> containsSome$('a', 'b')
+
+-a---b---a-
+a := false
+b := true
+```
+
+#### `containsSomeAsync(...paths: AtLeastOne<Path>): Promise<boolean>`
+
+Checks if some environment property paths are available for resolution.
+
+```ts
+environmentQuery.containsSomeAsync('a', 'b');
+```
+
+Returns `true` as Promise when some environment property paths exists.
+
+```ts
+// -{}-{}-{a:0}-{b:0}-{b:0}-
+environmentQuery.containsSomeAsync('a', 'b'); // resolves true
+```
+
+#### `containsSome(...paths: AtLeastOne<Path>): boolean`
+
+Checks if some environment property paths are available for resolution.
+
+```ts
+environmentQuery.containsSome('a');
+```
+
+Returns `true` if some environment property paths exists, otherwise `false`.
+
+```ts
+// {a:0,b:0}
+environmentQuery.containsSome('a', 'c'); // true
+environmentQuery.containsSome('c', 'd'); // false
 ```
 
 ## Examples of use
@@ -359,6 +492,6 @@ class CustomEnvironmentQuery extends EnvironmentQuery {
 
 export const environmentQuery: EnvironmentQuery = new CustomEnvironmentQuery(store);
 
-const address$: Observable<Property> = query.get$('user.address').pipe(mapAsMutable());
-const address: Property = query.getTyped('user.address', asMutable);
+const address$: Observable<Property> = environmentQuery.get$('user.address').pipe(mapAsMutable());
+const address: Property = environmentQuery.getTyped('user.address', asMutable);
 ```

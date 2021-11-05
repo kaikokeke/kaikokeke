@@ -132,9 +132,9 @@ export abstract class EnvironmentQuery {
   }
 
   /**
-   * Checks if all the distinct environment property paths are available for resolution.
+   * Checks if all the environment property paths are available for resolution.
    * @param paths The list of property paths to resolve.
-   * @returns `true` as Observable if all the environment property paths exists, otherwise `false`.
+   * @returns distinct `true` as Observable if all the environment property paths exists, otherwise `false`.
    * @see Path
    */
   containsAll$(...paths: AtLeastOne<Path>): Observable<boolean> {
@@ -175,9 +175,9 @@ export abstract class EnvironmentQuery {
   }
 
   /**
-   * Checks if some distinct environment property paths are available for resolution.
+   * Checks if some environment property paths are available for resolution.
    * @param paths The list of property paths to resolve.
-   * @returns `true` as Observable if some environment property paths exists, otherwise `false`.
+   * @returns distinct `true` as Observable if some environment property paths exists, otherwise `false`.
    * @see Path
    */
   containsSome$(...paths: AtLeastOne<Path>): Observable<boolean> {
