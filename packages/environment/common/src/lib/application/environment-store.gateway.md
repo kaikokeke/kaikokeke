@@ -216,7 +216,7 @@ import { createStore, isDev, setAction } from '@datorama/akita';
 const _environment = createStore({}, { name: 'environment', resettable: true });
 
 const environmentStore = {
-  getAll$: () => _environment._select((state: Properties) => state),
+  getAll$: () => _environment._select((state) => state),
   getAll: () => _environment.getValue(),
   update: (properties) => {
     isDev() && setAction('Update');
