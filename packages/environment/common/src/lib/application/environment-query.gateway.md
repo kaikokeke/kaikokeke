@@ -462,7 +462,7 @@ environmentQuery.containsSomeAsync('a', 'b'); // resolves true
 Checks if some environment property paths are available for resolution.
 
 ```ts
-environmentQuery.containsSome('a');
+environmentQuery.containsSome('a', 'c');
 ```
 
 Returns `true` if some environment property paths exists, otherwise `false`.
@@ -477,12 +477,12 @@ environmentQuery.containsSome('c', 'd'); // false
 
 ### Returns as mutable
 
-If the store uses immutable objects and the coder needs to change the returned values she can use the `asMutable` function or the `mapAsMutable` Observable operator to convert it.
+If the store uses immutable objects and the coder needs to change the returned values she can use the `asMutable()` function or the `mapAsMutable()` Observable operator to convert it.
 
 ```ts
 import { asMutable, EnvironmentQuery, EnvironmentStore, mapAsMutable, Property } from '@kaikokeke/environment';
 import { Observable } from 'rxjs';
-import { store } from './custom-environment.store';
+import { environmentStore } from './environment.store';
 
 class CustomEnvironmentQuery extends EnvironmentQuery {
   constructor(protected readonly store: EnvironmentStore) {
@@ -490,7 +490,7 @@ class CustomEnvironmentQuery extends EnvironmentQuery {
   }
 }
 
-export const environmentQuery: EnvironmentQuery = new CustomEnvironmentQuery(store);
+export const environmentQuery: EnvironmentQuery = new CustomEnvironmentQuery(environmentStore);
 
 const address$: Observable<Property> = environmentQuery.get$('user.address').pipe(mapAsMutable());
 const address: Property = environmentQuery.getTyped('user.address', asMutable);
