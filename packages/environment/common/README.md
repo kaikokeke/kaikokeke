@@ -31,6 +31,8 @@ A simple implementation and use in JavaScript could be something like the follow
 import { createEnvironmentLoader, createEnvironmentQuery, createEnvironmentService } from '@kaikokeke/environment';
 import { BehaviorSubject } from 'rxjs';
 
+const _environment = new BehaviorSubject({});
+
 const source1 = {
   requiredToLoad: true,
   load: () => [{ name: 'John Doe' }],
@@ -41,7 +43,6 @@ const source2 = {
   load: async () => fetch('env.json'), // { userName: 'JohnDoe01' }
 };
 
-const _environment = new BehaviorSubject({});
 const environmentStore = {
   getAll$: () => _environment.asObservable(),
   getAll: () => _environment.getValue(),
@@ -52,6 +53,7 @@ const environmentStore = {
     _environment.next({});
   },
 };
+
 const environmentService = createEnvironmentService(environmentStore);
 const environmentQuery = createEnvironmentQuery(environmentStore);
 const environmentLoader = createEnvironmentLoader(environmentService, [source1, source2]);
