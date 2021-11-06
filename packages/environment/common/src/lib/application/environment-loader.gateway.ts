@@ -199,7 +199,7 @@ export abstract class EnvironmentLoader {
   /**
    * Forces the load to reject.
    */
-  rejectLoad<T>(error: T): void {
+  rejectLoad<E>(error: E): void {
     this.loadSubject$.error(error);
   }
 

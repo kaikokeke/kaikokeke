@@ -28,6 +28,11 @@ export const environmentQuery: EnvironmentLoader = new SimpleEnvironmentLoader(e
 ```ts
 abstract class EnvironmentLoader {
   load(): Promise<void>;
+  resolveLoad(): void;
+  rejectLoad<E>(error: E): void;
+  completeAllSources(): void;
+  completeSource(id: string): void;
+  onDestroy(): void;
 }
 ```
 
