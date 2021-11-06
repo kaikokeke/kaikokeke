@@ -5,7 +5,7 @@ import { delay, map, take } from 'rxjs/operators';
 
 import { propertiesSourceFactory } from '../helpers';
 import { LoaderPropertiesSource, Properties } from '../types';
-import { EnvironmentLoader } from './environment-loader.gateway';
+import { createEnvironmentLoader, EnvironmentLoader } from './environment-loader.gateway';
 import { EnvironmentService } from './environment-service.gateway';
 import { EnvironmentStore } from './environment-store.gateway';
 import { PropertiesSource } from './properties-source.gateway';
@@ -1008,5 +1008,31 @@ describe('EnvironmentLoader', () => {
       await expect(loader.load()).toResolve();
       expect(loader.onAfterSourceComplete).toHaveBeenNthCalledWith(1, loader.loaderSources[0]);
     });
+  });
+});
+
+describe('createEnvironmentLoader(service, sources)', () => {
+  let service: EnvironmentService;
+
+  beforeEach(() => {
+    service = new TestEnvironmentService(new TestStore());
+  });
+
+  it(`(service) returns an EnvironmentLoader`, () => {
+    expect(createEnvironmentLoader(service)).toBeInstanceOf(EnvironmentLoader);
+  });
+
+  it(`(service) returns an EnvironmentLoader without sources`, () => {
+    expect(createEnvironmentLoader(service)['loaderSources']).toBeArrayOfSize(0);
+  });
+
+  it(`(service, source) returns an EnvironmentLoader with a source`, () => {
+    expect(createEnvironmentLoader(service, new ObservableSource())['loaderSources']).toBeArrayOfSize(1);
+  });
+
+  it(`(service, source) returns an EnvironmentLoader with multiple sources`, () => {
+    expect(
+      createEnvironmentLoader(service, [new ObservableSource(), new PromiseSource()])['loaderSources'],
+    ).toBeArrayOfSize(2);
   });
 });

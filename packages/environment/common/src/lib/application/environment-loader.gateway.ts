@@ -229,3 +229,25 @@ export abstract class EnvironmentLoader {
     this.sourcesSubject$.forEach((subject: ReplaySubject<void>) => subject.complete());
   }
 }
+
+class EnvironmentLoaderImpl extends EnvironmentLoader {
+  constructor(
+    protected readonly service: EnvironmentService,
+    protected readonly sources?: PropertiesSource | PropertiesSource[],
+  ) {
+    super(service, sources);
+  }
+}
+
+/**
+ * Creates an environment loader service.
+ * @param service Sets properties in the environment.
+ * @param sources Definition of the sources from which to get environment properties asynchronously.
+ * @returns A basic EnvironmentLoader instance.
+ */
+export function createEnvironmentLoader(
+  service: EnvironmentService,
+  sources?: PropertiesSource | PropertiesSource[],
+): EnvironmentLoader {
+  return new EnvironmentLoaderImpl(service, sources);
+}
