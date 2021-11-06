@@ -46,12 +46,8 @@ const source2 = {
 const environmentStore = {
   getAll$: () => _environment.asObservable(),
   getAll: () => _environment.getValue(),
-  update: (properties) => {
-    _environment.next(properties);
-  },
-  reset: () => {
-    _environment.next({});
-  },
+  update: (properties) => _environment.next(properties),
+  reset: () => _environment.next({}),
 };
 
 const environmentService = createEnvironmentService(environmentStore);

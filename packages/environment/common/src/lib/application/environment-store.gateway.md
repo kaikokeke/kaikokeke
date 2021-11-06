@@ -155,12 +155,8 @@ const _environment = new BehaviorSubject({});
 const environmentStore = {
   getAll$: () => _environment.asObservable(),
   getAll: () => _environment.getValue(),
-  update: (properties) => {
-    _environment.next(properties);
-  },
-  reset: () => {
-    _environment.next({});
-  },
+  update: (properties) => _environment.next(properties),
+  reset: () => _environment.next({}),
 };
 ```
 
@@ -218,13 +214,8 @@ const _environment = createStore({}, { name: 'environment', resettable: true });
 const environmentStore = {
   getAll$: () => _environment._select((state) => state),
   getAll: () => _environment.getValue(),
-  update: (properties) => {
-    isDev() && setAction('Update');
-    _environment._setState(properties);
-  },
-  reset: () => {
-    _environment.reset();
-  },
+  update: (properties) => _environment._setState(properties),
+  reset: () => _environment.reset(),
 };
 ```
 
@@ -296,11 +287,7 @@ const _environment = createStore(_environmentReducer);
 const environmentStore = {
   getAll$: () => from(_environment),
   getAll: () => _environment.getState(),
-  update: (properties) => {
-    _environment.dispatch({ type: 'UPDATE', properties });
-  },
-  reset: () => {
-    _environment.dispatch({ type: 'RESET' });
-  },
+  update: (properties) => _environment.dispatch({ type: 'UPDATE', properties }),
+  reset: () => _environment.dispatch({ type: 'RESET' }),
 };
 ```
