@@ -11,7 +11,7 @@ The common way to manage properties in JavaScript frameworks is to define enviro
 - Get properties from multiple sources in order, unordered or by mixing strategies
 - Define if the properties from a source should overwrite the existing ones or to merge with them
 - Get properties from sources with interdependencies
-- Stop source or application loading after any type of trigger
+- Stop source or application loading after a trigger
 - Manage the loading lifecycle with hooks
 - Implement a middleware to intercept the added properties
 
