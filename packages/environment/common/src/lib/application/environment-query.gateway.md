@@ -152,8 +152,8 @@ environmentQuery.getAll$();
 Returns all the distinct environment properties as Observable.
 
 ```ts
-// -{}-{}-{a:0}-{a:0}-{a:1}-
-environmentQuery.getAll$(); // -{}---{a:0}---{a:1}-
+// {}-{}-{a:0}-{a:0}-{a:1}-
+environmentQuery.getAll$(); // {}---{a:0}---{a:1}-
 ```
 
 ```
@@ -162,7 +162,7 @@ environmentQuery.getAll$(); // -{}---{a:0}---{a:1}-
 [styles]
 event_radius = 25
 
--a-b-c-d-e-
+a-b-c-d-e-
 a := {}
 b := {}
 c := {a:0}
@@ -171,7 +171,7 @@ e := {a:1}
 
 > getAll$()
 
--a---b---c-
+a---b---c-
 a := {}
 b := {a:0}
 c := {a:1}
@@ -185,11 +185,11 @@ Gets all the environment properties.
 environmentQuery.getAllAsync();
 ```
 
-Returns the first non empty set of environment properties as Promise.
+Returns the first non nil or empty set of environment properties as Promise.
 
 ```ts
-// -null-undefined-{}-{}-{a:1}-
-environmentQuery.getAllAsync(); // resolves {a:1}
+// null-undefined-{}-{}-{a:1}-
+environmentQuery.getAllAsync(); // resolves {a:1} after 9 ticks
 ```
 
 #### `getAll(): Properties`
@@ -218,8 +218,8 @@ environmentQuery.get$('a');
 Returns the distinct environment property at path as Observable or `undefined` if the path cannot be resolved.
 
 ```ts
-// -{}-{}-{a:0}-{a:0}-{a:1}-
-environmentQuery.get$('a'); // -undefined---0---1-
+// {}-{}-{a:0}-{a:0}-{a:1}-
+environmentQuery.get$('a'); // undefined---0---1-
 ```
 
 ```
@@ -228,7 +228,7 @@ environmentQuery.get$('a'); // -undefined---0---1-
 [styles]
 event_radius = 25
 
--a-b-c-d-e-
+a-b-c-d-e-
 a := {}
 b := {}
 c := {a:0}
@@ -237,7 +237,7 @@ e := {a:1}
 
 > get$('a')
 
--a---b---c-
+a---b---c-
 a := und
 b := 0
 c := 1
@@ -251,11 +251,11 @@ Gets the environment property at path.
 environmentQuery.getAsync('a');
 ```
 
-Returns the non nil environment property at path as Promise.
+Returns the first non nil environment property at path as Promise.
 
 ```ts
-// -null-undefined-{}-{a:0}-{a:1}-
-environmentQuery.getAsync('a'); // resolves 0
+// null-undefined-{}-{a:0}-{a:1}-
+environmentQuery.getAsync('a'); // resolves 0 after 7 ticks
 ```
 
 #### `get<P extends Property>(path: Path): P | undefined`
@@ -266,11 +266,17 @@ Gets the environment property at path.
 environmentQuery.get('a');
 ```
 
-Returns the environment property at path or `undefined` if the path cannot be resolved.
+Returns the environment property at path.
 
 ```ts
-// {a:1}
-environmentQuery.get('a'); // 1
+// {a:0}
+environmentQuery.get('a'); // 0
+```
+
+Returns `undefined` if the path cannot be resolved.
+
+```ts
+// {a:0}
 environmentQuery.get('b'); // undefined
 ```
 
@@ -285,8 +291,8 @@ environmentQuery.contains$('a');
 Returns distinct `true` as Observable if the environment property path exists, otherwise `false`.
 
 ```ts
-// -{}-{}-{a:0}-{a:0}-{b:0}-
-environmentQuery.contains$('a'); // -false---true---false-
+// {}-{}-{a:0}-{a:0}-{b:0}-
+environmentQuery.contains$('a'); // false---true---false-
 ```
 
 ```
@@ -295,7 +301,7 @@ environmentQuery.contains$('a'); // -false---true---false-
 [styles]
 event_radius = 25
 
--a-b-c-d-e-
+a-b-c-d-e-
 a := {}
 b := {}
 c := {a:0}
@@ -304,7 +310,7 @@ e := {b:0}
 
 > contains$('a')
 
--a---b---a-
+a---b---a-
 a := false
 b := true
 ```
@@ -317,11 +323,11 @@ Checks if the environment property path is available for resolution.
 environmentQuery.containsAsync('a');
 ```
 
-Returns `true` as Promise when the environment property path exists.
+Returns the first `true` as Promise when the environment property path exists.
 
 ```ts
-// -{}-{}-{a:0}-{a:0}-{b:0}-
-environmentQuery.containsAsync('a'); // resolves true
+// {}-{}-{a:0}-{a:0}-{b:0}-
+environmentQuery.containsAsync('a'); // resolves true after 5 ticks
 ```
 
 #### `contains(path: Path): boolean`
@@ -332,11 +338,17 @@ Checks if the environment property path is available for resolution.
 environmentQuery.contains('a');
 ```
 
-Returns `true` if the environment property path exists, otherwise `false`.
+Returns `true` if the environment property path exists.
 
 ```ts
 // {a:0}
 environmentQuery.contains('a'); // true
+```
+
+Returns `false` if the environment property path doesn't exist.
+
+```ts
+// {a:0}
 environmentQuery.contains('b'); // false
 ```
 
@@ -351,8 +363,8 @@ environmentQuery.containsAll$('a', 'b');
 Returns distinct `true` as Observable if all the environment property paths exists, otherwise `false`.
 
 ```ts
-// -{}-{}-{a:0,b:0}-{a:0,b:0}-{b:0}-
-environmentQuery.containsAll$('a', 'b'); // -false---true---false-
+// {}-{}-{a:0,b:0}-{a:0,b:0}-{b:0}-
+environmentQuery.containsAll$('a', 'b'); // false---true---false-
 ```
 
 ```
@@ -362,7 +374,7 @@ environmentQuery.containsAll$('a', 'b'); // -false---true---false-
 event_radius = 40
 frame_width = 50
 
--a-b-c-d-e-
+a-b-c-d-e-
 a := {}
 b := {}
 c := {a:0,b:0}
@@ -371,7 +383,7 @@ e := {b:0}
 
 > containsAll$('a', 'b')
 
--a---b---a-
+a---b---a-
 a := false
 b := true
 ```
@@ -384,11 +396,11 @@ Checks if all the environment property paths are available for resolution.
 environmentQuery.containsAllAsync('a', 'b');
 ```
 
-Returns `true` as Promise when all environment property paths exists.
+Returns the first `true` as Promise when all environment property paths exists.
 
 ```ts
-// -{}-{}-{a:0,b:0}-{a:0,b:0}-{b:0}-
-environmentQuery.containsAllAsync('a', 'b'); // resolves true
+// {}-{}-{a:0,b:0}-{a:0,b:0}-{b:0}-
+environmentQuery.containsAllAsync('a', 'b'); // resolves true after 5 ticks
 ```
 
 #### `containsAll(...paths: AtLeastOne<Path>): boolean`
@@ -399,11 +411,17 @@ Checks if all the environment property paths are available for resolution.
 environmentQuery.containsAll('a');
 ```
 
-Returns `true` if all the environment property paths exists, otherwise `false`.
+Returns `true` if all the environment property paths exists.
 
 ```ts
 // {a:0,b:0}
 environmentQuery.containsAll('a', 'b'); // true
+```
+
+Returns `false` if one or more environment property paths doesn't exist.
+
+```ts
+// {a:0,b:0}
 environmentQuery.containsAll('a', 'c'); // false
 ```
 
@@ -418,8 +436,8 @@ environmentQuery.containsSome$('a', 'b');
 Returns distinct `true` as Observable if some environment property paths exists, otherwise `false`.
 
 ```ts
-// -{}-{}-{a:0}-{b:0}-{c:0}-
-environmentQuery.containsSome$('a', 'b'); // -false---true---false-
+// {}-{}-{a:0}-{b:0}-{c:0}-
+environmentQuery.containsSome$('a', 'b'); // false---true---false-
 ```
 
 ```
@@ -428,7 +446,7 @@ environmentQuery.containsSome$('a', 'b'); // -false---true---false-
 [styles]
 event_radius = 25
 
--a-b-c-d-e-
+a-b-c-d-e-
 a := {}
 b := {}
 c := {a:0}
@@ -437,7 +455,7 @@ e := {c:0}
 
 > containsSome$('a', 'b')
 
--a---b---a-
+a---b---a-
 a := false
 b := true
 ```
@@ -450,11 +468,11 @@ Checks if some environment property paths are available for resolution.
 environmentQuery.containsSomeAsync('a', 'b');
 ```
 
-Returns `true` as Promise when some environment property paths exists.
+Returns the first `true` as Promise when some environment property paths exists.
 
 ```ts
-// -{}-{}-{a:0}-{b:0}-{b:0}-
-environmentQuery.containsSomeAsync('a', 'b'); // resolves true
+// {}-{}-{a:0}-{b:0}-{b:0}-
+environmentQuery.containsSomeAsync('a', 'b'); // resolves true after 5 ticks
 ```
 
 #### `containsSome(...paths: AtLeastOne<Path>): boolean`
@@ -465,11 +483,17 @@ Checks if some environment property paths are available for resolution.
 environmentQuery.containsSome('a', 'c');
 ```
 
-Returns `true` if some environment property paths exists, otherwise `false`.
+Returns `true` if some environment property paths exists.
 
 ```ts
 // {a:0,b:0}
 environmentQuery.containsSome('a', 'c'); // true
+```
+
+Returns `false` if all environment property paths doesn't exist.
+
+```ts
+// {a:0,b:0}
 environmentQuery.containsSome('c', 'd'); // false
 ```
 
@@ -484,16 +508,16 @@ environmentQuery.getRequired$('a', 1);
 Returns the distinct environment property at path as Observable or the `defaultValue` if the path cannot be resolved.
 
 ```ts
-// -{}-{}-{a:0}-{a:0}-{c:0}-
-environmentQuery.getRequired$('a', 1); // -1---0---1-
+// {}-{}-{a:0}-{a:0}-{c:0}-
+environmentQuery.getRequired$('a', 1); // 1---0---1-
 ```
 
 Throws if the property at path is undefined and `defaultValue` is not provided.
 
 ```ts
-// -{}-{}-{a:0}-{a:0}-{c:0}-
+// {}-{}-{a:0}-{a:0}-{c:0}-
 environmentQuery.getRequired$('a');
-// -# Error 'The environment property at path "a" is required and is undefined'
+// # Error 'The environment property at path "a" is required and is undefined'
 ```
 
 ```
@@ -502,7 +526,7 @@ environmentQuery.getRequired$('a');
 [styles]
 event_radius = 25
 
--a-b-c-d-e-
+a-b-c-d-e-
 a := {}
 b := {}
 c := {a:0}
@@ -511,13 +535,13 @@ e := {c:0}
 
 > getRequired$('a', 1)
 
--a---b---a-
+a---b---a-
 a := 1
 b := 0
 
 > getRequired$('a')
 
--#
+#
 ```
 
 #### `getRequired<P extends Property, D extends Property>(path: Path, defaultValue?: D): P | D`
@@ -562,8 +586,8 @@ Returns the distinct environment property at path converted to the `targetType` 
 or `undefined` if the path cannot be resolved.
 
 ```ts
-// -{}-{}-{a:0}-{a:0}-{c:0}-
-environmentQuery.getTyped$('a', String); // -undefined---'0'---undefined-
+// {}-{}-{a:0}-{a:0}-{c:0}-
+environmentQuery.getTyped$('a', String); // undefined---'0'---undefined-
 ```
 
 ```
@@ -572,7 +596,7 @@ environmentQuery.getTyped$('a', String); // -undefined---'0'---undefined-
 [styles]
 event_radius = 25
 
--a-b-c-d-e-
+a-b-c-d-e-
 a := {}
 b := {}
 c := {a:0}
@@ -581,9 +605,24 @@ e := {c:0}
 
 > getTyped$('a', String)
 
--a---b---a-
+a---b---a-
 a := und
 b := '0'
+```
+
+#### `getTypedAsync<P extends Property, T>(path: Path, targetType: (value: P) => T): Promise<T>`
+
+Gets the typed environment property at path.
+
+```ts
+environmentQuery.getTypedAsync('a', String);
+```
+
+The first non nil environment property at path converted to the `targetType` as Promise.
+
+```ts
+// {}-{}-{a:0}-{a:0}-{c:0}-
+environmentQuery.getTypedAsync('a', String); // resolves '0' after 5 ticks
 ```
 
 #### `getTyped<P extends Property, T>(path: Path, targetType: (value: P) => T): T | undefined`
@@ -608,7 +647,7 @@ Returns `undefined` if the path cannot be resolved.
 environmentQuery.getTyped('b', String); // undefined
 ```
 
-#### `getRequiredTyped$<P extends Property, D extends Property, T>(path: Path,targetType: (value: P | D) => T, defaultValue?: D): Observable<T>`
+#### `getRequiredTyped$<P extends Property, D extends Property, T>(path: Path, targetType: (value: P | D) => T, defaultValue?: D): Observable<T>`
 
 Gets the required typed environment property at path.
 
@@ -620,16 +659,16 @@ Returns the distinct environment property at path converted to the `targetType` 
 or the converted `defaultValue` if the path cannot be resolved.
 
 ```ts
-// -{}-{}-{a:0}-{a:0}-{c:0}-
-environmentQuery.getRequiredTyped$('a', String, 1); // -'1'---'0'---'1'-
+// {}-{}-{a:0}-{a:0}-{c:0}-
+environmentQuery.getRequiredTyped$('a', String, 1); // '1'---'0'---'1'-
 ```
 
 Throws if the property at path is undefined and `defaultValue` is not provided.
 
 ```ts
-// -{}-{}-{a:0}-{a:0}-{c:0}-
+// {}-{}-{a:0}-{a:0}-{c:0}-
 environmentQuery.getRequiredTyped$('a', String);
-// -# Error 'The environment property at path "a" is required and is undefined'
+// # Error 'The environment property at path "a" is required and is undefined'
 ```
 
 ```
@@ -639,7 +678,7 @@ environmentQuery.getRequiredTyped$('a', String);
 event_radius = 25
 frame_width = 40
 
--a-b-c-d-e-
+a-b-c-d-e-
 a := {}
 b := {}
 c := {a:0}
@@ -648,16 +687,16 @@ e := {c:0}
 
 > getRequiredTyped$('a', String, 1)
 
--a---b---a-
+a---b---a-
 a := '1'
 b := '0'
 
 > getRequiredTyped$('a', String)
 
--#
+#
 ```
 
-#### `getRequiredTyped<P extends Property, D extends Property, T>(path: Path, targetType: value: P | D) => T, defaultValue?: D): T`
+#### `getRequiredTyped<P extends Property, D extends Property, T>(path: Path, targetType: (value: P | D) => T, defaultValue?: D): T`
 
 Gets the required typed environment property at path.
 
@@ -684,7 +723,7 @@ Throws if the property at path is undefined and `defaultValue` is not provided.
 ```ts
 // {a:0}
 environmentQuery.getRequiredTyped('b', String);
-// -# Error 'The environment property at path "b" is required and is undefined'
+// Error 'The environment property at path "b" is required and is undefined'
 ```
 
 ## Examples of use

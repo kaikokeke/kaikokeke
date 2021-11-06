@@ -33,7 +33,7 @@ export abstract class EnvironmentQuery {
 
   /**
    * Gets all the environment properties.
-   * @returns The first non empty set of environment properties as Promise.
+   * @returns The first non nil or empty set of environment properties as Promise.
    */
   async getAllAsync(): Promise<Properties> {
     return this.getAll$()
@@ -69,7 +69,7 @@ export abstract class EnvironmentQuery {
   /**
    * Gets the environment property at path.
    * @param path The property path to resolve.
-   * @returns The non nil environment property at path as Promise.
+   * @returns The first non nil environment property at path as Promise.
    * @see Path
    */
   getAsync<P extends Property>(path: Path): Promise<P> {
@@ -108,7 +108,7 @@ export abstract class EnvironmentQuery {
   /**
    * Checks if the environment property path is available for resolution.
    * @param paths The property path to resolve.
-   * @returns `true` as Promise when the environment property path exists.
+   * @returns The first `true` as Promise when the environment property path exists.
    * @see Path
    */
   containsAsync(path: Path): Promise<boolean> {
@@ -149,7 +149,7 @@ export abstract class EnvironmentQuery {
   /**
    * Checks if all the environment property paths are available for resolution.
    * @param paths The property path to resolve.
-   * @returns `true` as Promise when all environment property paths exists.
+   * @returns The first `true` as Promise when all environment property paths exists.
    * @see Path
    */
   containsAllAsync(...paths: AtLeastOne<Path>): Promise<boolean> {
@@ -192,7 +192,7 @@ export abstract class EnvironmentQuery {
   /**
    * Checks if some environment property paths are available for resolution.
    * @param paths The property path to resolve.
-   * @returns `true` as Promise when some environment property paths exists.
+   * @returns The first `true` as Promise when some environment property paths exists.
    * @see Path
    */
   containsSomeAsync(...paths: AtLeastOne<Path>): Promise<boolean> {
@@ -287,7 +287,7 @@ export abstract class EnvironmentQuery {
    * Gets the typed environment property at path.
    * @param path The property path to resolve.
    * @param targetType The expected type converter function.
-   * @returns The non nil environment property at path converted to the `targetType` as Promise.
+   * @returns The first non nil environment property at path converted to the `targetType` as Promise.
    * @see Path
    */
   getTypedAsync<P extends Property, T>(path: Path, targetType: (value: P) => T): Promise<T> {
@@ -389,7 +389,7 @@ export abstract class EnvironmentQuery {
    * @param path The property path to resolve.
    * @param properties The properties to resolve the interpolation.
    * @param config The custom environment config for the transpile.
-   * @returns The non nil transpiled environment property at path as Promise.
+   * @returns The first non nil transpiled environment property at path as Promise.
    * @see Path
    */
   getTranspiledAsync<P extends Property>(
