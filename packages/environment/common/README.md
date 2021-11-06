@@ -59,8 +59,7 @@ const environmentQuery = createEnvironmentQuery(environmentStore);
 const environmentLoader = createEnvironmentLoader(environmentService, [source1, source2]);
 
 environmentLoader.load().then(() => {
-  console.log(environmentQuery.getAll());
-  // LOG { name: 'John Doe', userName: 'JohnDoe01' }
+  console.log(environmentQuery.getAll()); // LOG { name: 'John Doe', userName: 'JohnDoe01' }
 });
 ```
 
