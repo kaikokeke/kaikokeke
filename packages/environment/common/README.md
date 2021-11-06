@@ -11,8 +11,7 @@ The common way to manage properties in JavaScript frameworks is to define enviro
 - Get properties from multiple sources in order, unordered or by mixing strategies
 - Define if the properties from a source should overwrite the existing ones or to merge with them
 - Get properties from sources with interdependencies
-- Stop application loading until a set of required sources are resolved or a specific condition is met
-- Stop application loading if a required source throws an error
+- Stop source or application loading after any type of trigger
 - Manage the loading lifecycle with hooks
 - Implement a middleware to intercept the added properties
 
@@ -26,90 +25,40 @@ To make this library work, there are some gateways to implement. Each gateway do
 - [PropertiesSource](./src/lib/application/properties-source.gateway.md): Definition of the source from which to get environment properties asynchronously.
 - [EnvironmentLoader](./src/lib/application/environment-loader.gateway.md): Loads the environment properties from the provided asynchronous sources. It can be used simply by extending from the abstract class.
 
-A simple implementation and use in TypeScript could be something like the following code.
+A simple implementation and use in JavaScript could be something like the following code.
 
-```ts
-import {
-  EnvironmentLoader,
-  EnvironmentQuery,
-  EnvironmentService,
-  EnvironmentStore,
-  PropertiesSource,
-  Properties,
-} from '@kaikokeke/environment';
-import { BehaviorSubject, Observable } from 'rxjs';
+```js
+import { createEnvironmentLoader, createEnvironmentQuery, createEnvironmentService } from '@kaikokeke/environment';
+import { BehaviorSubject } from 'rxjs';
 
-class SimpleEnvironmentStore implements EnvironmentStore {
-  private readonly _properties: BehaviorSubject<Properties> = new BehaviorSubject({});
+const source1 = {
+  requiredToLoad: true,
+  load: () => [{ name: 'John Doe' }],
+};
 
-  getAll(): Properties {
-    return this._properties.getValue();
-  }
+const source2 = {
+  requiredToLoad: true,
+  load: async () => fetch('env.json'), // { userName: 'JohnDoe01' }
+};
 
-  getAll$(): Observable<Properties> {
-    return this._properties.asObservable();
-  }
-
-  update(properties: Properties): void {
-    this._properties.next(properties);
-  }
-
-  reset(): void {
-    this._properties.next({});
-  }
-}
-
-class SimpleEnvironmentService extends EnvironmentService {
-  constructor(protected readonly store: EnvironmentStore) {
-    super(store);
-  }
-}
-
-class SimpleEnvironmentQuery extends EnvironmentQuery {
-  constructor(protected readonly store: EnvironmentStore) {
-    super(store);
-  }
-}
-
-class EnvironmentSource implements PropertiesSource {
-  requiredToLoad = true;
-
-  load(): Properties[] {
-    return [{ name: 'John Doe' }];
-  }
-}
-
-class FetchEnvironmentSource implements PropertiesSource {
-  requiredToLoad = true;
-
-  async load(): Promise<Properties> {
-    return fetch('assets/environment.json'); // { userName: 'JohnDoe01' }
-  }
-}
-
-class SimpleEnvironmentLoader extends EnvironmentLoader {
-  constructor(
-    protected readonly service: EnvironmentService,
-    protected readonly sources?: PropertiesSource | PropertiesSource[],
-  ) {
-    super(service, sources);
-  }
-}
-
-const environmentStore: EnvironmentStore = new SimpleEnvironmentStore();
-const environmentSource: PropertiesSource = new EnvironmentSource();
-const fetchEnvironmentSource: PropertiesSource = new FetchEnvironmentSource();
-
-export const environmentService: EnvironmentService = new SimpleEnvironmentService(environmentStore);
-export const environmentQuery: EnvironmentQuery = new SimpleEnvironmentQuery(environmentStore);
-export const environmentLoader: SimpleEnvironmentLoader = new SimpleEnvironmentLoader(environmentService, [
-  environmentSource,
-  fetchEnvironmentSource,
-]);
+const _environment = new BehaviorSubject({});
+const environmentStore = {
+  getAll$: () => _environment.asObservable(),
+  getAll: () => _environment.getValue(),
+  update: (properties) => {
+    _environment.next(properties);
+  },
+  reset: () => {
+    _environment.next({});
+  },
+};
+const environmentService = createEnvironmentService(environmentStore);
+const environmentQuery = createEnvironmentQuery(environmentStore);
+const environmentLoader = createEnvironmentLoader(environmentService, [source1, source2]);
 
 environmentLoader.load().then(() => {
   console.log(environmentQuery.getAll());
-  // { name: 'John Doe', userName: 'JohnDoe01' }
+  // LOG { name: 'John Doe', userName: 'JohnDoe01' }
 });
 ```
 
