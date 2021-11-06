@@ -473,6 +473,220 @@ environmentQuery.containsSome('a', 'c'); // true
 environmentQuery.containsSome('c', 'd'); // false
 ```
 
+#### `getRequired$<P extends Property, D extends Property>(path: Path, defaultValue?: D): Observable<P | D>`
+
+Gets the required environment property at path.
+
+```ts
+environmentQuery.getRequired$('a', 1);
+```
+
+Returns the distinct environment property at path as Observable or the `defaultValue` if the path cannot be resolved.
+
+```ts
+// -{}-{}-{a:0}-{a:0}-{c:0}-
+environmentQuery.getRequired$('a', 1); // -1---0---1-
+```
+
+Throws if the property at path is undefined and `defaultValue` is not provided.
+
+```ts
+// -{}-{}-{a:0}-{a:0}-{c:0}-
+environmentQuery.getRequired$('a');
+// -# Error 'The environment property at path "a" is required and is undefined'
+```
+
+```
+// See in https://swirly.dev/
+
+[styles]
+event_radius = 25
+
+-a-b-c-d-e-
+a := {}
+b := {}
+c := {a:0}
+d := {a:0}
+e := {c:0}
+
+> getRequired$('a', 1)
+
+-a---b---a-
+a := 1
+b := 0
+
+> getRequired$('a')
+
+-#
+```
+
+#### `getRequired<P extends Property, D extends Property>(path: Path, defaultValue?: D): P | D`
+
+Gets the required environment property at path.
+
+```ts
+environmentQuery.getRequired('a', 1);
+```
+
+Returns the environment property at path.
+
+```ts
+// {a:0}
+environmentQuery.getRequired('a', 1); // 0
+```
+
+Returns the `defaultValue` if the path cannot be resolved.
+
+```ts
+// {c:0}
+environmentQuery.getRequired('a', 1); // 1
+```
+
+Throws if the property at path is undefined and `defaultValue` is not provided.
+
+```ts
+// {c:0}
+environmentQuery.getRequired('a');
+// Error 'The environment property at path "a" is required and is undefined'
+```
+
+#### `getTyped$<P extends Property, T>(path: Path, targetType: (value: P) => T): Observable<T | undefined>`
+
+Gets the typed environment property at path.
+
+```ts
+environmentQuery.getTyped$('a', String);
+```
+
+Returns the distinct environment property at path converted to the `targetType` as Observable
+or `undefined` if the path cannot be resolved.
+
+```ts
+// -{}-{}-{a:0}-{a:0}-{c:0}-
+environmentQuery.getTyped$('a', String); // -undefined---'0'---undefined-
+```
+
+```
+// See in https://swirly.dev/
+
+[styles]
+event_radius = 25
+
+-a-b-c-d-e-
+a := {}
+b := {}
+c := {a:0}
+d := {a:0}
+e := {c:0}
+
+> getTyped$('a', String)
+
+-a---b---a-
+a := und
+b := '0'
+```
+
+#### `getTyped<P extends Property, T>(path: Path, targetType: (value: P) => T): T | undefined`
+
+Gets the typed environment property at path.
+
+```ts
+environmentQuery.getTyped('a', String);
+```
+
+Returns the environment property at path converted to the `targetType`.
+
+```ts
+// {a:0}
+environmentQuery.getTyped('a', String); // '0'
+```
+
+Returns `undefined` if the path cannot be resolved.
+
+```ts
+// {a:0}
+environmentQuery.getTyped('b', String); // undefined
+```
+
+#### `getRequiredTyped$<P extends Property, D extends Property, T>(path: Path,targetType: (value: P | D) => T, defaultValue?: D): Observable<T>`
+
+Gets the required typed environment property at path.
+
+```ts
+environmentQuery.getRequiredTyped$('a', String, 1);
+```
+
+Returns the distinct environment property at path converted to the `targetType` as Observable
+or the converted `defaultValue` if the path cannot be resolved.
+
+```ts
+// -{}-{}-{a:0}-{a:0}-{c:0}-
+environmentQuery.getRequiredTyped$('a', String, 1); // -'1'---'0'---'1'-
+```
+
+Throws if the property at path is undefined and `defaultValue` is not provided.
+
+```ts
+// -{}-{}-{a:0}-{a:0}-{c:0}-
+environmentQuery.getRequiredTyped$('a', String);
+// -# Error 'The environment property at path "a" is required and is undefined'
+```
+
+```
+// See in https://swirly.dev/
+
+[styles]
+event_radius = 25
+frame_width = 40
+
+-a-b-c-d-e-
+a := {}
+b := {}
+c := {a:0}
+d := {a:0}
+e := {c:0}
+
+> getRequiredTyped$('a', String, 1)
+
+-a---b---a-
+a := '1'
+b := '0'
+
+> getRequiredTyped$('a', String)
+
+-#
+```
+
+#### `getRequiredTyped<P extends Property, D extends Property, T>(path: Path, targetType: value: P | D) => T, defaultValue?: D): T`
+
+Gets the required typed environment property at path.
+
+```ts
+environmentQuery.getRequiredTyped('a', String, 1);
+```
+
+Returns the environment property at path converted to the `targetType`.
+
+```ts
+// {a:0}
+environmentQuery.getRequiredTyped('a', String, 1); // '0'
+```
+
+Returns the converted `defaultValue` if the path cannot be resolved.
+
+```ts
+// {a:0}
+environmentQuery.getRequiredTyped('b', String, 1); // '1'
+```
+
+Throws if the property at path is undefined and `defaultValue` is not provided.
+
+```ts
+// {a:0}
+environmentQuery.getRequiredTyped('b', String);
+// -# Error 'The environment property at path "b" is required and is undefined'
+```
+
 ## Examples of use
 
 ### Returns as mutable

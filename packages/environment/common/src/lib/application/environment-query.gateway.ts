@@ -226,10 +226,10 @@ export abstract class EnvironmentQuery {
   }
 
   /**
-   * Gets the distinct required environment property at path.
+   * Gets the required environment property at path.
    * @param path The property path to resolve.
    * @param defaultValue The value to return if the path cannot be resolved.
-   * @returns The environment property at path as Observable or the `defaultValue` if the path cannot be resolved.
+   * @returns The distinct environment property at path as Observable or the `defaultValue` if the path cannot be resolved.
    * @throws If the property at path is undefined and `defaultValue` is not provided.
    * @see Path
    */
@@ -269,10 +269,10 @@ export abstract class EnvironmentQuery {
   }
 
   /**
-   * Gets the distinct typed environment property at path.
+   * Gets the typed environment property at path.
    * @param path The property path to resolve.
    * @param targetType The expected type converter function.
-   * @returns The environment property at path converted to the `targetType` as Observable
+   * @returns The distinct environment property at path converted to the `targetType` as Observable
    * or `undefined` if the path cannot be resolved.
    * @see Path
    */
@@ -317,11 +317,11 @@ export abstract class EnvironmentQuery {
   }
 
   /**
-   * Gets the distinct required typed environment property at path.
+   * Gets the required typed environment property at path.
    * @param path The property path to resolve.
    * @param defaultValue The value to return if the path cannot be resolved.
    * @param targetType The expected type converter function.
-   * @returns The environment property at path converted to the `targetType` as Observable
+   * @returns The distinct environment property at path converted to the `targetType` as Observable
    * or the converted `defaultValue` if the path cannot be resolved.
    * @throws If the property at path is undefined and `defaultValue` is not provided.
    * @see Path
