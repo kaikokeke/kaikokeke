@@ -36,6 +36,16 @@ const environmentQuery = createEnvironmentQuery(environmentStore);
 ## API
 
 ```ts
+interface EnvironmentQueryOptions<T> {
+  defaultValue?: Property;
+  targetType?: (property: Property) => T;
+  transpile?: Properties;
+  interpolation?: [string, string];
+  useEnvironmentToTranspile?: boolean;
+}
+```
+
+```ts
 function createEnvironmentQuery(store: EnvironmentStore, partialConfig?: Partial<EnvironmentConfig>): EnvironmentQuery;
 ```
 

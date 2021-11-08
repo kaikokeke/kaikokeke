@@ -135,7 +135,7 @@ export abstract class EnvironmentQuery {
   }
 
   protected _contains$(path: Path): Observable<boolean> {
-    return this.get$(path).pipe(
+    return this.get$<Property>(path).pipe(
       map((property?: Property) => this._containsDef(property)),
       distinctUntilChanged(),
     );
@@ -170,7 +170,7 @@ export abstract class EnvironmentQuery {
    * @returns The distinct environment property at path as Observable.
    * @see Path
    */
-  get$<T = Properties>(path: Path, options?: EnvironmentQueryOptions<T>): Observable<GetReturn<T>> {
+  get$<T>(path: Path, options?: EnvironmentQueryOptions<T>): Observable<T | undefined> {
     return this.getAll$().pipe(
       map((environment: Properties) => this._getProperty(environment, path)),
       map((property?: Property) => this._getDefaultValue(property, options?.defaultValue)),
@@ -189,7 +189,7 @@ export abstract class EnvironmentQuery {
    * @returns The first non nil environment property at path as Promise.
    * @see Path
    */
-  getAsync<T = Properties>(path: Path, options?: EnvironmentQueryOptions<T>): Promise<GetReturn<T>> {
+  getAsync<T>(path: Path, options?: EnvironmentQueryOptions<T>): Promise<T | undefined> {
     return this.get$<T>(path, options).pipe(firstNonNil()).toPromise();
   }
 
@@ -200,10 +200,10 @@ export abstract class EnvironmentQuery {
    * @returns The environment property at path or `undefined` if the path cannot be resolved.
    * @see Path
    */
-  get<T = Properties>(path: Path, options?: EnvironmentQueryOptions<T>): GetReturn<T> {
+  get<T>(path: Path, options?: EnvironmentQueryOptions<T>): T | undefined {
     const environment: Properties = this.getAll();
 
-    let property: GetReturn<T> = this._getProperty(environment, path);
+    let property: Property | T | undefined = this._getProperty(environment, path);
     property = this._getDefaultValue(property, options?.defaultValue);
     property = this._getTargetType(property, options?.targetType);
     property = this._getTranspile(
@@ -213,7 +213,7 @@ export abstract class EnvironmentQuery {
       options?.useEnvironmentToTranspile,
     );
 
-    return property;
+    return property as T;
   }
 
   protected _getProperty(environment: Properties, path: Path): Property | undefined {
