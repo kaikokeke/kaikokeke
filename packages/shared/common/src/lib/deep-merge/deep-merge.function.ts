@@ -73,4 +73,6 @@ function customizer(obj: unknown, source: unknown): unknown {
   if (obj instanceof BigUint64Array && source instanceof BigUint64Array) {
     return BigUint64Array.from([...obj, ...source]);
   }
+
+  return;
 }
