@@ -197,7 +197,7 @@ export abstract class EnvironmentQuery {
    * Gets the environment property at path.
    * @param path The property path to resolve.
    * @param options The options to get a property.
-   * @returns The environment property at path or `undefined` if the path cannot be resolved.
+   * @returns The environment property at path.
    * @see Path
    */
   get<T>(path: Path, options?: EnvironmentQueryOptions<T>): T | undefined {

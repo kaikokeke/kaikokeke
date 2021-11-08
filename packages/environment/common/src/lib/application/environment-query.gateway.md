@@ -68,9 +68,9 @@ abstract class EnvironmentQuery {
   containsSomeAsync(...paths: AtLeastOne<Path>): Promise<boolean>;
   containsSome(...paths: AtLeastOne<Path>): boolean;
 
-  get$<T>(path: Path, options?: GetOptions<T>): Observable<GetReturn<T>>;
-  getAsync<T>(path: Path, options?: GetOptions<T>): Promise<GetReturn<T>>;
-  get<T>(path: Path, options?: GetOptions<T>): GetReturn<T>;
+  get$<T>(path: Path, options?: EnvironmentQueryOptions<T>): Observable<T | undefined>;
+  getAsync<T>(path: Path, options?: EnvironmentQueryOptions<T>): Promise<T | undefined>;
+  get<T>(path: Path, options?: EnvironmentQueryOptions<T>): T | undefined;
 }
 ```
 
@@ -311,7 +311,7 @@ Returns `false` if all environment property paths doesn't exist.
 environmentQuery.containsSome('c', 'd'); // false
 ```
 
-#### `get$<P extends Property>(path: Path): Observable<P | undefined>`
+#### `get$<T>(path: Path, options?: EnvironmentQueryOptions<T>): Observable<T | undefined>`
 
 Gets the environment property at path.
 
@@ -319,7 +319,7 @@ Gets the environment property at path.
 environmentQuery.get$('a');
 ```
 
-Returns the distinct environment property at path as Observable or `undefined` if the path cannot be resolved.
+Returns the distinct environment property at path as Observable.
 
 ```ts
 // {}-{}-{a:0}-{a:0}-{a:1}-
@@ -347,7 +347,7 @@ b := 0
 c := 1
 ```
 
-#### `getAsync<P extends Property>(path: Path): Promise<P>`
+#### `getAsync<T>(path: Path, options?: EnvironmentQueryOptions<T>): Promise<T | undefined>`
 
 Gets the environment property at path.
 
@@ -362,7 +362,7 @@ Returns the first non nil environment property at path as Promise.
 environmentQuery.getAsync('a'); // resolves 0 after 7 ticks
 ```
 
-#### `get<P extends Property>(path: Path): P | undefined`
+#### `get<T>(path: Path, options?: EnvironmentQueryOptions<T>): T | undefined`
 
 Gets the environment property at path.
 
