@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Provider } from '@angular/core';
 import { firstNonNil } from '@kaikokeke/common';
-import { EnvironmentQuery, Properties, PropertiesSource } from '@kaikokeke/environment';
+import { EnvironmentQuery, Properties, PropertiesSource, Property } from '@kaikokeke/environment';
 import { ENVIRONMENT_SOURCES } from '@kaikokeke/environment-angular';
 import { Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
@@ -20,10 +20,10 @@ export class Post2Source extends PropertiesSource {
   }
 
   load(): Observable<Properties> {
-    const basePath$: Observable<string> = this.query.get$<string>('basePath').pipe(firstNonNil());
+    const basePath$: Observable<Property> = this.query.get$('basePath').pipe(firstNonNil());
 
     return basePath$.pipe(
-      switchMap((basePath: string) => this.http.get<Properties>(`${basePath}/${this.collection}/${this.postId}`)),
+      switchMap((basePath) => this.http.get<Properties>(`${basePath}/${this.collection}/${this.postId}`)),
     );
   }
 }

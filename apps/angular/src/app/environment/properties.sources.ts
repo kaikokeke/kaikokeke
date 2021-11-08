@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Provider } from '@angular/core';
 import { firstNonNil } from '@kaikokeke/common';
-import { EnvironmentQuery, EnvironmentService, Properties, PropertiesSource } from '@kaikokeke/environment';
+import { EnvironmentQuery, EnvironmentService, Properties, PropertiesSource, Property } from '@kaikokeke/environment';
 import { ENVIRONMENT_SOURCES } from '@kaikokeke/environment-angular';
 import { combineLatest, Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
@@ -49,10 +49,10 @@ export class PostSource extends PropertiesSource {
   }
 
   load(): Observable<Properties> {
-    const basePath$: Observable<string> = this.query.get$<string>('basePath').pipe(firstNonNil(this.timeout));
+    const basePath$: Observable<Property> = this.query.get$('basePath').pipe(firstNonNil(this.timeout));
 
     return basePath$.pipe(
-      switchMap((basePath: string) => this.http.get<Properties>(`${basePath}/${this.collection}/${this.postId}`)),
+      switchMap((basePath: Property) => this.http.get<Properties>(`${basePath}/${this.collection}/${this.postId}`)),
     );
   }
 }
@@ -75,11 +75,11 @@ export class UserSource extends PropertiesSource {
   }
 
   load(): Observable<Properties> {
-    const basePath$: Observable<string> = this.query.get$<string>('basePath').pipe(firstNonNil(this.timeout));
-    const userId$: Observable<number> = this.query.get$<number>('post.userId').pipe(firstNonNil(this.timeout));
+    const basePath$: Observable<Property> = this.query.get$('basePath').pipe(firstNonNil(this.timeout));
+    const userId$: Observable<Property> = this.query.get$('post.userId').pipe(firstNonNil(this.timeout));
 
     return combineLatest([basePath$, userId$]).pipe(
-      switchMap(([basePath, userId]: [string, number]) =>
+      switchMap(([basePath, userId]: [Property, Property]) =>
         this.http.get<Properties>(`${basePath}/${this.collection}/${userId}`),
       ),
     );

@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AtLeastOne } from '@kaikokeke/common';
-import { Path } from '@kaikokeke/environment';
+import { AtLeastOne, Path } from '@kaikokeke/common';
 import { KPropertiesGuard } from '@kaikokeke/environment-angular';
 
 @Injectable({ providedIn: 'root' })
