@@ -6,6 +6,7 @@ The types used in the environment library.
 - [Properties](./properties.type.ts): A set of environment properties required to run the application.
 - [EnvironmentConfig](./environment-config.interface.ts): Configuration parameters for the Environment module.
 - [LoaderPropertiesSource](./loader-properties-source.type.ts): A properties source with all the default values to be used by the EnvironmentLoader.
+- [EnvironmentQueryOptions](./environment-query-options.interface.ts): The options to get a property.
 
 The Loader Lifecycle Hooks.
 
