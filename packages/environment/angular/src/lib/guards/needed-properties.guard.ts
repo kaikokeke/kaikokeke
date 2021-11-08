@@ -1,7 +1,7 @@
 import { CanActivate, Router, UrlTree } from '@angular/router';
 import { inject } from '@kaikokeke/angular';
-import { AtLeastOne } from '@kaikokeke/common';
-import { EnvironmentQuery, Path } from '@kaikokeke/environment';
+import { AtLeastOne, Path } from '@kaikokeke/common';
+import { EnvironmentQuery } from '@kaikokeke/environment';
 import { Observable, of, OperatorFunction } from 'rxjs';
 import { catchError, filter, timeout } from 'rxjs/operators';
 
