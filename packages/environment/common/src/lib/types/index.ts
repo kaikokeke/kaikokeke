@@ -1,5 +1,5 @@
 export * from './environment-config.interface';
-export * from './environment-query-options.interface';
+export * from './get-options.interface';
 export * from './loader-properties-source.type';
 export * from './on-after-complete.interface';
 export * from './on-after-error.interface';

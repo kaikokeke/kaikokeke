@@ -16,19 +16,19 @@ describe('asMutable(property)', () => {
   it(`returns the property as mutable if is an object`, () => {
     const value = asMutable(obj);
     expect(isEqual(value, obj)).toBeTrue();
-    expect(Object.isFrozen(obj)).toBeTrue();
-    expect(Object.isFrozen(obj.a)).toBeTrue();
-    expect(Object.isFrozen(value)).toBeFalse();
-    expect(Object.isFrozen(value.a)).toBeFalse();
+    expect(obj).toBeFrozen();
+    expect(obj.a).toBeFrozen();
+    expect(value).not.toBeFrozen();
+    expect(value.a).not.toBeFrozen();
   });
 
   it(`returns the property as mutable if is an Array`, () => {
     const value = asMutable(arr);
     expect(isEqual(value, arr)).toBeTrue();
-    expect(Object.isFrozen(arr)).toBeTrue();
-    expect(Object.isFrozen(arr[0])).toBeTrue();
-    expect(Object.isFrozen(value)).toBeFalse();
-    expect(Object.isFrozen(value[0])).toBeFalse();
+    expect(arr).toBeFrozen();
+    expect(arr[0]).toBeFrozen();
+    expect(value).not.toBeFrozen();
+    expect(value[0]).not.toBeFrozen();
   });
 
   it(`example of use`, () => {

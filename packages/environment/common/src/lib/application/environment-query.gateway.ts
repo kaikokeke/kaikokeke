@@ -4,10 +4,8 @@ import { combineLatest, MonoTypeOperatorFunction, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, map, shareReplay, take } from 'rxjs/operators';
 
 import { environmentConfigFactory } from '../helpers';
-import { EnvironmentConfig, EnvironmentQueryOptions, Properties, Property } from '../types';
+import { EnvironmentConfig, GetOptions, Properties, Property } from '../types';
 import { EnvironmentStore } from './environment-store.gateway';
-
-export type GetReturn<T = undefined> = Property | T | undefined;
 
 /**
  * Gets the properties from the environment.
@@ -142,7 +140,7 @@ export abstract class EnvironmentQuery {
   }
 
   protected _contains(path: Path): boolean {
-    const property: GetReturn = this.get(path);
+    const property: Property | undefined = this.get(path);
 
     return this._containsDef(property);
   }
@@ -170,7 +168,7 @@ export abstract class EnvironmentQuery {
    * @returns The distinct environment property at path as Observable.
    * @see Path
    */
-  get$<T>(path: Path, options?: EnvironmentQueryOptions<T>): Observable<T | undefined> {
+  get$<T = Property>(path: Path, options?: GetOptions<T>): Observable<T | undefined> {
     return this.getAll$().pipe(
       map((environment: Properties) => this._getProperty(environment, path)),
       map((property?: Property) => this._getDefaultValue(property, options?.defaultValue)),
@@ -189,7 +187,7 @@ export abstract class EnvironmentQuery {
    * @returns The first non nil environment property at path as Promise.
    * @see Path
    */
-  getAsync<T>(path: Path, options?: EnvironmentQueryOptions<T>): Promise<T | undefined> {
+  getAsync<T = Property>(path: Path, options?: GetOptions<T>): Promise<T | undefined> {
     return this.get$<T>(path, options).pipe(firstNonNil()).toPromise();
   }
 
@@ -200,7 +198,7 @@ export abstract class EnvironmentQuery {
    * @returns The environment property at path.
    * @see Path
    */
-  get<T>(path: Path, options?: EnvironmentQueryOptions<T>): T | undefined {
+  get<T = Property>(path: Path, options?: GetOptions<T>): T | undefined {
     const environment: Properties = this.getAll();
 
     let property: Property | T | undefined = this._getProperty(environment, path);
@@ -224,7 +222,7 @@ export abstract class EnvironmentQuery {
     return property === undefined && defaultValue !== undefined ? defaultValue : property;
   }
 
-  protected _getTargetType<T>(property?: Property, targetType?: (property: Property) => T): GetReturn<T> {
+  protected _getTargetType<T>(property?: Property, targetType?: (property: Property) => T): Property | T | undefined {
     return property !== undefined && targetType !== undefined ? targetType(property) : property;
   }
 
@@ -245,21 +243,24 @@ export abstract class EnvironmentQuery {
     interpolation?: [string, string],
     useEnvironmentToTranspile?: boolean,
   ): Property | T | undefined {
-    const transpileConfig: EnvironmentConfig = this._config;
+    const config: EnvironmentConfig = this._config;
 
     if (interpolation != null) {
-      transpileConfig.interpolation = interpolation;
+      config.interpolation = interpolation;
     }
 
     if (useEnvironmentToTranspile != null) {
-      transpileConfig.useEnvironmentToTranspile = useEnvironmentToTranspile;
+      config.useEnvironmentToTranspile = useEnvironmentToTranspile;
     }
 
     if (isString(property)) {
-      const matcher: RegExp = this._getMatcher(transpileConfig);
+      const matcher: RegExp = this._getMatcher(config.interpolation);
 
       return property.replace(matcher, (substring: string, match: string) => {
-        const transpileProperties: Properties = this._getTranspileProperties(transpile, transpileConfig);
+        const transpileProperties: Properties = this._getTranspileProperties(
+          transpile,
+          config.useEnvironmentToTranspile,
+        );
 
         return this._replacer(substring, match, transpileProperties);
       });
@@ -268,8 +269,8 @@ export abstract class EnvironmentQuery {
     return property;
   }
 
-  protected _getMatcher(config: EnvironmentConfig): RegExp {
-    const [start, end]: [string, string] = config.interpolation;
+  protected _getMatcher(interpolation: [string, string]): RegExp {
+    const [start, end]: [string, string] = interpolation;
     const escapedStart: string = this._escapeChars(start);
     const escapedEnd: string = this._escapeChars(end);
 
@@ -280,8 +281,8 @@ export abstract class EnvironmentQuery {
     return [...chars].map((char: string) => `\\${char}`).join('');
   }
 
-  protected _getTranspileProperties(properties: Properties, config: EnvironmentConfig): Properties {
-    if (!config.useEnvironmentToTranspile) {
+  protected _getTranspileProperties(properties: Properties, useEnvironmentToTranspile: boolean): Properties {
+    if (!useEnvironmentToTranspile) {
       return properties;
     }
 

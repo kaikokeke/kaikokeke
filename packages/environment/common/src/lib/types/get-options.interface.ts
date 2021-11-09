@@ -4,7 +4,7 @@ import { Property } from './property.type';
 /**
  * The options to get a property.
  */
-export interface EnvironmentQueryOptions<T> {
+export interface GetOptions<T> {
   /**
    * The default value to resolve if no value is found.
    */

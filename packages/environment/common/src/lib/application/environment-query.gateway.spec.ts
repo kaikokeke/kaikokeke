@@ -2,7 +2,8 @@ import { Observable, of, Subject } from 'rxjs';
 import { marbles } from 'rxjs-marbles/jest';
 import { delay } from 'rxjs/operators';
 
-import { Properties } from '../types';
+import { asMutable, mapAsMutable } from '../helpers';
+import { EnvironmentConfig, Properties } from '../types';
 import { createEnvironmentQuery, EnvironmentQuery } from './environment-query.gateway';
 import { EnvironmentStore } from './environment-store.gateway';
 
@@ -315,72 +316,115 @@ describe('EnvironmentQuery', () => {
     expect(query.get('a.z', { defaultValue, targetType, transpile })).toEqual('2');
   });
 
-  // _transpile
-
-  it(`get(path, { transpile }) returns transpiled with weird space interpolation`, () => {
-    const env = { b: '{{   a.a}}' };
-    jest.spyOn(store, 'getAll').mockReturnValue(env);
-    const transpile = { a: { a: 0 } };
-    expect(query.get('b', { transpile })).toEqual('0');
-  });
-
-  it(`get(path, { transpile }) returns transpiled with invalid object`, () => {
-    const env = { b: '{{ a.a }}' };
-    jest.spyOn(store, 'getAll').mockReturnValue(env);
-    jest.spyOn(JSON, 'stringify').mockImplementation(() => {
-      throw new Error();
+  describe('transpile options', () => {
+    it(`{ transpile } returns transpiled with any type of space in the interpolation`, () => {
+      const env = { b: '{{   a.a}}' };
+      jest.spyOn(store, 'getAll').mockReturnValue(env);
+      const transpile = { a: { a: 0 } };
+      expect(query.get('b', { transpile })).toEqual('0');
     });
-    const transpile = { a: { a: { a: 1 } } };
-    expect(query.get('b', { transpile })).toEqual('[object Object]');
+
+    it(`{ transpile } returns transpiled object as string`, () => {
+      const env = { b: '{{ a.a }}' };
+      jest.spyOn(store, 'getAll').mockReturnValue(env);
+      const transpile = { a: { a: { a: 1 } } };
+      expect(query.get('b', { transpile })).toEqual('{"a":1}');
+    });
+
+    it(`{ transpile } returns transpiled invalid object`, () => {
+      const env = { b: '{{ a.a }}' };
+      jest.spyOn(store, 'getAll').mockReturnValue(env);
+      jest.spyOn(JSON, 'stringify').mockImplementation(() => {
+        throw new Error();
+      });
+      const transpile = { a: { a: { a: 1 } } };
+      expect(query.get('b', { transpile })).toEqual('[object Object]');
+    });
+
+    it(`{ transpile } returns transpiled with _config.useEnvironmentToTranspile`, () => {
+      jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+      const transpile = {};
+      (query as any)._config.useEnvironmentToTranspile = true;
+      expect(query.get('b', { transpile })).toEqual('0');
+    });
+
+    it(`{ transpile, useEnvironmentToTranspile } returns transpiled with useEnvironmentToTranspile`, () => {
+      jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+      const transpile = {};
+      const useEnvironmentToTranspile = true;
+      expect(query.get('b', { transpile })).toEqual('{{ a.a }}');
+      expect(query.get('b', { transpile, useEnvironmentToTranspile })).toEqual('0');
+    });
+
+    it(`{ transpile } returns transpiled with _config.interpolation`, () => {
+      const env = { b: '[< a.a >]' };
+      jest.spyOn(store, 'getAll').mockReturnValue(env);
+      const transpile = { a: { a: 0 } };
+      (query as any)._config.interpolation = ['[<', '>]'];
+      expect(query.get('b', { transpile })).toEqual('0');
+    });
+
+    it(`{ transpile, interpolation } returns transpiled with interpolation`, () => {
+      const env = { b: '[< a.a >]' };
+      jest.spyOn(store, 'getAll').mockReturnValue(env);
+      const transpile = { a: { a: 0 } };
+      const interpolation: [string, string] = ['[<', '>]'];
+      expect(query.get('b', { transpile })).toEqual('[< a.a >]');
+      expect(query.get('b', { transpile, interpolation })).toEqual('0');
+    });
+
+    it(`{ transpile, interpolation, useEnvironmentToTranspile } returns transpiled with interpolation and useEnvironmentToTranspile`, () => {
+      const env = { a: { a: 0 }, b: '[< a.a >]' };
+      jest.spyOn(store, 'getAll').mockReturnValue(env);
+      const transpile = {};
+      const interpolation: [string, string] = ['[<', '>]'];
+      const useEnvironmentToTranspile = true;
+      expect(query.get('b', { transpile })).toEqual('[< a.a >]');
+      expect(query.get('b', { transpile, interpolation, useEnvironmentToTranspile })).toEqual('0');
+    });
   });
 
-  it(`get(path, { transpile }) returns transpiled with object`, () => {
-    const env = { b: '{{ a.a }}' };
-    jest.spyOn(store, 'getAll').mockReturnValue(env);
-    const transpile = { a: { a: { a: 1 } } };
-    expect(query.get('b', { transpile })).toEqual('{"a":1}');
-  });
+  describe('examples of use', () => {
+    describe('returns as mutable', () => {
+      it(`using mapAsMutable() with .get$`, (done) => {
+        jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
+        query
+          .get$('a')
+          .pipe(mapAsMutable())
+          .subscribe({
+            next: (v) => {
+              expect(v).toEqual({ a: 0 });
+              expect(envA1.a).toBeFrozen();
+              expect(v).not.toBeFrozen();
+              done();
+            },
+          });
+      });
 
-  it(`get(path, { transpile }) returns transpiled with config useEnvironmentToTranspile`, () => {
-    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
-    const transpile = {};
-    (query as any)._config.useEnvironmentToTranspile = true;
-    expect(query.get('b', { transpile })).toEqual('0');
-  });
+      it(`using asMutable() with .get$`, (done) => {
+        jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
+        query.get$('a', { targetType: asMutable }).subscribe({
+          next: (v) => {
+            expect(v).toEqual({ a: 0 });
+            expect(envA1.a).toBeFrozen();
+            expect(v).not.toBeFrozen();
+            done();
+          },
+        });
+      });
 
-  it(`get(path, { transpile, useEnvironmentToTranspile }) returns transpiled with useEnvironmentToTranspile`, () => {
-    jest.spyOn(store, 'getAll').mockReturnValue(envA1);
-    const transpile = {};
-    const useEnvironmentToTranspile = true;
-    expect(query.get('b', { transpile })).toEqual('{{ a.a }}');
-    expect(query.get('b', { transpile, useEnvironmentToTranspile })).toEqual('0');
-  });
+      it(`using asMutable() with .getAsync`, async () => {
+        jest.spyOn(store, 'getAll$').mockReturnValue(of(envA1));
+        await expect(query.getAsync('a')).resolves.toBeFrozen();
+        await expect(query.getAsync('a', { targetType: asMutable })).resolves.not.toBeFrozen();
+      });
 
-  it(`get(path, { transpile }) returns transpiled with config interpolation`, () => {
-    const env = { b: '[< a.a >]' };
-    jest.spyOn(store, 'getAll').mockReturnValue(env);
-    const transpile = { a: { a: 0 } };
-    (query as any)._config.interpolation = ['[<', '>]'];
-    expect(query.get('b', { transpile })).toEqual('0');
-  });
-
-  it(`get(path, { transpile, interpolation }) returns transpiled with interpolation`, () => {
-    const env = { b: '[< a.a >]' };
-    jest.spyOn(store, 'getAll').mockReturnValue(env);
-    const transpile = { a: { a: 0 } };
-    const interpolation: [string, string] = ['[<', '>]'];
-    expect(query.get('b', { transpile })).toEqual('[< a.a >]');
-    expect(query.get('b', { transpile, interpolation })).toEqual('0');
-  });
-
-  it(`get(path, { transpile, interpolation, useEnvironmentToTranspile }) returns transpiled with interpolation and useEnvironmentToTranspile`, () => {
-    const env = { a: { a: 0 }, b: '[< a.a >]' };
-    jest.spyOn(store, 'getAll').mockReturnValue(env);
-    const transpile = {};
-    const interpolation: [string, string] = ['[<', '>]'];
-    const useEnvironmentToTranspile = true;
-    expect(query.get('b', { transpile })).toEqual('[< a.a >]');
-    expect(query.get('b', { transpile, interpolation, useEnvironmentToTranspile })).toEqual('0');
+      it(`using asMutable() with .get`, () => {
+        jest.spyOn(store, 'getAll').mockReturnValue(envA1);
+        expect(query.get('a')).toBeFrozen();
+        expect(query.get('a', { targetType: asMutable })).not.toBeFrozen();
+      });
+    });
   });
 });
 
@@ -391,15 +435,17 @@ describe('createEnvironmentQuery(store, partialConfig?)', () => {
     store = new TestStore();
   });
 
-  it(`(store) returns an EnvironmentQuery`, () => {
-    expect(createEnvironmentQuery(store)).toBeInstanceOf(EnvironmentQuery);
+  it(`(store) returns an EnvironmentQuery with default config`, () => {
+    const config: Partial<EnvironmentConfig> = { interpolation: ['{{', '}}'], useEnvironmentToTranspile: false };
+    const query = createEnvironmentQuery(store);
+    expect(query).toBeInstanceOf(EnvironmentQuery);
+    expect((query as any)._config).toEqual(config);
   });
 
-  it(`(store, partialConfig) returns and EnvironmentQuery with custom config`, () => {
-    const query = createEnvironmentQuery(store, { interpolation: ['[<', '>]'], useEnvironmentToTranspile: true });
-    const env = { a: { a: 0 }, b: '[< a.a >]' };
-    jest.spyOn(store, 'getAll$').mockReturnValue(of(env));
-    jest.spyOn(store, 'getAll').mockReturnValue(env);
-    expect(query.get('b', { transpile: {} })).toEqual('0');
+  it(`(store, partialConfig) returns an EnvironmentQuery with custom config`, () => {
+    const config: Partial<EnvironmentConfig> = { interpolation: ['[<', '>]'], useEnvironmentToTranspile: true };
+    const query = createEnvironmentQuery(store, config);
+    expect(query).toBeInstanceOf(EnvironmentQuery);
+    expect((query as any)._config).toEqual(config);
   });
 });
