@@ -4,18 +4,12 @@ Definition of the source from which to get environment properties asynchronously
 
 ## Getting Started
 
-The property source can be used by extending from the abstract class or implemented as an interface.
+You can create a properties source with `TypeScript` by extending from `PropertiesSource` and implementing the required methods as described in the API and examples.
 
 ```ts
 import { PropertiesSource, Properties } from '@kaikokeke/environment';
 
-export class ExtendsSource extends PropertiesSource {
-  load(): Properties[] {
-    return [{ a: 0 }];
-  }
-}
-
-export class ImplementsSource implements PropertiesSource {
+class ExtendsSource extends PropertiesSource {
   load(): Properties[] {
     return [{ a: 0 }];
   }
@@ -24,7 +18,13 @@ export class ImplementsSource implements PropertiesSource {
 const source: PropertiesSource = new ExtendsSource();
 ```
 
-This minimal implementation can be extended by setting properties as described in the API and examples below.
+If you want to create a pure `JavaScript` implementation you must create a plain object with the same properties and function properties described in the `TypeScript` class implementation.
+
+```ts
+const source = {
+  load: () => [{ a: 0 }],
+};
+```
 
 ## API
 
@@ -380,7 +380,7 @@ Sometimes is needed to provide a fallback source if the first one fails. This ca
 import { PropertiesSource, Properties } from '@kaikokeke/environment';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators':
-import { HttpClient } from '...';
+import { HttpClient } from './http-client.service';
 
 export class FileSource extends PropertiesSource {
   constructor(protected readonly http: HttpClient) {
@@ -400,7 +400,7 @@ If the application needs to load the properties from sources that emit multiple 
 ```ts
 import { PropertiesSource, Properties } from '@kaikokeke/environment';
 import { Observable } from 'rxjs';
-import { ServerSideEventClient } from '...';
+import { ServerSideEventClient } from './server-side-event-client.service';
 
 export class ServerSideEventSource extends PropertiesSource {
   loadInOrder = false;
