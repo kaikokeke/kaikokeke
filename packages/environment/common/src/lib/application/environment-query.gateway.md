@@ -45,19 +45,15 @@ abstract class EnvironmentQuery {
     protected readonly store: EnvironmentStore,
     protected readonly partialConfig?: Partial<EnvironmentConfig>,
   );
-
   getAll$(): Observable<Properties>;
   getAllAsync(): Promise<Properties>;
   getAll(): Properties;
-
   containsAll$(...paths: AtLeastOne<Path>): Observable<boolean>;
   containsAllAsync(...paths: AtLeastOne<Path>): Promise<boolean>;
   containsAll(...paths: AtLeastOne<Path>): boolean;
-
   containsSome$(...paths: AtLeastOne<Path>): Observable<boolean>;
   containsSomeAsync(...paths: AtLeastOne<Path>): Promise<boolean>;
   containsSome(...paths: AtLeastOne<Path>): boolean;
-
   get$<T = Property>(path: Path, options?: GetOptions<T>): Observable<T | undefined>;
   getAsync<T = Property>(path: Path, options?: GetOptions<T>): Promise<T | undefined>;
   get<T = Property>(path: Path, options?: GetOptions<T>): T | undefined;
