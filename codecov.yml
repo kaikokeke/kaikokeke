@@ -8,9 +8,15 @@ coverage:
       shared-common:
         target: 80%
         flags: shared-common
-      shared-common-angular:
+      shared-angular:
         target: 80%
-        flags: shared-common-angular
+        flags: shared-angular
+      environment-common:
+        target: 80%
+        flags: environment-common
+      environment-angular:
+        target: 80%
+        flags: environment-angular
 
 flags:
   shared-devtools:
@@ -19,6 +25,12 @@ flags:
   shared-common:
     paths:
       - coverage/package/shared/common/
-  shared-common-angular:
+  shared-angular:
     paths:
       - coverage/package/shared/common-angular/
+  environment-common:
+    paths:
+      - coverage/package/environment/common/
+  environment-angular:
+    paths:
+      - coverage/package/environment/angular/
