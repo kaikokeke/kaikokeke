@@ -4,30 +4,52 @@ Loads the environment properties from the provided asynchronous sources.
 
 ## Getting Started
 
-You can create an environment loader class extending from `EnvironmentLoader`.
+You can create an environment query with `TypeScript` by extending from `EnvironmentLoader`. This option is ideal to change or extends the service behavior, as described in the API and examples.
 
 ```ts
 import { EnvironmentLoader, EnvironmentService, PropertiesSource } from '@kaikokeke/environment';
-import { environmentService } from './environment.service.ts';
-import { environmentSources } from './environment.sources.ts';
+import { environmentService } from './environment.service';
+import { environmentSources } from './environment.sources';
 
 class SimpleEnvironmentLoader extends EnvironmentLoader {
   constructor(
     protected readonly service: EnvironmentService,
     protected readonly sources?: PropertiesSource | PropertiesSource[],
   ) {
-    super(service, surces);
+    super(service, sources);
   }
 }
 
-export const environmentQuery: EnvironmentLoader = new SimpleEnvironmentLoader(environmentService, environmentSources);
+export const environmentLoader: EnvironmentLoader = new SimpleEnvironmentLoader(environmentService, environmentSources);
+```
+
+If you want to create a pure `JavaScript` implementation you can use the `createEnvironmentLoader(service, sources)` function.
+
+```js
+import { createEnvironmentLoader } from '@kaikokeke/environment';
+import { environmentService } from './environment.service';
+import { environmentSources } from './environment.sources';
+
+const environmentLoader = createEnvironmentLoader(environmentService, environmentSources);
 ```
 
 ## API
 
 ```ts
+function createEnvironmentLoader(
+  service: EnvironmentService,
+  sources?: PropertiesSource | PropertiesSource[],
+): EnvironmentLoader;
+```
+
+```ts
 abstract class EnvironmentLoader {
-  load(): Promise<void>;
+  constructor(
+    protected readonly service: EnvironmentService,
+    protected readonly sources?: PropertiesSource | PropertiesSource[],
+  );
+  async load(): Promise<void>;
+  preAddProperties(properties: Properties, source: LoaderPropertiesSource): Properties;
   resolveLoad(): void;
   rejectLoad<E>(error: E): void;
   completeAllSources(): void;
@@ -36,13 +58,80 @@ abstract class EnvironmentLoader {
 }
 ```
 
+### Function
+
+#### `function createEnvironmentLoader(service: EnvironmentService, sources?: PropertiesSource | PropertiesSource[]): EnvironmentLoader`
+
+Creates an environment loader service.
+
+```ts
+createEnvironmentLoader(environmentService, environmentSources);
+```
+
+Returns a basic EnvironmentLoader instance.
+
+```ts
+const environmentLoader: EnvironmentLoader = createEnvironmentLoader(environmentService, environmentSources);
+```
+
 ### Exposed Methods
 
 #### `async load(): Promise<void>`
 
 Loads the environment properties from the provided asynchronous sources.
 
+```ts
+environmentLoader.load();
+```
+
 Returns a promise to load once the `requiredToLoad` sources are loaded.
+
+```ts
+environmentLoader
+  .load()
+  .then(() => {})
+  .catch(<E>(error: E) => {});
+```
+
+#### `resolveLoad(): void`
+
+Forces the load to resolve.
+
+```ts
+environmentLoader.resolveLoad();
+```
+
+#### `rejectLoad<E>(error: E): void`
+
+Forces the load to reject.
+
+```ts
+environmentLoader.rejectLoad(new Error());
+```
+
+#### `completeAllSources(): void`
+
+Forces the load to resolve and stops all ongoing source loads.
+
+```ts
+environmentLoader.completeAllSources();
+```
+
+#### `completeSource(id: string): void`
+
+Completes a source load.
+
+```ts
+environmentLoader.completeSource('550e8400-e29b-41d4-a716-446655440000');
+```
+
+#### `onDestroy(): void`
+
+Forces the load to resolve, stops all ongoing source loads and completes the subjects.
+
+```ts
+environmentLoader.onDestroy();
+```
 
 ## Lifecycle Hooks
 

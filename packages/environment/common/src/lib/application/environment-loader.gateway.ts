@@ -219,7 +219,7 @@ export abstract class EnvironmentLoader {
   }
 
   /**
-   * the load to resolve, stops all ongoing source loads and completes the subjects.
+   * Forces the load to resolve, stops all ongoing source loads and completes the subjects.
    */
   onDestroy(): void {
     this.completeAllSources();
