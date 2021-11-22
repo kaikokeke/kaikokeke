@@ -15,6 +15,6 @@ export function firstNonNil<T>(due?: number | Date): OperatorFunction<T, NonNull
   return (observable: Observable<T>) => {
     const obs: Observable<NonNullable<T>> = observable.pipe(filterNil(), take(1));
 
-    return due == null ? obs : obs.pipe(timeout(due));
+    return due == null ? obs : obs.pipe(timeout({ first: due }));
   };
 }
