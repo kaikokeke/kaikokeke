@@ -93,6 +93,22 @@ environmentLoader
   .catch(<E>(error: E) => {});
 ```
 
+#### `preAddProperties(properties: Properties, source?: LoaderPropertiesSource): Properties`
+
+Middleware function that gives the possibility to modify the source properties before inserting it into the environment.
+
+```ts
+environmentLoader.preAddProperties({});
+```
+
+The `preAddProperties()` middleware is called when we invoke the `EnvironmentService.add()` or `EnvironmentService.merge()` methods with the newly added properties, and gives you the possibility to modify it before inserting it into the environment.
+
+```ts
+preAddProperties(properties: Properties, source?: LoaderPropertiesSource): Properties {
+  return {...properties, ...{ sources: [source.name ?? source.id] } };
+}
+```
+
 #### `resolveLoad(): void`
 
 Forces the load to resolve.
@@ -135,7 +151,7 @@ environmentLoader.onDestroy();
 
 ## Lifecycle Hooks
 
-An `EnvironmentLoader` instance has a lifecycle that starts each time the `load()` or `loadSubmodule()` methods are invoked. Each lifecycle ends when the method returns. Your implementation can use lifecycle hook methods to tap into key events in the environment loader service.
+An `EnvironmentLoader` instance has a lifecycle that starts each time the `load()` method is invoked. Each lifecycle ends when the method returns. Your implementation can use lifecycle hook methods to tap into key events in the environment loader service.
 
 Respond to events in the lifecycle of the loader by implementing one or more of the _lifecycle hook_ interfaces presented below. The hooks give you the opportunity to act on the instance at the appropriate moment.
 
@@ -143,31 +159,23 @@ Each interface defines the prototype for a single hook method, whose name is the
 
 You don't have to implement all (or any) of the lifecycle hooks, just the ones you need.
 
-### `OnBeforeLoad`
+### OnBeforeLoad
 
-### `OnAfterLoad`
+### OnAfterLoad
 
-### `OnAfterError`
+### OnAfterError
 
-### `OnAfterComplete`
+### OnAfterComplete
 
-### `OnBeforeSourceLoad`
+### OnBeforeSourceLoad
 
-### `OnBeforeSourceAdd`
+### OnBeforeSourceAdd
 
-### `OnAfterSourceAdd`
+### OnAfterSourceAdd
 
-### `OnAfterSourceError`
+### OnAfterSourceError
 
-### `OnAfterSourceComplete`
-
-## Source Middleware
-
-It’s possible to define a middleware function to manage how properties before they are added to the environment.
-
-### `preAddProperties(properties: Properties, source: LoaderPropertiesSource): Properties`
-
-The `preAddProperties()` middleware is called when we invoke the `EnvironmentService.add()` or `EnvironmentService.merge()` methods with the newly added properties, and gives you the possibility to modify it before inserting it into the environment.
+### OnAfterSourceComplete
 
 ## Examples of use
 

@@ -132,7 +132,7 @@ export abstract class EnvironmentLoader {
    * @param source The environment properties source.
    * @returns The modified source properties.
    */
-  preAddProperties(properties: Properties, source: LoaderPropertiesSource): Properties {
+  preAddProperties(properties: Properties, source?: LoaderPropertiesSource): Properties {
     return properties;
   }
 
