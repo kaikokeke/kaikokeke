@@ -74,7 +74,7 @@ describe('EnvironmentQuery', () => {
   // getAllAsync
 
   it(`getAllAsync() returns the first non empty set of environment properties as Promise`, async () => {
-    jest.spyOn(store, 'getAll$').mockReturnValue(of(null, undefined, {}, envA1).pipe(delay(5)));
+    jest.spyOn(store, 'getAll$').mockReturnValue(of(null, undefined, {}, envA1, envA2).pipe(delay(5)));
     await expect(query.getAllAsync()).resolves.toEqual(envA1);
   });
 

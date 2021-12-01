@@ -33,7 +33,6 @@ class TestEnvironmentService extends EnvironmentService {
 
 class TestLoader extends EnvironmentLoader {
   loadSubject$: ReplaySubject<void> = new ReplaySubject();
-  completeAllSubject$: ReplaySubject<void> = new ReplaySubject();
   requiredToLoadSubject$: BehaviorSubject<Set<string>> = new BehaviorSubject(new Set());
   loaderSources: ReadonlyArray<LoaderPropertiesSource>;
 
@@ -334,7 +333,7 @@ describe('EnvironmentLoader', () => {
     });
   });
 
-  describe('.completeSource(id)', () => {
+  describe('.completeSource(source)', () => {
     const completeSources = [
       ...observableRequiredOrderedSource,
       ...multipleRequiredOrderedSource,
@@ -342,9 +341,9 @@ describe('EnvironmentLoader', () => {
     ];
 
     it(`forces the load to resolve`, async () => {
-      jest
-        .spyOn(loader, 'onAfterSourceComplete')
-        .mockImplementation(() => loader.completeSource(multipleRequiredOrderedSource[0].id));
+      jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => {
+        loader.completeSource(multipleRequiredOrderedSource[0]);
+      });
       loader.loaderSources = completeSources;
       expect(service.add).not.toHaveBeenCalled();
       await expect(loader.load()).toResolve();
@@ -356,7 +355,7 @@ describe('EnvironmentLoader', () => {
     it(`stops the source load`, () => {
       jest
         .spyOn(loader, 'onAfterSourceComplete')
-        .mockImplementation(() => loader.completeSource(multipleRequiredOrderedSource[0].id));
+        .mockImplementation(() => loader.completeSource(multipleRequiredOrderedSource[0]));
       jest.useFakeTimers();
       loader.loaderSources = completeSources;
       loader.load();
@@ -367,7 +366,9 @@ describe('EnvironmentLoader', () => {
     });
 
     it(`does nothing if the id doesn't exist`, () => {
-      jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => loader.completeSource(''));
+      jest
+        .spyOn(loader, 'onAfterSourceComplete')
+        .mockImplementation(() => loader.completeSource(propertiesSourceFactory(new ObservableSource())[0]));
       jest.useFakeTimers();
       loader.loaderSources = completeSources;
       loader.load();
@@ -382,7 +383,9 @@ describe('EnvironmentLoader', () => {
 
     it(`doesn't throw error if source subject is not setted`, () => {
       const id = multipleRequiredOrderedSource[0].id;
-      jest.spyOn(loader, 'onAfterSourceComplete').mockImplementation(() => loader.completeSource(id));
+      jest
+        .spyOn(loader, 'onAfterSourceComplete')
+        .mockImplementation(() => loader.completeSource(multipleRequiredOrderedSource[0]));
       jest.useFakeTimers();
       loader.loaderSources = completeSources;
       (loader as any)['sourcesSubject$'] = new Map();
@@ -423,17 +426,6 @@ describe('EnvironmentLoader', () => {
       expect(loader.loadSubject$.isStopped).toBeFalse();
       loader.onDestroy();
       expect(loader.loadSubject$.isStopped).toBeTrue();
-    });
-
-    it(`completes the complete sources subject`, () => {
-      jest.useFakeTimers();
-      loader.loaderSources = onDestroySources;
-      loader.load();
-      expect(loader.completeAllSubject$.isStopped).toBeFalse();
-      jest.advanceTimersByTime(5);
-      expect(loader.completeAllSubject$.isStopped).toBeFalse();
-      loader.onDestroy();
-      expect(loader.completeAllSubject$.isStopped).toBeTrue();
     });
 
     it(`completes the required to load subject`, () => {
@@ -920,8 +912,8 @@ describe('EnvironmentLoader', () => {
       expect(console.log).toHaveBeenNthCalledWith(2, 'onBeforeSourceLoad');
       expect(console.log).toHaveBeenNthCalledWith(3, 'onBeforeSourceAdd');
       expect(console.log).toHaveBeenNthCalledWith(4, 'onAfterSourceAdd');
-      expect(console.log).toHaveBeenNthCalledWith(5, 'onAfterComplete');
-      expect(console.log).toHaveBeenNthCalledWith(6, 'onAfterSourceComplete');
+      expect(console.log).toHaveBeenNthCalledWith(5, 'onAfterSourceComplete');
+      expect(console.log).toHaveBeenNthCalledWith(6, 'onAfterComplete');
       expect(console.log).toHaveBeenNthCalledWith(7, 'onAfterLoad');
       expect(console.log).toHaveBeenCalledTimes(7);
     });
@@ -942,8 +934,8 @@ describe('EnvironmentLoader', () => {
       expect(console.log).toHaveBeenNthCalledWith(1, 'onBeforeLoad');
       expect(console.log).toHaveBeenNthCalledWith(2, 'onBeforeSourceLoad');
       expect(console.log).toHaveBeenNthCalledWith(3, 'onAfterSourceError');
-      expect(console.log).toHaveBeenNthCalledWith(4, 'onAfterComplete');
-      expect(console.log).toHaveBeenNthCalledWith(5, 'onAfterSourceComplete');
+      expect(console.log).toHaveBeenNthCalledWith(4, 'onAfterSourceComplete');
+      expect(console.log).toHaveBeenNthCalledWith(5, 'onAfterComplete');
       expect(console.log).toHaveBeenNthCalledWith(6, 'onAfterError');
       expect(console.log).toHaveBeenCalledTimes(6);
     });

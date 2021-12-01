@@ -31,7 +31,7 @@ export function guardTimeoutOperator(
   return (observable: Observable<boolean | UrlTree>) => {
     return dueTime != null
       ? observable.pipe(
-          timeout(dueTime),
+          timeout({ first: dueTime }),
           catchError(() => of(urlTree ?? false)),
         )
       : observable;

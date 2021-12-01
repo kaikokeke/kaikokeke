@@ -1,7 +1,7 @@
 import { AtLeastOne, deepMerge, filterNil, firstNonNil, Path } from '@kaikokeke/common';
 import { get, isEqual, isString } from 'lodash-es';
-import { combineLatest, MonoTypeOperatorFunction, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, map, shareReplay, take } from 'rxjs/operators';
+import { combineLatest, firstValueFrom, MonoTypeOperatorFunction, Observable } from 'rxjs';
+import { distinctUntilChanged, filter, map, shareReplay } from 'rxjs/operators';
 
 import { environmentConfigFactory } from '../helpers';
 import { EnvironmentConfig, GetOptions, Properties, Property } from '../types';
@@ -33,13 +33,12 @@ export abstract class EnvironmentQuery {
    * @returns The first non nil or empty set of environment properties as Promise.
    */
   async getAllAsync(): Promise<Properties> {
-    return this.getAll$()
-      .pipe(
-        filterNil(),
-        filter((environment: Properties) => Object.keys(environment).length > 0),
-        take(1),
-      )
-      .toPromise();
+    const getAll$: Observable<Properties> = this.getAll$().pipe(
+      filterNil(),
+      filter((environment: Properties) => Object.keys(environment).length > 0),
+    );
+
+    return firstValueFrom(getAll$);
   }
 
   /**
@@ -72,9 +71,9 @@ export abstract class EnvironmentQuery {
    * @see Path
    */
   containsAllAsync(...paths: AtLeastOne<Path>): Promise<boolean> {
-    return this.containsAll$(...paths)
-      .pipe(this._containsAsync())
-      .toPromise();
+    const containsAll$: Observable<boolean> = this.containsAll$(...paths).pipe(this._containsAsync());
+
+    return firstValueFrom(containsAll$);
   }
 
   /**
@@ -111,9 +110,9 @@ export abstract class EnvironmentQuery {
    * @see Path
    */
   containsSomeAsync(...paths: AtLeastOne<Path>): Promise<boolean> {
-    return this.containsSome$(...paths)
-      .pipe(this._containsAsync())
-      .toPromise();
+    const containsSome$: Observable<boolean> = this.containsSome$(...paths).pipe(this._containsAsync());
+
+    return firstValueFrom(containsSome$);
   }
 
   /**
@@ -146,11 +145,7 @@ export abstract class EnvironmentQuery {
   }
 
   protected _containsAsync(): MonoTypeOperatorFunction<boolean> {
-    return (observable: Observable<boolean>) =>
-      observable.pipe(
-        filter((property: boolean) => property === true),
-        take(1),
-      );
+    return (observable: Observable<boolean>) => observable.pipe(filter((property: boolean) => property === true));
   }
 
   protected _containsAll(containsList: Array<boolean>): boolean {
@@ -188,7 +183,9 @@ export abstract class EnvironmentQuery {
    * @see Path
    */
   getAsync<T = Property>(path: Path, options?: GetOptions<T>): Promise<T | undefined> {
-    return this.get$<T>(path, options).pipe(firstNonNil()).toPromise();
+    const get$: Observable<T | undefined> = this.get$<T>(path, options).pipe(firstNonNil());
+
+    return firstValueFrom(get$);
   }
 
   /**

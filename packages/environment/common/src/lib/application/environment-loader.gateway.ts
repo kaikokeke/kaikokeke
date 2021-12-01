@@ -1,6 +1,6 @@
 import { executeIfExists } from '@kaikokeke/common';
 import { isEqual } from 'lodash-es';
-import { BehaviorSubject, concat, defer, merge, Observable, of, ReplaySubject } from 'rxjs';
+import { BehaviorSubject, concat, defer, firstValueFrom, merge, Observable, of, ReplaySubject } from 'rxjs';
 import { catchError, filter, finalize, take, takeUntil, tap } from 'rxjs/operators';
 
 import { propertiesSourceFactory } from '../helpers';
@@ -13,7 +13,6 @@ import { PropertiesSource } from './properties-source.gateway';
  */
 export abstract class EnvironmentLoader {
   protected readonly loadSubject$: ReplaySubject<void> = new ReplaySubject();
-  protected readonly completeAllSubject$: ReplaySubject<void> = new ReplaySubject();
   protected readonly requiredToLoadSubject$: BehaviorSubject<Set<string>> = new BehaviorSubject(new Set());
   protected readonly sourcesSubject$: Map<string, ReplaySubject<void>> = new Map();
   protected readonly loaderSources: ReadonlyArray<LoaderPropertiesSource>;
@@ -38,8 +37,12 @@ export abstract class EnvironmentLoader {
    * @returns A promise to load once the `requiredToLoad` sources are loaded.
    */
   async load(): Promise<void> {
-    return this._load$()
-      .toPromise()
+    executeIfExists(this, 'onBeforeLoad');
+
+    this._watchRequiredToLoadSources();
+    this._loadSources();
+
+    return firstValueFrom(this.loadSubject$)
       .then(() => {
         executeIfExists(this, 'onAfterLoad');
         Promise.resolve();
@@ -47,16 +50,8 @@ export abstract class EnvironmentLoader {
       .catch(<E>(error: E) => {
         executeIfExists(this, 'onAfterError', error);
         throw error;
-      });
-  }
-
-  protected _load$(): Observable<void> {
-    executeIfExists(this, 'onBeforeLoad');
-
-    this._watchRequiredToLoadSources();
-    this._loadSources();
-
-    return this.loadSubject$.pipe(take(1), takeUntil(this.completeAllSubject$));
+      })
+      .finally(() => this.onDestroy());
   }
 
   protected _watchRequiredToLoadSources(): void {
@@ -71,7 +66,6 @@ export abstract class EnvironmentLoader {
         filter((requiredToLoadLoaded: Set<string>) => isEqual(requiredToLoadLoaded, requiredToLoadSources)),
         tap({ next: () => this.resolveLoad() }),
         take(1),
-        takeUntil(this.completeAllSubject$),
       )
       .subscribe();
   }
@@ -82,15 +76,6 @@ export abstract class EnvironmentLoader {
       .subscribe();
   }
 
-  protected _loadUnorderedSources(): Observable<Properties> {
-    const unorderedSources: LoaderPropertiesSource[] = this.loaderSources.filter(
-      (source: LoaderPropertiesSource) => !source.loadInOrder,
-    );
-    const unorderedSources$: Observable<Properties>[] = this._getSources$(unorderedSources);
-
-    return merge(...unorderedSources$);
-  }
-
   protected _loadOrderedSources(): Observable<Properties> {
     const orderedSources: LoaderPropertiesSource[] = this.loaderSources.filter(
       (source: LoaderPropertiesSource) => source.loadInOrder,
@@ -98,6 +83,15 @@ export abstract class EnvironmentLoader {
     const orderedSources$: Observable<Properties>[] = this._getSources$(orderedSources);
 
     return concat(...orderedSources$);
+  }
+
+  protected _loadUnorderedSources(): Observable<Properties> {
+    const unorderedSources: LoaderPropertiesSource[] = this.loaderSources.filter(
+      (source: LoaderPropertiesSource) => !source.loadInOrder,
+    );
+    const unorderedSources$: Observable<Properties>[] = this._getSources$(unorderedSources);
+
+    return merge(...unorderedSources$);
   }
 
   protected _getSources$(sources: LoaderPropertiesSource[]): Observable<Properties>[] {
@@ -120,7 +114,6 @@ export abstract class EnvironmentLoader {
           executeIfExists(this, 'onAfterSourceComplete', source);
           this._checkRequiredToLoad(source);
         }),
-        takeUntil(this.completeAllSubject$),
         takeUntil(this._getSafeSourceSubject$(source.id)),
       );
     });
@@ -207,15 +200,20 @@ export abstract class EnvironmentLoader {
    * Forces the load to resolve and stops all ongoing source loads.
    */
   completeAllSources(): void {
-    this.completeAllSubject$.next();
+    this.loaderSources.forEach((source: LoaderPropertiesSource) => this.completeSource(source));
   }
 
   /**
    * Completes a source load.
    * @param id The id of the source to complete.
    */
-  completeSource(id: string): void {
-    this.sourcesSubject$.get(id)?.next();
+  completeSource(source: LoaderPropertiesSource): void {
+    const sourceSubject$: ReplaySubject<void> | undefined = this.sourcesSubject$.get(source.id);
+
+    if (sourceSubject$ != null) {
+      sourceSubject$.next();
+      this._checkRequiredToLoad(source);
+    }
   }
 
   /**
@@ -224,7 +222,6 @@ export abstract class EnvironmentLoader {
   onDestroy(): void {
     this.completeAllSources();
     this.loadSubject$.complete();
-    this.completeAllSubject$.complete();
     this.requiredToLoadSubject$.complete();
     this.sourcesSubject$.forEach((subject: ReplaySubject<void>) => subject.complete());
   }
