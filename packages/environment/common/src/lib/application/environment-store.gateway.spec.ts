@@ -1,6 +1,4 @@
-import { createStore as createAkitaStore, isDev, setAction, Store as AkitaStore } from '@datorama/akita';
-import { Action, createStore as createReduxStore, Reducer, Store as ReduxStore } from 'redux';
-import { BehaviorSubject, from, Observable, ObservableInput } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 import { Properties } from '../types';
 import { EnvironmentStore } from './environment-store.gateway';
@@ -51,59 +49,6 @@ const rxjsEnvironmentStore = {
     _rxjsProperties.next({});
   },
 };
-
-const akitaStore: AkitaStore<Properties> = createAkitaStore({}, { name: 'environment', resettable: true });
-
-class AkitaEvironmentStore extends EnvironmentStore {
-  getAll$(): Observable<Properties> {
-    return akitaStore._select((state: Properties) => state);
-  }
-  getAll(): Properties {
-    return akitaStore.getValue();
-  }
-  update(properties: Properties): void {
-    isDev() && setAction('Update');
-    akitaStore._setState(properties);
-  }
-  reset(): void {
-    akitaStore.reset();
-  }
-}
-
-interface EnvironmentAction extends Action<string> {
-  properties?: Properties;
-}
-
-const environmentReducer: Reducer = (state: Properties = {}, action: EnvironmentAction) => {
-  switch (action.type) {
-    case 'UPDATE':
-      return action.properties;
-    case 'RESET':
-      return {};
-    default:
-      return state;
-  }
-};
-
-class ReduxEvironmentStore extends EnvironmentStore {
-  private readonly reduxStore: ReduxStore<Properties> = createReduxStore(environmentReducer);
-
-  getAll$(): Observable<Properties> {
-    return from(this.reduxStore as ObservableInput<Properties>);
-  }
-
-  getAll(): Properties {
-    return this.reduxStore.getState();
-  }
-
-  update(properties: Properties): void {
-    this.reduxStore.dispatch({ type: 'UPDATE', properties });
-  }
-
-  reset(): void {
-    this.reduxStore.dispatch({ type: 'RESET' });
-  }
-}
 
 describe('EnvironmentStore', () => {
   let store: EnvironmentStore;
@@ -174,32 +119,6 @@ describe('EnvironmentStore', () => {
     describe(`using a TypeScript basic RxJS State Manager`, () => {
       beforeEach(() => {
         store = new RxjsEnvironmentStore();
-      });
-
-      testExampleImplementation();
-    });
-
-    describe(`using a JavaScript basic RxJS State Manager`, () => {
-      beforeEach(() => {
-        _rxjsProperties = new BehaviorSubject({});
-        store = rxjsEnvironmentStore;
-      });
-
-      testExampleImplementation();
-    });
-
-    describe(`using Akita Reactive State Management`, () => {
-      beforeEach(() => {
-        store = new AkitaEvironmentStore();
-        akitaStore.reset();
-      });
-
-      testExampleImplementation();
-    });
-
-    describe(`using Redux State Container`, () => {
-      beforeEach(() => {
-        store = new ReduxEvironmentStore();
       });
 
       testExampleImplementation();
