@@ -12,6 +12,10 @@ export class AppComponent {
   loading$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   constructor(protected readonly router: Router) {
+    this.watchRouterLoading();
+  }
+
+  protected watchRouterLoading(): void {
     this.router.events.subscribe({
       next: (event) => {
         if (event instanceof RouteConfigLoadStart || event instanceof NavigationStart) {

@@ -2,12 +2,12 @@ import { TestBed } from '@angular/core/testing';
 import { KaikokekeAngularModule } from '@kaikokeke/angular';
 
 import { AppComponent } from './app.component';
-import { AkitaEnvironmentModule } from './environment/akita-environment.module';
+import { RxjsEnvironmentModule } from './environment/rxjs-environment.module';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [KaikokekeAngularModule, AkitaEnvironmentModule],
+      imports: [KaikokekeAngularModule, RxjsEnvironmentModule],
       declarations: [AppComponent],
     }).compileComponents();
   });
