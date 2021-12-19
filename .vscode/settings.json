@@ -10,6 +10,8 @@
   "codemetrics.basics.ComplexityTemplate": "{1} complexity: {0}",
   "codemetrics.basics.DecorationModeEnabled": false,
   "codemetrics.basics.Exclude": ["**/*.spec.ts"],
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "editor.rulers": [120],
